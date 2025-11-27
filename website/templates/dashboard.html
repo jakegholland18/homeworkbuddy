@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="card fade-in">
+
+    <h1 class="page-title" style="color:#ff7a00;">Student Dashboard</h1>
+
+    <!-- STATS ROW -->
+    <div class="stats-row">
+        <div class="stat-box">
+            <h3>⭐ XP</h3>
+            <p>{{ xp }}</p>
+        </div>
+
+        <div class="stat-box">
+            <h3>🏆 Level</h3>
+            <p>{{ level }}</p>
+        </div>
+
+        <div class="stat-box">
+            <h3>📘 Subjects Learned</h3>
+            <p>{{ subjects_count }}</p>
+        </div>
+    </div>
+
+    <!-- Progress Report -->
+    <h2 style="margin-top:30px;">📊 Progress Report</h2>
+    <p>Coming soon! This will show grades and parent-friendly reports.</p>
+
+</div>
+
+{% endblock %}
+

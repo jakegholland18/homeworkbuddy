@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="home-hero fade-in">
+
+    <!-- HERO TITLE -->
+    <h1 class="home-title">Welcome to <span>Homework Buddy</span> ✏️</h1>
+
+    <p class="home-subtitle">
+        Ask questions, explore subjects, and let your Study Buddy guide your adventure!
+    </p>
+
+    <!-- FLOATING CHARACTER PREVIEW (cute!) -->
+    <div class="home-preview">
+        <img src="/static/nova-circuit.png" class="float-char tilt-float"/>
+        <img src="/static/princess-everly-dawn.png" class="float-char small-spin"/>
+        <img src="/static/valor-strike.png" class="float-char slow-bounce"/>
+    </div>
+
+</div>
+
+
+<!-- ⭐ MAIN CARD SECTION -->
+<div class="card fade-in" style="margin-top:40px;">
+
+    <h2 style="text-align:center; margin-bottom:10px;">Your Adventure Starts Here! 🚀</h2>
+    <p style="text-align:center; margin-bottom:20px;">
+        Choose a subject, pick your grade level, and ask anything you need help with.
+    </p>
+
+    <form action="/subject" method="POST" class="home-form">
+
+        <label>Grade Level:</label>
+        <input type="text" name="grade" required>
+
+        <label>Subject:</label>
+        <select name="subject" required>
+            <option value="math">Math</option>
+            <option value="science">Science</option>
+            <option value="history">History</option>
+            <option value="bible">Bible</option>
+            <option value="writing">Writing</option>
+            <option value="text">Reading / Summaries</option>
+            <option value="general">General Questions</option>
+            <option value="apologetics">Apologetics</option>
+            <option value="investment">Investing</option>
+            <option value="money">Money & Accounting</option>
+        </select>
+
+        <label>Your Question:</label>
+        <textarea name="question" rows="4" required></textarea>
+
+        <button class="btn">Ask Your Study Buddy</button>
+
+    </form>
+
+    <div style="text-align:center; margin-top:20px;">
+        <a href="/choose-character" class="btn">Choose Your Character</a>
+    </div>
+
+</div>
+
+{% endblock %}

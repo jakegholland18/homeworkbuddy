@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="fade-in">
+    <h1 class="page-title">{{ character|replace('_',' ')|title }}</h1>
+
+    <div class="card">
+        <h2>Your Answer:</h2>
+        <p>{{ answer|safe }}</p>
+
+        <a href="/" class="btn" style="margin-top:20px;">Ask Another Question</a>
+    </div>
+</div>
+
+{% endblock %}
+

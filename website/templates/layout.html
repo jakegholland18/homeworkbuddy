@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <title>Homework Buddy</title>
+
+    <!-- GLOBAL STYLES -->
+    <link rel="stylesheet" href="/static/style.css">
+
+    <!-- OPTIONAL ANIMATION CSS -->
+    <link rel="stylesheet" href="/static/animations.css">
+
+</head>
+
+<body>
+
+<!-- ========================= -->
+<!--        SIDEBAR MENU       -->
+<!-- ========================= -->
+<div class="sidebar">
+    <h2 class="sidebar-title">📚 Homework Buddy</h2>
+
+    <a href="/">🏠 Home</a>
+    <a href="/dashboard">📊 Student Dashboard</a>
+    <a href="/buddy">🤖 Study Buddy</a>
+    <a href="/choose-character">🎨 Choose Buddy</a>
+    <a href="/parent">👨‍👩‍👦 Parent Dashboard</a>
+</div>
+
+<!-- ========================= -->
+<!--      MAIN CONTENT AREA    -->
+<!-- ========================= -->
+<div class="main-content">
+    {% block content %}
+    {% endblock %}
+</div>
+
+</body>
+</html>
+
+
+
+
+

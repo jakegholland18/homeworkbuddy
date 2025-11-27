@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h1 class="page-title fade-in">Choose Your Study Buddy</h1>
+
+<div class="character-grid fade-in">
+
+    <form method="POST" action="/select-character">
+
+        {% for id, char in characters.items() %}
+        <button class="character-card" 
+                type="submit" 
+                name="character" 
+                value="{{ id }}">
+            <img src="/static/{{ id }}.png" class="character-select-img">
+            <div>{{ char.name }}</div>
+        </button>
+        {% endfor %}
+
+    </form>
+
+</div>
+
+{% endblock %}
+
+
+
+
