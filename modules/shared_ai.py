@@ -3,36 +3,65 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-SYSTEM_PROMPT = """
-You are a friendly Study Buddy who speaks in a warm, calm, conversational tone.
-You talk naturally, like you're sitting beside the student helping them understand.
-No superheroes, no dramatic flair, and no emojis.
-No markdown headers or lists.
-Just natural, gentle, kid-friendly conversation.
+# ---------------------------------------
+# CONVERSATIONAL TUTOR PROMPT
+# ---------------------------------------
+BASE_SYSTEM_PROMPT = """
+You are Homework Buddy, a friendly conversational tutor.
+Your responses must be SHORT, SIMPLE, and INTERACTIVE.
 
-If a character is selected, respond in that character’s voice
-but lightly — subtle personality only.
+Your required structure:
+1. Give 2–4 short key facts (bullet-style or tiny sentences).
+2. Ask the student a quick question about what they think.
+3. Do NOT give long essays.
+4. Do NOT solve the entire thing all at once.
+5. Wait for their reply before giving the next chunk.
+6. Keep it friendly, upbeat, and encouraging.
+
+Forbidden:
+- Big paragraphs
+- Full essay answers
+- Overloaded explanations
+- Solving a student's graded assignment fully
 """
 
-def study_buddy_ai(question, grade, character):
-    character_name = character.replace("_", " ").title()
+# ---------------------------------------
+# BUILD PERSONALITY
+# ---------------------------------------
+def build_character_voice(character):
+    voices = { 
+        "valor_strike": "You sound brave, confident, heroic, like a supportive captain.",
+        "princess_everly": "You sound warm, elegant, encouraging, like a kind princess mentor.",
+        "nova_circuit": "You sound smart, curious, energetic, like a friendly scientist.",
+        "agent_cluehart": "You sound witty, thoughtful, detective-like.",
+        "buddy_barkston": "You sound happy, loyal, friendly, like a golden retriever.",}
+    
+    return voices.get(character, "You speak in a friendly, upbeat tutoring voice.")
 
-    character_prompt = (
-        f"You are responding as {character_name}. "
-        f"Your explanations should match a grade {grade} student's level. "
-        "Speak warmly, clearly, and patiently. "
-        "Avoid hype, dramatic language, or superhero themes."
+
+# ---------------------------------------
+# MAIN BUDDY AI FUNCTION
+# ---------------------------------------
+def study_buddy_ai(question, grade, character):
+
+    character_voice = build_character_voice(character)
+
+    # Merge conversational prompt + character voice + grade level
+    system_prompt = (
+        BASE_SYSTEM_PROMPT
+        + f"\n\nYour character voice: {character_voice}\n"
+        + f"You are helping a grade {grade} student. Use simple language.\n"
     )
 
-    response = client.chat.completions.create(
+    response = client.responses.create(
         model="gpt-4.1-mini",
         messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "system", "content": character_prompt},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": question}
         ]
     )
 
-    return response.choices[0].message.content
+    # Extract text
+    return response.output_text
 
 

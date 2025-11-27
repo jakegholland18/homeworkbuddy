@@ -7,7 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from flask import Flask, render_template, request, redirect, session
 
 # -------------------------------
-# IMPORT HELPERS (ALL AI CALLS GO THROUGH THESE)
+# IMPORT HELPERS (ALL AI CALLS)
 # -------------------------------
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import get_all_characters
@@ -26,7 +26,7 @@ import modules.money_helper as money_helper
 
 
 # -------------------------------
-# FLASK APP – FIXED FOR RENDER DEPLOYMENT
+# FLASK APP – FIXED FOR RENDER
 # -------------------------------
 app = Flask(
     __name__,
@@ -38,14 +38,24 @@ app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
 
 
 # -------------------------------
-# HOME PAGE
+# SUBJECTS PAGE (PLANET GRID)
 # -------------------------------
-@app.route("/")
-def home():
-    return render_template(
-        "home.html",
-        character=session.get("character")
-    )
+@app.route("/subjects")
+def subjects():
+    planets = [
+        ("math",         "math.png",          "Math Planet"),
+        ("science",      "science.png",       "Science Planet"),
+        ("history",      "history.png",       "History Planet"),
+        ("writing",      "writing.png",       "Writing Planet"),
+        ("bible",        "bible.png",         "Bible Planet"),
+        ("study",        "study.png",         "Study Planet"),
+        ("text",         "text.png",          "Text Planet"),
+        ("question",     "question.png",      "Question Planet"),
+        ("apologetics",  "apologetics.png",   "Apologetics Planet"),
+        ("accounting",   "accounting.png",    "Accounting Planet"),
+        ("investment",   "investment.png",    "Investment Planet")
+    ]
+    return render_template("subjects.html", planets=planets)
 
 
 # -------------------------------
@@ -62,11 +72,20 @@ def select_character():
     selected = request.form.get("character")
     if selected:
         session["character"] = selected
-    return redirect("/")
+    return redirect("/subjects")
 
 
 # -------------------------------
-# SUBJECT PROCESSING (MODULE HELPERS)
+# GRADE SELECTION FOR A SUBJECT
+# -------------------------------
+@app.route("/choose-grade")
+def choose_grade():
+    subject = request.args.get("subject")
+    return render_template("subject_select_form.html", subject=subject)
+
+
+# -------------------------------
+# SUBJECT PROCESSING → AI HELPERS
 # -------------------------------
 @app.route("/subject", methods=["POST"])
 def subject():
@@ -101,11 +120,7 @@ def subject():
     else:
         answer = "I'm not sure what subject that is, but I can still help."
 
-    return render_template(
-        "subject.html",
-        answer=answer,
-        character=character
-    )
+    return render_template("subject.html", answer=answer, character=character)
 
 
 # -------------------------------
@@ -152,14 +167,9 @@ def ask():
     if not character:
         return redirect("/choose-character")
 
-    # All AI logic handled inside shared_ai.py
     answer = study_buddy_ai(question, grade, character)
 
-    return render_template(
-        "buddy.html",
-        character=character,
-        answer=answer
-    )
+    return render_template("buddy.html", character=character, answer=answer)
 
 
 # -------------------------------
@@ -167,6 +177,7 @@ def ask():
 # -------------------------------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 

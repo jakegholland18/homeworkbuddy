@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Choose Your Planet</title>
+    <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        body {
+            background: radial-gradient(circle at top, #0f1a2b, #000814);
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .stars {
+            position: absolute;
+            inset: 0;
+            background: url('/static/stars.png');
+            background-size: cover;
+            opacity: 0.4;
+            animation: drift 40s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes drift {
+            from { transform: translateY(0); }
+            to { transform: translateY(-900px); }
+        }
+
+        .select-title {
+            text-align: center;
+            margin-top: 60px;
+            font-size: 2.8rem;
+            color: #bcdfff;
+            text-shadow: 0 0 18px rgba(255,255,255,0.6);
+        }
+
+        .planet-container {
+            margin-top: 80px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 60px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .planet-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.35s;
+        }
+
+        .planet-wrapper:hover {
+            transform: translateY(-8px) scale(1.1);
+        }
+
+        .planet {
+            width: 170px;
+            height: 170px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 50%;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        .planet-label {
+            margin-top: 12px;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffdd55;
+            text-shadow:
+                0 0 8px #ffa600,
+                0 0 18px #ffbb33,
+                3px 3px 0 #00000066;
+            letter-spacing: 1.5px;
+        }
+    </style>
+</head>
+
+<body class="fade-in">
+
+<div class="stars"></div>
+
+<h1 class="select-title">Choose Your Learning Planet</h1>
+
+<div class="planet-container">
+
+    {% for subject, image, label in planets %}
+        <div class="planet-wrapper" onclick="enterPlanet('{{ subject }}')">
+            <div class="planet" style="background-image:url('/static/planets/{{ image }}');"></div>
+            <div class="planet-label">{{ label }}</div>
+        </div>
+    {% endfor %}
+
+</div>
+
+<script>
+function enterPlanet(subject) {
+    document.body.style.transition = "0.8s ease";
+    document.body.style.transform = "scale(1.08)";
+    setTimeout(() => {
+        window.location.href = "/choose-grade?subject=" + subject;
+    }, 500);
+}
+</script>
+
+</body>
+</html>
+
