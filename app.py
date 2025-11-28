@@ -66,7 +66,7 @@ app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
 
 
 # ============================================================
-# INIT USER SESSION VALUES
+# INIT USER SESSION
 # ============================================================
 def init_user():
     defaults = {
@@ -118,7 +118,7 @@ def update_streak():
 
 
 # ============================================================
-# XP & LEVEL SYSTEM
+# XP & LEVEL-UP SYSTEM
 # ============================================================
 def add_xp(amount):
     session["xp"] += amount
@@ -133,6 +133,7 @@ def add_xp(amount):
 # ============================================================
 # ROUTES
 # ============================================================
+
 @app.route("/")
 def home():
     init_user()
@@ -176,7 +177,7 @@ def ask_question():
 
 
 # ============================================================
-# SUBJECT → AI ANSWER ROUTER
+# SUBJECT → AI ANSWER LOGIC
 # ============================================================
 @app.route("/subject", methods=["POST"])
 def subject_answer():
@@ -190,10 +191,9 @@ def subject_answer():
     session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
     session["progress"][subject]["questions"] += 1
 
+    # CLEAN, CORRECT MAPPING
     subject_map = {
         "num_forge": math_helper.explain_math,
-        "text": text_helper.summarize_text,  # REMOVE SOON if renaming
-        "general": question_helper.answer_question,
         "atom_sphere": science_helper.explain_science,
         "faith_realm": bible_helper.bible_lesson,
         "chrono_core": history_helper.explain_history,
@@ -302,16 +302,17 @@ def buy_item(item_id):
 
 
 # ============================================================
-# PARENT DASHBOARD
+# PARENT DASHBOARD  (CORRECT FIX)
 # ============================================================
-@app.route("/parent-dashboard")
+@app.route("/parent_dashboard")
 def parent_dashboard():
     init_user()
 
     total_usage = session["usage_minutes"]
 
     progress_display = {
-        subject: int((data["correct"] / data["questions"]) * 100) if data["questions"] > 0 else 0
+        subject: int((data["correct"] / data["questions"]) * 100)
+        if data["questions"] > 0 else 0
         for subject, data in session["progress"].items()
     }
 
@@ -331,3 +332,4 @@ def parent_dashboard():
 # ============================================================
 if __name__ == "__main__":
     app.run(debug=True)
+
