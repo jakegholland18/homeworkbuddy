@@ -34,7 +34,8 @@ def build_character_voice(character):
         "princess_everly": "You sound warm, elegant, encouraging, like a kind princess mentor.",
         "nova_circuit": "You sound smart, curious, energetic, like a friendly scientist.",
         "agent_cluehart": "You sound witty, thoughtful, detective-like.",
-        "buddy_barkston": "You sound happy, loyal, friendly, like a golden retriever.",}
+        "buddy_barkston": "You sound happy, loyal, friendly, like a golden retriever.",
+    }
     
     return voices.get(character, "You speak in a friendly, upbeat tutoring voice.")
 
@@ -46,22 +47,28 @@ def study_buddy_ai(question, grade, character):
 
     character_voice = build_character_voice(character)
 
-    # Merge conversational prompt + character voice + grade level
+    # Merge prompts
     system_prompt = (
         BASE_SYSTEM_PROMPT
         + f"\n\nYour character voice: {character_voice}\n"
         + f"You are helping a grade {grade} student. Use simple language.\n"
     )
 
+    # ----------------------------
+    # FIX: Use input= instead of messages=
+    # ----------------------------
     response = client.responses.create(
         model="gpt-4.1-mini",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": question}
-        ]
+        input=f"""
+SYSTEM:
+{system_prompt}
+
+USER QUESTION:
+{question}
+"""
     )
 
-    # Extract text
     return response.output_text
+
 
 
