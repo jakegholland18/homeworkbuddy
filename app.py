@@ -1,17 +1,18 @@
 import sys
 import os
+from flask import Flask, render_template, request, redirect, session, flash
+from datetime import datetime, timedelta
 
-# Add parent directory to Python path
+# Make sure Python can see /modules
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from flask import Flask, render_template, request, redirect, session
-
-# -------------------------------
-# IMPORT HELPERS (ALL AI CALLS)
-# -------------------------------
+# ---------------------------------------
+# IMPORT AI LOGIC
+# ---------------------------------------
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import get_all_characters
 
+# Subject Helpers
 import modules.math_helper as math_helper
 import modules.text_helper as text_helper
 import modules.question_helper as question_helper
@@ -25,168 +26,305 @@ import modules.investment_helper as investment_helper
 import modules.money_helper as money_helper
 
 
-# -------------------------------
-# FLASK APP – FIXED FOR RENDER
-# -------------------------------
+# ============================================================
+# SHOP ITEMS
+# ============================================================
+SHOP_ITEMS = {
+    "space_glasses": {"name": "Space Glasses", "price": 30},
+    "angel_aura": {"name": "Angel Aura", "price": 50},
+    "golden_cape": {"name": "Golden Cape", "price": 75},
+    "galaxy_trail": {"name": "Galaxy Trail", "price": 100},
+    "meteor_boots": {"name": "Meteor Boots", "price": 40},
+    "cosmic_wings": {"name": "Cosmic Wings", "price": 90},
+
+    "double_xp_card": {"name": "Double XP (30 minutes)", "price": 60},
+    "token_booster": {"name": "Galaxy Token Booster", "price": 40},
+    "subject_pass": {"name": "Subject Fast Pass (24hr)", "price": 25},
+
+    "mystery_crate": {"name": "Mystery Crate", "price": 50},
+    "legendary_crate": {"name": "Legendary Crate", "price": 120},
+
+    "valor_galaxy_armor": {"name": "Valor Strike: Galaxy Armor", "price": 200},
+    "everly_starlight": {"name": "Princess Everly: Starlight Dress", "price": 175},
+    "nova_hypercoat": {"name": "Nova Circuit: Hypercoat", "price": 150},
+
+    "shield_of_faith": {"name": "Shield of Faith", "price": 60},
+    "light_aura": {"name": "Aura of Light", "price": 80},
+    "dove_trail": {"name": "Dove Trail", "price": 75},
+}
+
+
+# ============================================================
+# FLASK APP
+# ============================================================
 app = Flask(
     __name__,
     template_folder="website/templates",
     static_folder="website/static"
 )
-
 app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
 
 
-# -------------------------------
-# ROOT → REDIRECT TO SUBJECTS
-# -------------------------------
+# ============================================================
+# INIT USER SESSION VALUES
+# ============================================================
+def init_user():
+    defaults = {
+        "tokens": 0,
+        "xp": 0,
+        "level": 1,
+        "streak": 1,
+        "last_visit": str(datetime.today().date()),
+        "inventory": [],
+        "character": "valor_strike",
+        "usage_minutes": 0,
+        "progress": {
+            "math": {"questions": 0, "correct": 0},
+            "science": {"questions": 0, "correct": 0},
+            "history": {"questions": 0, "correct": 0},
+            "writing": {"questions": 0, "correct": 0},
+            "bible": {"questions": 0, "correct": 0},
+        }
+    }
+    for key, value in defaults.items():
+        if key not in session:
+            session[key] = value
+
+    update_streak()  # keeps streak in sync
+
+
+# ============================================================
+# STREAK SYSTEM
+# ============================================================
+def update_streak():
+    today = datetime.today().date()
+    last = datetime.strptime(session["last_visit"], "%Y-%m-%d").date()
+
+    if today == last:
+        return
+
+    if today - last == timedelta(days=1):
+        session["streak"] += 1
+    else:
+        session["streak"] = 1
+
+    session["last_visit"] = str(today)
+
+
+# ============================================================
+# XP & LEVEL SYSTEM
+# ============================================================
+def add_xp(amount):
+    session["xp"] += amount
+
+    xp_needed = session["level"] * 100
+
+    if session["xp"] >= xp_needed:
+        session["xp"] -= xp_needed
+        session["level"] += 1
+        flash(f"🎉 LEVEL UP! You reached Level {session['level']}!", "info")
+
+
+# ============================================================
+# ROUTES
+# ============================================================
 @app.route("/")
 def home():
+    init_user()
     return redirect("/subjects")
 
 
-# -------------------------------
-# SUBJECTS PAGE (PLANET GRID)
-# -------------------------------
 @app.route("/subjects")
 def subjects():
+    init_user()
+
     planets = [
-        ("math",         "math.png",          "Math Planet"),
-        ("science",      "science.png",       "Science Planet"),
-        ("history",      "history.png",       "History Planet"),
-        ("writing",      "writing.png",       "Writing Planet"),
-        ("bible",        "bible.png",         "Bible Planet"),
-        ("study",        "study.png",         "Study Planet"),
-        ("text",         "text.png",          "Text Planet"),
-        ("question",     "question.png",      "Question Planet"),
-        ("apologetics",  "apologetics.png",   "Apologetics Planet"),
-        ("accounting",   "accounting.png",    "Accounting Planet"),
-        ("investment",   "investment.png",    "Investment Planet")
+        ("math", "math.png", "Math Planet"),
+        ("science", "science.png", "Science Planet"),
+        ("history", "history.png", "History Planet"),
+        ("writing", "writing.png", "Writing Planet"),
+        ("bible", "bible.png", "Bible Planet"),
+        ("study", "study.png", "Study Planet"),
+        ("text", "text.png", "Text Planet"),
+        ("question", "question.png", "Question Planet"),
+        ("apologetics", "apologetics.png", "Apologetics Planet"),
+        ("accounting", "accounting.png", "Accounting Planet"),
+        ("investment", "investment.png", "Investment Planet")
     ]
-    return render_template("subjects.html", planets=planets)
+
+    return render_template("subjects.html", planets=planets, character=session["character"])
 
 
-# -------------------------------
-# CHARACTER SELECTION
-# -------------------------------
-@app.route("/choose-character")
-def choose_character_page():
-    characters = get_all_characters()
-    return render_template("choose_character.html", characters=characters)
-
-
-@app.route("/select-character", methods=["POST"])
-def select_character():
-    selected = request.form.get("character")
-    if selected:
-        session["character"] = selected
-    return redirect("/subjects")
-
-
-# -------------------------------
-# GRADE SELECTION PAGE (FIXED)
-# -------------------------------
 @app.route("/choose-grade")
 def choose_grade():
+    init_user()
     subject = request.args.get("subject")
-
-    if not subject:
-        return redirect("/subjects")
-
-    return render_template("choose_grade.html", subject=subject)
+    return render_template("subject_select_form.html", subject=subject)
 
 
-# -------------------------------
-# ASK QUESTION PAGE (NEW)
-# -------------------------------
 @app.route("/ask-question")
 def ask_question():
+    init_user()
     subject = request.args.get("subject")
     grade = request.args.get("grade")
-
-    if not subject or not grade:
-        return redirect("/subjects")
-
-    return render_template("ask_question.html", subject=subject, grade=grade)
+    return render_template("ask_question.html", subject=subject, grade=grade, character=session["character"])
 
 
-# -------------------------------
-# SUBJECT → AI PROCESSING
-# -------------------------------
+# ============================================================
+# SUBJECT → AI ANSWER
+# ============================================================
 @app.route("/subject", methods=["POST"])
-def subject():
+def subject_answer():
+    init_user()
+
     grade = request.form.get("grade")
     subject = request.form.get("subject")
     question = request.form.get("question")
+    character = session["character"]
 
-    character = session.get("character", "valor_strike")
+    # Track progress
+    session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
+    session["progress"][subject]["questions"] += 1
 
-    if subject == "math":
-        answer = math_helper.explain_math(question, grade, character)
-    elif subject == "text":
-        answer = text_helper.summarize_text(question, grade, character)
-    elif subject == "general":
-        answer = question_helper.answer_question(question, grade, character)
-    elif subject == "science":
-        answer = science_helper.explain_science(question, grade, character)
-    elif subject == "bible":
-        answer = bible_helper.bible_lesson(question, grade, character)
-    elif subject == "history":
-        answer = history_helper.explain_history(question, grade, character)
-    elif subject == "writing":
-        answer = writing_helper.help_write(question, grade, character)
-    elif subject == "study":
-        answer = study_helper.generate_quiz(question, grade, character)
-    elif subject == "apologetics":
-        answer = apologetics_helper.apologetics_answer(question, grade, character)
-    elif subject == "investment":
-        answer = investment_helper.explain_investing(question, grade, character)
-    elif subject == "money":
-        answer = money_helper.explain_money(question, grade, character)
+    # AI routing
+    subject_map = {
+        "math": math_helper.explain_math,
+        "text": text_helper.summarize_text,
+        "general": question_helper.answer_question,
+        "science": science_helper.explain_science,
+        "bible": bible_helper.bible_lesson,
+        "history": history_helper.explain_history,
+        "writing": writing_helper.help_write,
+        "study": study_helper.generate_quiz,
+        "apologetics": apologetics_helper.apologetics_answer,
+        "investment": investment_helper.explain_investing,
+        "money": money_helper.explain_money,
+    }
+
+    if subject in subject_map:
+        answer = subject_map[subject](question, grade, character)
     else:
-        answer = "Sorry — that subject isn't supported yet."
+        answer = "I'm not sure what subject that is."
 
-    return render_template("subject.html", answer=answer, character=character)
+    # Rewards
+    add_xp(20)
+    session["tokens"] += 2
 
-
-# -------------------------------
-# BUDDY CHAT PAGE
-# -------------------------------
-@app.route("/buddy")
-def buddy():
-    character = session.get("character")
-
-    if not character:
-        return redirect("/choose-character")
-
-    return render_template("buddy.html", character=character)
+    return render_template("subject.html", answer=answer, character=session["character"])
 
 
-# -------------------------------
-# FREEFORM Q&A
-# -------------------------------
-@app.route("/ask", methods=["POST"])
-def ask():
-    question = request.form.get("question")
-    grade = request.form.get("grade", "8")
-    character = session.get("character")
+# ============================================================
+# STUDENT DASHBOARD
+# ============================================================
+@app.route("/dashboard")
+def dashboard():
+    init_user()
 
-    if not character:
-        return redirect("/choose-character")
+    xp = session["xp"]
+    level = session["level"]
+    tokens = session["tokens"]
+    streak = session["streak"]
+    character = session["character"]
 
-    answer = study_buddy_ai(question, grade, character)
+    xp_to_next = level * 100
+    xp_percent = int((xp / xp_to_next) * 100)
 
-    return render_template("buddy.html", character=character, answer=answer)
+    missions = [
+        "Visit 2 different planets",
+        "Ask 1 science question",
+        "Earn 20 XP",
+    ]
+
+    locked_characters = {
+        "Princess Everly": "Reach Level 3",
+        "Nova Circuit": "3-day streak",
+        "Agent Cluehart": "Earn 200 XP total",
+        "Buddy Barkston": "Buy for 100 tokens",
+    }
+
+    return render_template(
+        "dashboard.html",
+        xp=xp,
+        level=level,
+        tokens=tokens,
+        streak=streak,
+        character=character,
+        xp_percent=xp_percent,
+        xp_to_next=xp_to_next,
+        missions=missions,
+        locked_characters=locked_characters
+    )
 
 
-# -------------------------------
-# RUN (LOCAL ONLY)
-# -------------------------------
+# ============================================================
+# INVENTORY
+# ============================================================
+@app.route("/inventory")
+def inventory():
+    init_user()
+    items = [SHOP_ITEMS[i] for i in session["inventory"]]
+    return render_template("inventory.html", inventory=items)
+
+
+# ============================================================
+# SHOP
+# ============================================================
+@app.route("/shop")
+def shop():
+    init_user()
+    return render_template("shop.html", items=SHOP_ITEMS, tokens=session["tokens"], inventory=session["inventory"])
+
+
+@app.route("/buy/<item_id>")
+def buy_item(item_id):
+    init_user()
+
+    if item_id not in SHOP_ITEMS:
+        flash("Item not found.")
+        return redirect("/shop")
+
+    item = SHOP_ITEMS[item_id]
+    price = item["price"]
+
+    if session["tokens"] < price:
+        flash("Not enough Galaxy Tokens!", "error")
+        return redirect("/shop")
+
+    session["tokens"] -= price
+    session["inventory"].append(item_id)
+    flash(f"You bought {item['name']}!", "success")
+
+    return redirect("/shop")
+
+
+# ============================================================
+# PARENT DASHBOARD
+# ============================================================
+@app.route("/parent-dashboard")
+def parent_dashboard():
+    init_user()
+
+    total_usage = session["usage_minutes"]
+
+    # Flatten progress stats for display
+    progress_display = {
+        subject: int((data["correct"] / data["questions"]) * 100) if data["questions"] > 0 else 0
+        for subject, data in session["progress"].items()
+    }
+
+    return render_template(
+        "parent_dashboard.html",
+        progress=progress_display,
+        utilization=total_usage,
+        xp=session["xp"],
+        level=session["level"],
+        tokens=session["tokens"],
+        character=session["character"]
+    )
+
+
+# ============================================================
+# RUN SERVER (LOCAL ONLY)
+# ============================================================
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-
-
-
-

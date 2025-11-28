@@ -4,30 +4,25 @@
     <title>Ask a Question</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-
 <body class="fade-in">
 
 <h1 class="select-title">{{ subject.title() }} Planet</h1>
-<h2 class="select-title" style="font-size:1.8rem;">Grade {{ grade }}</h2>
+<h2 class="select-title" style="font-size:1.6rem;">Grade {{ grade }}</h2>
 
-<form action="/subject" method="POST" style="text-align:center; margin-top:40px;">
-    
-    <input type="hidden" name="subject" value="{{ subject }}">
-    <input type="hidden" name="grade" value="{{ grade }}">
+<div class="ask-container">
+    <div class="character-box">
+        <img src="/static/{{ character }}.png" class="character-img">
+        <h3 class="character-name">{{ character.replace("_"," ").title() }}</h3>
+    </div>
 
-    <textarea name="question"
-              placeholder="Ask your {{ subject }} question..."
-              style="width:60%; height:150px; border-radius:12px; padding:15px; font-size:1.2rem;"
-              required>
-    </textarea>
-
-    <br><br>
-
-    <button type="submit"
-            style="padding:12px 28px; font-size:1.2rem; border-radius:10px; background:#ffaa33; border:none; cursor:pointer;">
-        Ask My Question
-    </button>
-</form>
+    <form action="/subject" method="POST" class="ask-form">
+        <input type="hidden" name="subject" value="{{ subject }}">
+        <input type="hidden" name="grade" value="{{ grade }}">
+        <textarea name="question" placeholder="Ask your question here..." required></textarea>
+        <button type="submit">Ask Homework Buddy</button>
+    </form>
+</div>
 
 </body>
 </html>
+

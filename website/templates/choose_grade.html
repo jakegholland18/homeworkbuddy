@@ -4,19 +4,16 @@
     <title>Select Grade</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-
 <body class="fade-in">
 
 <h1 class="select-title">Choose Your Grade</h1>
 
 <div class="planet-container">
-
     {% for g in range(1, 13) %}
     <div class="planet-wrapper" onclick="goToQuestion({{ g }})">
         <div class="planet-label">Grade {{ g }}</div>
     </div>
     {% endfor %}
-
 </div>
 
 <script>
@@ -29,4 +26,5 @@ function goToQuestion(grade) {
 
 </body>
 </html>
+
 

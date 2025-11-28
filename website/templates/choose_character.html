@@ -1,27 +1,40 @@
-{% extends "layout.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Choose Your Buddy</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="fade-in">
 
-<h1 class="page-title fade-in">Choose Your Study Buddy</h1>
+<h1 class="select-title">Choose Your Study Buddy</h1>
 
-<div class="character-grid fade-in">
+<p style="text-align:center; color:#fff;">
+XP: {{ xp }} | Galaxy Tokens: {{ tokens }} | Streak: {{ streak if streak is defined else '' }}
+</p>
 
-    <form method="POST" action="/select-character">
+<div class="character-grid">
+    {% for char in characters %}
+    <div class="character-card {% if not unlocks.get(char) %}locked{% endif %}">
+        <img src="/static/{{ char }}.png" class="character-img">
+        <h3>{{ char.replace("_"," ").title() }}</h3>
 
-        {% for id, char in characters.items() %}
-        <button class="character-card" 
-                type="submit" 
-                name="character" 
-                value="{{ id }}">
-            <img src="/static/{{ id }}.png" class="character-select-img">
-            <div>{{ char.name }}</div>
-        </button>
-        {% endfor %}
-
-    </form>
-
+        {% if unlocks.get(char) %}
+            <form action="/select-character" method="POST">
+                <input type="hidden" name="character" value="{{ char }}">
+                <button type="submit">Select</button>
+            </form>
+        {% else %}
+            <p class="lock-text">
+                Locked – Reach {{ char_xp.get(char, 9999) }} XP to unlock
+            </p>
+        {% endif %}
+    </div>
+    {% endfor %}
 </div>
 
-{% endblock %}
+</body>
+</html>
+
 
 
 
