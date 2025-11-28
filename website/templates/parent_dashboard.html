@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Parent Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="style.css">
 
     <style>
         body {
@@ -16,7 +16,7 @@
         .stars {
             position: fixed;
             inset: 0;
-            background: url('/static/stars.png');
+            background: url('stars.png');
             background-size: cover;
             opacity: 0.35;
             z-index: -1;
@@ -66,7 +66,6 @@
             margin-bottom: 10px;
         }
 
-        /* Progress bars */
         .progress-row {
             margin: 18px 0;
         }
@@ -92,7 +91,6 @@
             transition: width 0.6s ease;
         }
 
-        /* Utilization Chart */
         .utilization-box {
             margin-top: 20px;
         }
@@ -114,7 +112,6 @@
             transition: width 0.6s ease;
         }
 
-        /* Back button */
         .back-btn {
             display: block;
             margin: 40px auto 10px;
@@ -132,7 +129,6 @@
         .back-btn:hover {
             background: #ffe37a;
         }
-
     </style>
 </head>
 
@@ -147,24 +143,43 @@
     <!-- Student Overview -->
     <h2 class="section-title">Student Overview</h2>
     <div class="info-box">
-        <div class="stat-line">👤 <strong>Character:</strong> {{ character.replace("_"," ").title() }}</div>
-        <div class="stat-line">🏅 <strong>XP:</strong> {{ xp }}</div>
-        <div class="stat-line">⭐ <strong>Level:</strong> {{ level }}</div>
-        <div class="stat-line">💫 <strong>Galaxy Tokens:</strong> {{ tokens }}</div>
+        <div class="stat-line">👤 <strong>Character:</strong> Valor Strike</div>
+        <div class="stat-line">🏅 <strong>XP:</strong> 120</div>
+        <div class="stat-line">⭐ <strong>Level:</strong> 3</div>
+        <div class="stat-line">💫 <strong>Galaxy Tokens:</strong> 50</div>
     </div>
 
     <!-- Subject Progress -->
     <h2 class="section-title">Subject Progress</h2>
 
     <div class="info-box">
-        {% for subject, percent in progress.items() %}
+
+        <!-- Replace these rows with dynamic JS or backend later -->
         <div class="progress-row">
-            <div class="progress-label">{{ subject }} — {{ percent }}%</div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: {{ percent }}%;"></div>
-            </div>
+            <div class="progress-label">Math — 80%</div>
+            <div class="progress-bar"><div class="progress-fill" style="width: 80%;"></div></div>
         </div>
-        {% endfor %}
+
+        <div class="progress-row">
+            <div class="progress-label">Science — 60%</div>
+            <div class="progress-bar"><div class="progress-fill" style="width: 60%;"></div></div>
+        </div>
+
+        <div class="progress-row">
+            <div class="progress-label">History — 90%</div>
+            <div class="progress-bar"><div class="progress-fill" style="width: 90%;"></div></div>
+        </div>
+
+        <div class="progress-row">
+            <div class="progress-label">Bible — 70%</div>
+            <div class="progress-bar"><div class="progress-fill" style="width: 70%;"></div></div>
+        </div>
+
+        <div class="progress-row">
+            <div class="progress-label">Writing — 50%</div>
+            <div class="progress-bar"><div class="progress-fill" style="width: 50%;"></div></div>
+        </div>
+
     </div>
 
     <!-- Utilization -->
@@ -172,16 +187,17 @@
 
     <div class="info-box utilization-box">
         <div class="utilization-label">
-            Total Active Use: <strong>{{ utilization }}%</strong>
+            Total Active Use: <strong>45%</strong>
         </div>
         <div class="utilization-bar">
-            <div class="utilization-fill" style="width: {{ utilization }}%;"></div>
+            <div class="utilization-fill" style="width: 45%;"></div>
         </div>
     </div>
 
 </div>
 
-<a href="/dashboard" class="back-btn">⬅ Return to Student Dashboard</a>
+<a href="dashboard.html" class="back-btn">⬅ Return to Student Dashboard</a>
 
 </body>
 </html>
+

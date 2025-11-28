@@ -4,34 +4,50 @@
     <title>Homework Buddy Chat</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
+
 <body class="fade-in">
 
+<!-- TOP BAR -->
 <div class="top-bar">
     <span>XP: {{ xp }}</span>
     <span>Tokens: {{ tokens }}</span>
     <span>Streak: {{ streak }} days</span>
 </div>
 
+<!-- MAIN BUDDY WRAPPER -->
 <div class="buddy-container">
 
+    <!-- CHARACTER SECTION -->
     <div class="character-box">
-        <img src="/static/{{ character }}.png" class="character-img">
-        <h2 class="character-name">{{ character.replace("_"," ").title() }}</h2>
+        <img src="/static/{{ character }}.png" 
+             class="character-universal character-float">
+
+        <h2 class="character-name">
+            {{ character.replace("_"," ").title() }}
+        </h2>
     </div>
 
+    <!-- CHAT SECTION -->
     <div class="chat-box">
+
         {% if answer %}
-        <div class="ai-response">
+        <div class="ai-response fade-in">
             {{ answer }}
         </div>
         {% endif %}
 
-        <form action="/ask" method="POST" class="question-form">
-            <label>Grade:</label>
-            <input type="text" name="grade" value="{{ grade }}" style="width:60px;">
-            <br><br>
-            <textarea name="question" placeholder="Ask anything you want to learn..." required></textarea>
-            <button type="submit">Ask Buddy</button>
+        <form action="/ask" method="POST" class="question-form fade-in">
+
+            <label class="grade-label">Grade:</label>
+            <input type="text" name="grade" value="{{ grade }}" class="grade-input">
+
+            <textarea name="question"
+                      placeholder="Ask anything you want to learn..."
+                      class="question-area"
+                      required></textarea>
+
+            <button type="submit" class="btn btn-glow">Ask Buddy</button>
+
         </form>
     </div>
 
@@ -39,4 +55,5 @@
 
 </body>
 </html>
+
 

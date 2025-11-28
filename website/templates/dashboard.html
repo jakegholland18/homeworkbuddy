@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="card fade-in">
+
+    <!-- TITLE -->
+    <h1 class="page-title">Student Dashboard</h1>
+
+    <!-- CHARACTER SECTION -->
+    {% if character %}
+    <div class="dashboard-character">
+
+        <h2>Your Study Buddy</h2>
+
+        <!-- Consistent Size + Floating -->
+        <img src="/static/{{ character }}.png"
+             class="character-large character-float">
+
+        <p class="character-tagline">
+            {{ character.replace('_',' ').title() }} is excited to keep learning with you!
+        </p>
+
+        <!-- Continue Button -->
+        <a href="/buddy" class="btn btn-glow">Continue Learning</a>
+
+    </div>
+
+    {% else %}
+    <p class="no-character">
+        You haven't chosen a Study Buddy yet.  
+        <a href="/choose-character">Pick one here</a>.
+    </p>
+    {% endif %}
+
+    <!-- PROGRESS BOXES -->
+    <div class="stats-row">
+
+        <div class="stat-box">
+            <h3>⭐ XP</h3>
+            <p>{{ xp }}</p>
+        </div>
+
+        <div class="stat-box">
+            <h3>🏆 Level</h3>
+            <p>{{ level }}</p>
+        </div>
+
+        <div class="stat-box">
+            <h3>📘 Subjects Learned</h3>
+            <p>{{ subjects_count }}</p>
+        </div>
+
+    </div>
+
+    <!-- PROGRESS REPORT PLACEHOLDER -->
+    <h2 class="section-title">📊 Progress Report</h2>
+
+    <p class="progress-description">
+        Coming soon! This area will show grades, mastery levels, strengths and weaknesses,
+        and parent-friendly analytics.
+    </p>
+
+</div>
+
+{% endblock %}
+
+
+
+
+
+
+

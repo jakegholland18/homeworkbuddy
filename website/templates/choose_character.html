@@ -1,39 +1,40 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Choose Your Buddy</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body class="fade-in">
+{% extends "layout.html" %}
+{% block content %}
 
-<h1 class="select-title">Choose Your Study Buddy</h1>
+<h1 class="page-title fade-in">Choose Your Study Buddy</h1>
 
-<p style="text-align:center; color:#fff;">
-XP: {{ xp }} | Galaxy Tokens: {{ tokens }} | Streak: {{ streak if streak is defined else '' }}
-</p>
+<div class="character-grid fade-in">
 
-<div class="character-grid">
-    {% for char in characters %}
-    <div class="character-card {% if not unlocks.get(char) %}locked{% endif %}">
-        <img src="/static/{{ char }}.png" class="character-img">
-        <h3>{{ char.replace("_"," ").title() }}</h3>
+    {% for id, char in characters.items() %}
+    <div class="character-card" onclick="selectCharacter('{{ id }}')">
+        
+        <img src="/static/{{ id }}.png" 
+             class="character-universal character-float">
 
-        {% if unlocks.get(char) %}
-            <form action="/select-character" method="POST">
-                <input type="hidden" name="character" value="{{ char }}">
-                <button type="submit">Select</button>
-            </form>
-        {% else %}
-            <p class="lock-text">
-                Locked – Reach {{ char_xp.get(char, 9999) }} XP to unlock
-            </p>
-        {% endif %}
+        <div class="character-name">
+            {{ char.name }}
+        </div>
     </div>
     {% endfor %}
+
 </div>
 
-</body>
-</html>
+<script>
+function selectCharacter(id) {
+    // Send POST request manually using fetch
+    fetch("/select-character", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: "character=" + id
+    })
+    .then(() => {
+        window.location.href = "/dashboard"; 
+    });
+}
+</script>
+
+{% endblock %}
+
 
 
 

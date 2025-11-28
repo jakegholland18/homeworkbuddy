@@ -1,6 +1,6 @@
-/* -------------------------------------------------------
+/* =======================================================
    GLOBAL PAGE STYLING
-------------------------------------------------------- */
+======================================================= */
 
 body {
     margin: 0;
@@ -16,15 +16,68 @@ body {
 .fade-in {
     animation: fadeIn 0.7s ease-out;
 }
-
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-/* -------------------------------------------------------
+
+/* =======================================================
+   UNIVERSAL CHARACTER SIZING (ALL PAGES)
+======================================================= */
+
+/* Main universal class used everywhere */
+.character-universal,
+.character-img,
+.character-select-img,
+.buddy-avatar,
+.avatar-img {
+    width: 180px;
+    max-width: 180px;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 15px;
+    transition: 0.25s ease;
+}
+
+/* Dashboard spotlight */
+.character-large {
+    width: 220px;
+    max-width: 220px;
+    height: auto;
+    display: block;
+    margin: 0 auto 15px;
+}
+
+/* Smaller variants */
+.character-small {
+    width: 120px;
+    max-width: 120px;
+    height: auto;
+}
+
+/* Floating animation */
+.character-float,
+.animated-avatar {
+    animation: floatCharacter 3s ease-in-out infinite;
+}
+@keyframes floatCharacter {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-12px); }
+    100% { transform: translateY(0); }
+}
+
+/* Safety cap for PNGs */
+img[src*=".png"] {
+    max-width: 250px !important;
+    height: auto !important;
+}
+
+
+/* =======================================================
    TITLES & HEADERS
-------------------------------------------------------- */
+======================================================= */
 
 .page-title {
     text-align: center;
@@ -35,17 +88,16 @@ body {
     line-height: 1.1;
     text-shadow: 0 5px 14px rgba(0,0,0,0.18);
 }
-
 .page-title span {
     background: linear-gradient(135deg, #0077ff, #00c3ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-weight: 800;
 }
 
-/* -------------------------------------------------------
+
+/* =======================================================
    BUTTONS
-------------------------------------------------------- */
+======================================================= */
 
 .btn {
     display: inline-block;
@@ -60,21 +112,33 @@ body {
     transition: 0.25s ease;
     box-shadow: 0 6px 18px rgba(0, 118, 255, 0.35);
 }
-
 .btn:hover {
     transform: translateY(-3px) scale(1.04);
     box-shadow: 0 10px 24px rgba(0,0,0,0.28);
 }
 
-/* Glow button variant */
-.btn-glow {
-    background: linear-gradient(135deg, #ffcf33, #ff9d00, #ff7a00);
+/* Orange glowing variant */
+.btn-glow,
+.buddy-btn {
+    display:inline-block;
+    padding: 12px 30px;
+    background:#ff7a00;
+    color:white;
+    text-decoration:none;
+    border-radius:12px;
+    font-size:18px;
+    transition:0.2s;
     box-shadow: 0 6px 20px rgba(255,140,0,0.45);
 }
+.btn-glow:hover,
+.buddy-btn:hover {
+    background:#e56e00;
+}
 
-/* -------------------------------------------------------
-   CARD (GLOBAL)
-------------------------------------------------------- */
+
+/* =======================================================
+   CARDS (GLOBAL CONTAINERS)
+======================================================= */
 
 .card {
     background: rgba(255, 255, 255, 0.93);
@@ -86,22 +150,20 @@ body {
     backdrop-filter: blur(8px);
     animation: cardPop 0.8s ease forwards;
 }
-
 @keyframes cardPop {
     0% { transform: scale(0.93) translateY(25px); opacity: 0; }
     100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* -------------------------------------------------------
+
+/* =======================================================
    HOME PAGE HERO
-------------------------------------------------------- */
+======================================================= */
 
 .home-hero {
     text-align: center;
     margin-top: 70px;
     padding: 20px;
-    position: relative;
-    z-index: 10;
 }
 
 .home-title {
@@ -111,7 +173,6 @@ body {
     text-shadow: 0 8px 16px rgba(0,0,0,0.22);
     animation: fadeIn 1s ease-out;
 }
-
 .home-title span {
     background: linear-gradient(135deg, #0077ff, #00c3ff, #53eaff);
     -webkit-background-clip: text;
@@ -122,13 +183,11 @@ body {
     margin-top: 12px;
     font-size: 1.3rem;
     color: #084b7d;
-    opacity: 0.9;
     max-width: 650px;
     margin-left: auto;
     margin-right: auto;
 }
 
-/* Floating previews */
 .home-preview {
     margin-top: 45px;
     display: flex;
@@ -142,52 +201,18 @@ body {
     animation: floatUpDown 4.2s ease-in-out infinite;
     transition: 0.25s ease;
 }
-
 .float-char:hover {
     transform: scale(1.07);
 }
-
 @keyframes floatUpDown {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-18px); }
 }
 
-/* -------------------------------------------------------
-   HOME FORM
-------------------------------------------------------- */
 
-.home-form label {
-    display: block;
-    font-weight: 600;
-    margin-top: 18px;
-    color: #0a4a84;
-}
-
-.home-form input,
-.home-form select,
-.home-form textarea {
-    width: 100%;
-    padding: 14px 15px;
-    margin-top: 7px;
-    border-radius: 12px;
-    border: 1px solid #a8cef7;
-    background: #f8fbff;
-    font-size: 1rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    transition: 0.2s;
-}
-
-.home-form input:focus,
-.home-form select:focus,
-.home-form textarea:focus {
-    border-color: #4dafff;
-    outline: none;
-    box-shadow: 0 0 12px rgba(77,175,255,0.45);
-}
-
-/* -------------------------------------------------------
+/* =======================================================
    DASHBOARD STYLING
-------------------------------------------------------- */
+======================================================= */
 
 .stats-row {
     display: flex;
@@ -207,27 +232,41 @@ body {
     box-shadow: 0 5px 15px rgba(0,0,0,0.12);
     transition: 0.25s ease;
 }
-
 .stat-box:hover {
     transform: translateY(-7px);
     box-shadow: 0 12px 28px rgba(0,0,0,0.18);
 }
-
 .stat-box h3 {
     margin-bottom: 10px;
     font-size: 1.4rem;
     color:#009dff;
 }
-
 .stat-box p {
     font-size: 26px;
     font-weight: bold;
     color: #004d75;
 }
 
-/* -------------------------------------------------------
+.section-title {
+    margin-top: 30px;
+    color: #004aa8;
+    font-size: 2rem;
+}
+
+.progress-description {
+    font-size: 18px;
+    color: #555;
+}
+
+.no-character {
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+
+/* =======================================================
    CHARACTER SELECT GRID
-------------------------------------------------------- */
+======================================================= */
 
 .character-grid {
     display: grid;
@@ -235,7 +274,6 @@ body {
     grid-gap: 28px;
     padding: 35px;
 }
-
 .character-card {
     background: white;
     padding: 25px;
@@ -247,106 +285,79 @@ body {
     text-align: center;
     border: 2px solid transparent;
 }
-
 .character-card:hover {
     transform: translateY(-10px) scale(1.03);
     background: #e6f3ff;
     border-color: #7ac8ff;
 }
 
-/* -------------------------------------------------------
-   BACKGROUND SKY + ELEMENTS
-------------------------------------------------------- */
 
-.animated-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -10;
-    pointer-events: none;
-    overflow: hidden;
+/* =======================================================
+   BUDDY PAGE (Chat Layout)
+======================================================= */
+
+.buddy-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 40px;
+    padding: 40px;
+    margin-top: 30px;
 }
 
-/* Improved sun */
-.sun {
-    position: absolute;
-    top: 5%;
-    left: 60%;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, #fff7c5, #ffe066, #ffca28);
-    border-radius: 50%;
-    box-shadow: 0 0 45px rgba(255, 223, 120, 0.55);
-    animation: sunPulse 7s ease-in-out infinite;
-    z-index: -8;
-}
-
-@keyframes sunPulse {
-    0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.12); opacity: 0.92; }
-}
-
-/* Clouds */
-.cloud {
-    position: absolute;
-    width: 320px;
-    opacity: 0.65;
-    animation: moveClouds linear infinite;
-    z-index: -7;
-}
-
-.cloud.slow { animation-duration: 70s; }
-.cloud.fast { animation-duration: 32s; }
-.cloud     { animation-duration: 50s; }
-
-@keyframes moveClouds {
-    0% { transform: translateX(-420px); }
-    100% { transform: translateX(130%); }
-}
-
-/* Sparkles */
-.sparkle {
-    position: absolute;
-    width: 9px;
-    height: 9px;
+.chat-box {
     background: white;
-    border-radius: 50%;
-    opacity: 0.85;
-    animation: sparkleFloat 6s ease-in-out infinite;
-    z-index: -6;
+    padding: 25px;
+    width: 55%;
+    min-width: 350px;
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
-@keyframes sparkleFloat {
-    0% { transform: translateY(0); opacity: 0.2; }
-    50% { transform: translateY(-45px); opacity: 1; }
-    100% { transform: translateY(0); opacity: 0.2; }
+.ai-response {
+    background: #e6f3ff;
+    padding: 18px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    font-size: 1.15rem;
+    line-height: 1.5;
+    color: #053868;
 }
 
-/* Hills */
-.hill {
-    position: fixed;
-    bottom: -12%;
-    left: -40%;
-    width: 180%;
-    height: 46%;
-    background: radial-gradient(circle at 50% 80%, #4caf50, #2e7d32);
-    opacity: 0.75;
-    border-radius: 50%;
-    filter: blur(3px);
-    z-index: -9;
-    animation: hillFloat 13s ease-in-out infinite;
+.question-area {
+    width: 100%;
+    height: 130px;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #a8cef7;
+    background: #f8fbff;
+    resize: vertical;
+    margin: 15px 0;
 }
 
-@keyframes hillFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(18px); }
+.grade-input {
+    width: 80px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #a8cef7;
 }
 
-/* -------------------------------------------------------
+.top-bar {
+    background: #ffffffaa;
+    backdrop-filter: blur(6px);
+    padding: 12px 25px;
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    font-weight: 600;
+    font-size: 1.15rem;
+    border-bottom: 2px solid #cde6ff;
+}
+
+
+/* =======================================================
    SIDEBAR
-------------------------------------------------------- */
+======================================================= */
 
 .sidebar {
     width: 250px;
@@ -360,7 +371,6 @@ body {
     box-shadow: 3px 0 12px rgba(0,0,0,0.28);
     z-index: 20;
 }
-
 .sidebar-title {
     font-size: 24px;
     margin-bottom: 35px;
@@ -368,7 +378,6 @@ body {
     font-weight: bold;
     color: #ffda79;
 }
-
 .sidebar a {
     display: block;
     margin: 15px 0;
@@ -379,28 +388,27 @@ body {
     border-radius: 10px;
     transition: all 0.25s ease;
 }
-
 .sidebar a:hover {
     background: #154b88;
     color: white;
     padding-left: 20px;
 }
 
-/* -------------------------------------------------------
-   MAIN CONTENT
-------------------------------------------------------- */
+
+/* =======================================================
+   MAIN CONTENT AREA
+======================================================= */
 
 .main-content {
     margin-left: 270px;
     padding: 40px;
     min-height: 100vh;
-    background: transparent;
-    z-index: 5;
 }
 
-/* -------------------------------------------------------
-   SUBJECT PLANETS (Mario Galaxy Style)
-------------------------------------------------------- */
+
+/* =======================================================
+   SUBJECT PLANETS (Galaxy Theme)
+======================================================= */
 
 .planet-grid {
     display: grid;
@@ -429,19 +437,15 @@ body {
     transition: 0.3s ease;
     cursor: pointer;
 }
-
 .planet:hover {
     transform: translateY(-10px) scale(1.06);
     box-shadow: 0 18px 35px rgba(0,0,0,0.32);
 }
-
-/* Floating animation */
 @keyframes floatPlanet {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
+    50%      { transform: translateY(-12px); }
 }
 
-/* Planet title text */
 .planet-label {
     font-size: 1.3rem;
     color: #003b6f;
@@ -449,7 +453,6 @@ body {
     text-shadow: 0 3px 8px rgba(0,0,0,0.15);
 }
 
-/* Optional rotating dashed ring */
 .planet-ring {
     width: 220px;
     height: 220px;
@@ -458,14 +461,87 @@ body {
     border: 4px dashed rgba(255,255,255,0.5);
     animation: ringSpin 12s linear infinite;
 }
-
 @keyframes ringSpin {
     from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    to   { transform: rotate(360deg); }
 }
 
 
+/* =======================================================
+   BACKGROUND SKY ELEMENTS
+======================================================= */
 
+.animated-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -10;
+}
 
+.sun {
+    position: absolute;
+    top: 5%;
+    left: 60%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, #fff7c5, #ffe066, #ffca28);
+    border-radius: 50%;
+    box-shadow: 0 0 45px rgba(255,223,120,0.55);
+    animation: sunPulse 7s ease-in-out infinite;
+}
+@keyframes sunPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%     { transform: scale(1.12); opacity: 0.92; }
+}
 
+.cloud {
+    position: absolute;
+    width: 320px;
+    opacity: 0.65;
+    animation: moveClouds linear infinite;
+    z-index: -7;
+}
+.cloud.slow { animation-duration: 70s; }
+.cloud.fast { animation-duration: 32s; }
+.cloud      { animation-duration: 50s; }
 
+@keyframes moveClouds {
+    0%   { transform: translateX(-420px); }
+    100% { transform: translateX(130%); }
+}
+
+.sparkle {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.85;
+    animation: sparkleFloat 6s ease-in-out infinite;
+    z-index: -6;
+}
+@keyframes sparkleFloat {
+    0%   { transform: translateY(0); opacity: 0.2; }
+    50%  { transform: translateY(-45px); opacity: 1; }
+    100% { transform: translateY(0); opacity: 0.2; }
+}
+
+.hill {
+    position: fixed;
+    bottom: -12%;
+    left: -40%;
+    width: 180%;
+    height: 46%;
+    background: radial-gradient(circle at 50% 80%, #4caf50, #2e7d32);
+    opacity: 0.75;
+    border-radius: 50%;
+    filter: blur(3px);
+    z-index: -9;
+    animation: hillFloat 13s ease-in-out infinite;
+}
+@keyframes hillFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(18px); }
+}
