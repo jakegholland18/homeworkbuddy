@@ -38,11 +38,11 @@ app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
 
 
 # -------------------------------
-# FIX HOMEPAGE (ROOT URL)
+# ROOT → REDIRECT TO SUBJECTS
 # -------------------------------
 @app.route("/")
 def home():
-    return redirect("/subjects")  # homepage now works and redirects to planet screen
+    return redirect("/subjects")
 
 
 # -------------------------------
@@ -84,16 +84,34 @@ def select_character():
 
 
 # -------------------------------
-# GRADE SELECTION FOR A SUBJECT
+# GRADE SELECTION PAGE (FIXED)
 # -------------------------------
 @app.route("/choose-grade")
 def choose_grade():
     subject = request.args.get("subject")
-    return render_template("subject_select_form.html", subject=subject)
+
+    if not subject:
+        return redirect("/subjects")
+
+    return render_template("choose_grade.html", subject=subject)
 
 
 # -------------------------------
-# SUBJECT PROCESSING → AI HELPERS
+# ASK QUESTION PAGE (NEW)
+# -------------------------------
+@app.route("/ask-question")
+def ask_question():
+    subject = request.args.get("subject")
+    grade = request.args.get("grade")
+
+    if not subject or not grade:
+        return redirect("/subjects")
+
+    return render_template("ask_question.html", subject=subject, grade=grade)
+
+
+# -------------------------------
+# SUBJECT → AI PROCESSING
 # -------------------------------
 @app.route("/subject", methods=["POST"])
 def subject():
@@ -126,32 +144,13 @@ def subject():
     elif subject == "money":
         answer = money_helper.explain_money(question, grade, character)
     else:
-        answer = "I'm not sure what subject that is, but I can still help."
+        answer = "Sorry — that subject isn't supported yet."
 
     return render_template("subject.html", answer=answer, character=character)
 
 
 # -------------------------------
-# STUDENT DASHBOARD
-# -------------------------------
-@app.route("/dashboard")
-def dashboard():
-    xp = 120
-    level = 3
-    subjects_count = 5
-    character = session.get("character")
-
-    return render_template(
-        "dashboard.html",
-        xp=xp,
-        level=level,
-        subjects_count=subjects_count,
-        character=character
-    )
-
-
-# -------------------------------
-# STUDY BUDDY CHAT PAGE
+# BUDDY CHAT PAGE
 # -------------------------------
 @app.route("/buddy")
 def buddy():
@@ -164,7 +163,7 @@ def buddy():
 
 
 # -------------------------------
-# FREEFORM Q&A → AI
+# FREEFORM Q&A
 # -------------------------------
 @app.route("/ask", methods=["POST"])
 def ask():
@@ -181,10 +180,11 @@ def ask():
 
 
 # -------------------------------
-# RUN SERVER (LOCAL ONLY)
+# RUN (LOCAL ONLY)
 # -------------------------------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
