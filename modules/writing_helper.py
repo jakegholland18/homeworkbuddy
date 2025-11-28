@@ -4,24 +4,68 @@ from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
 
 
-# -------------------------
+# -------------------------------------------------------
 # Detect Christian-oriented questions
-# -------------------------
+# -------------------------------------------------------
 def is_christian_question(text: str) -> bool:
     keywords = [
-        "Christian", "Christianity", "God", "Jesus",
-        "Bible", "faith", "biblical",
-        "from a Christian perspective",
-        "Christian worldview",
-        "how does this relate to Christianity",
-        "how does this relate to God"
+        "christian", "christianity", "god", "jesus",
+        "bible", "faith", "biblical",
+        "from a christian perspective",
+        "christian worldview",
+        "how does this relate to christianity",
+        "how does this relate to god"
     ]
     return any(k.lower() in text.lower() for k in keywords)
 
 
-# -------------------------
-# Writing difficulty guidance per grade level
-# -------------------------
+# -------------------------------------------------------
+# Socratic Tutor Layer
+# -------------------------------------------------------
+def socratic_layer(base_explanation: str, question: str, grade_level: str):
+    """
+    Gives guided steps before the main writing explanation:
+    - Clarify question
+    - Give gentle hint
+    - Ask guiding question
+    - Provide tiny nudge
+    - Transition into full explanation
+    """
+
+    return f"""
+A student needs writing help with this:
+
+"{question}"
+
+Before giving the full explanation, guide them gently so they think on their own.
+
+Start by restating what the student is really asking in simple,
+kid-friendly language so they feel understood.
+
+Then offer a small hint that nudges them in the right direction
+without giving away the full explanation.
+
+After that, ask a guiding question that invites the student to notice
+something about writing, such as structure, clarity, purpose,
+or how ideas connect.
+
+Next, provide a tiny nudge that helps them move forward if they feel stuck,
+but still keeps them thinking rather than giving the answer.
+
+Once they have had a chance to think,
+transition naturally into the complete explanation below.
+
+Full Explanation:
+{base_explanation}
+
+Finish with a warm, encouraging summary for a grade {grade_level} student,
+reminding them that writing improves with practice and patience.
+"""
+
+
+# -------------------------------------------------------
+# Writing difficulty guidance by grade
+# -------------------------------------------------------
 WRITING_TOPICS = {
     "1": ["simple sentences", "capital letters", "punctuation", "writing about feelings"],
     "2": ["short paragraphs", "topic sentences", "story order"],
@@ -38,161 +82,147 @@ WRITING_TOPICS = {
 }
 
 
-# -------------------------------------------------------------
-# EXPLAIN A WRITING SKILL
-# -------------------------------------------------------------
+# -------------------------------------------------------
+# EXPLAIN A WRITING SKILL (with Socratic tutor)
+# -------------------------------------------------------
 def explain_writing(topic: str, grade_level="8", character=None):
     if character is None:
         character = "valor_strike"
 
     if is_christian_question(topic):
-        christian_prompt = f"""
-The student asked for a Christian perspective about writing or communication.
+        base_prompt = f"""
+The student asked for a Christian perspective about writing.
 
 Topic: {topic}
 
-Offer a calm explanation about how many Christians value honesty,
-clarity, and kindness in communication. Explain that writing can be a way
-to express ideas thoughtfully and respectfully. Avoid claiming the Bible
-teaches modern writing techniques.
+Explain gently how Christians often value honesty, clarity,
+and kindness in communication. Mention that writing can be a way
+to express ideas thoughtfully and respectfully.
 
-Do not teach the writing skill here. Only give the worldview connection.
+Do not claim that the Bible teaches modern writing methods.
+Here you are only offering the worldview connection.
 """
-        christian_prompt = apply_personality(character, christian_prompt)
-        return study_buddy_ai(christian_prompt, grade_level, character)
+    else:
+        grade_topics = ", ".join(WRITING_TOPICS.get(str(grade_level), []))
 
-    grade_topics = ", ".join(WRITING_TOPICS.get(str(grade_level), []))
-
-    prompt = f"""
+        base_prompt = f"""
 Teach the writing skill: {topic}
 Grade level: {grade_level}
 
-Explain the topic gently and in a calm, natural way.
-Avoid hype, dramatic language, or anything overly emotional.
+Speak in a calm, conversational tone.
+Explain what the skill means and how a student can use it.
+Include a gentle example, reminders about clarity, and a few tasks.
+Avoid lists or dramatic language.
 
-Include:
-A simple explanation of the writing skill
-A step-by-step way to use the skill
-A short example that shows how it works
-A few reminders for students
-Five practice tasks
-Then the answers or model examples
-
-Use the grade level topics for difficulty guidance: {grade_topics}
+Use these grade-level topics to choose difficulty: {grade_topics}
 """
-    prompt = apply_personality(character, prompt)
-    return study_buddy_ai(prompt, grade_level, character)
+
+    guided_prompt = socratic_layer(base_prompt, topic, grade_level)
+    enriched_prompt = apply_personality(character, guided_prompt)
+
+    return study_buddy_ai(enriched_prompt, grade_level, character)
 
 
-# -------------------------------------------------------------
-# HELP WRITE SOMETHING
-# -------------------------------------------------------------
+# -------------------------------------------------------
+# HELP WITH A WRITING TASK (with Socratic tutor)
+# -------------------------------------------------------
 def help_write(task: str, grade_level="8", character=None):
     if character is None:
         character = "valor_strike"
 
     if is_christian_question(task):
-        christian_prompt = f"""
-The student asked for this writing task from a Christian viewpoint.
+        base_prompt = f"""
+The student asked for writing help from a Christian viewpoint.
 
-Task: {task}
+Task:
+{task}
 
-Provide a gentle explanation of how Christians may view writing as a way
-to communicate truthfully and thoughtfully. Show how the Bible's writing methods were used to share foundational ideas.
-Then, help with the writing task as requested.
-Keep it calm and age-appropriate.
+Explain gently how Christians may view writing as a way to express truth,
+kindness, and thoughtfulness. Then complete the writing task calmly
+and age-appropriately.
 """
-        christian_prompt = apply_personality(character, christian_prompt)
-        return study_buddy_ai(christian_prompt, grade_level, character)
-
-    prompt = f"""
+    else:
+        base_prompt = f"""
 Help the student with this writing task:
 
 {task}
 
-Guide them through it in a calm, friendly, conversational way.
-Avoid strong emotion or dramatic tone.
-You may write example paragraphs or essays,
-but keep them simple and age-appropriate.
-
-Include:
-A short explanation of what the student is trying to write
-A gentle model example
-A couple reminders about clarity and organization
+Explain what the task is asking for in a calm, simple tone.
+Guide them with a friendly example and a few soft reminders about clarity.
 """
-    prompt = apply_personality(character, prompt)
-    return study_buddy_ai(prompt, grade_level, character)
+
+    guided_prompt = socratic_layer(base_prompt, task, grade_level)
+    enriched_prompt = apply_personality(character, guided_prompt)
+
+    return study_buddy_ai(enriched_prompt, grade_level, character)
 
 
-# -------------------------------------------------------------
-# EDIT STUDENT WRITING
-# -------------------------------------------------------------
+# -------------------------------------------------------
+# EDIT STUDENT WRITING (with Socratic tutor)
+# -------------------------------------------------------
 def edit_writing(text: str, grade_level="8", character=None):
     if character is None:
         character = "valor_strike"
 
     if is_christian_question(text):
-        christian_prompt = f"""
-The student asked for feedback from a Christian viewpoint.
+        base_prompt = f"""
+The student wants writing feedback from a Christian viewpoint.
 
-Text: {text}
-
-Give a calm explanation about the value of thoughtful and honest communication.
-Avoid intense or emotional tone.
-
-Then gently suggest improvements to the student's writing.
-"""
-        christian_prompt = apply_personality(character, christian_prompt)
-        return study_buddy_ai(christian_prompt, grade_level, character)
-
-    prompt = f"""
-Read this student's writing and gently improve it.
-Keep the tone warm, calm, and encouraging.
-Correct grammar or clarity issues but do not change the student's meaning.
-
-Text to improve:
+Text to edit:
 {text}
 
-Provide:
-A smoother version of the paragraph
-A short explanation of the improvements
-A couple encouragements for next time
+Show how Christians value thoughtful and honest communication.
+Then gently improve the writing while preserving the student's meaning.
 """
-    prompt = apply_personality(character, prompt)
-    return study_buddy_ai(prompt, grade_level, character)
+    else:
+        base_prompt = f"""
+Read the student's writing and gently improve it.
+
+Text:
+{text}
+
+Provide a smoother version, explain the improvements softly,
+and offer encouragement for next time.
+"""
+
+    guided_prompt = socratic_layer(base_prompt, text, grade_level)
+    enriched_prompt = apply_personality(character, guided_prompt)
+
+    return study_buddy_ai(enriched_prompt, grade_level, character)
 
 
-# -------------------------------------------------------------
-# CREATIVE WRITING HELP
-# -------------------------------------------------------------
+# -------------------------------------------------------
+# CREATIVE WRITING (with Socratic tutor)
+# -------------------------------------------------------
 def creative_writing(prompt_text: str, grade_level="8", character=None):
     if character is None:
         character = "valor_strike"
 
     if is_christian_question(prompt_text):
-        christian_prompt = f"""
-The student wants a creative writing response with a Christian perspective.
+        base_prompt = f"""
+The student wants a creative story with a Christian perspective.
 
-Prompt: {prompt_text}
+Prompt:
+{prompt_text}
 
-Offer an explanation of how Christians approach storytelling
-through themes of hope, kindness, and responsibility.
+Explain gently how Christians often focus on themes like kindness,
+hope, responsibility, and forgiveness in storytelling.
 
-Then create a gentle story for the student, suitable for grade {grade_level}.
-No dramatic intensity. Keep it peaceful.
+Then create a calm, gentle story appropriate for grade {grade_level}.
+Avoid dramatic intensity.
 """
-        christian_prompt = apply_personality(character, christian_prompt)
-        return study_buddy_ai(christian_prompt, grade_level, character)
-
-    prompt = f"""
-Write a simple creative story based on this prompt:
+    else:
+        base_prompt = f"""
+Write a gentle creative story based on this prompt:
 
 {prompt_text}
 
-Keep the storytelling calm, gentle, and understandable for grade {grade_level}.
-Avoid dramatic scenes or intense emotion.
-You may add soft personality influence based on the selected character.
+Keep the tone warm and understandable for grade {grade_level}.
+Avoid intense emotion. Add subtle character personality if helpful.
 """
-    prompt = apply_personality(character, prompt)
-    return study_buddy_ai(prompt, grade_level, character)
+
+    guided_prompt = socratic_layer(base_prompt, prompt_text, grade_level)
+    enriched_prompt = apply_personality(character, guided_prompt)
+
+    return study_buddy_ai(enriched_prompt, grade_level, character)
 

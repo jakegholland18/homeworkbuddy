@@ -55,7 +55,7 @@ SHOP_ITEMS = {
 
 
 # ============================================================
-# FLASK APP
+# FLASK APP SETUP
 # ============================================================
 app = Flask(
     __name__,
@@ -79,18 +79,24 @@ def init_user():
         "character": "valor_strike",
         "usage_minutes": 0,
         "progress": {
-            "math": {"questions": 0, "correct": 0},
-            "science": {"questions": 0, "correct": 0},
-            "history": {"questions": 0, "correct": 0},
-            "writing": {"questions": 0, "correct": 0},
-            "bible": {"questions": 0, "correct": 0},
+            "num_forge": {"questions": 0, "correct": 0},
+            "atom_sphere": {"questions": 0, "correct": 0},
+            "chrono_core": {"questions": 0, "correct": 0},
+            "ink_haven": {"questions": 0, "correct": 0},
+            "faith_realm": {"questions": 0, "correct": 0},
+            "coin_quest": {"questions": 0, "correct": 0},
+            "stock_star": {"questions": 0, "correct": 0},
+            "story_verse": {"questions": 0, "correct": 0},
+            "power_grid": {"questions": 0, "correct": 0},
+            "terra_nova": {"questions": 0, "correct": 0},
+            "truth_forge": {"questions": 0, "correct": 0},
         }
     }
     for key, value in defaults.items():
         if key not in session:
             session[key] = value
 
-    update_streak()  # keeps streak in sync
+    update_streak()
 
 
 # ============================================================
@@ -116,7 +122,6 @@ def update_streak():
 # ============================================================
 def add_xp(amount):
     session["xp"] += amount
-
     xp_needed = session["level"] * 100
 
     if session["xp"] >= xp_needed:
@@ -139,17 +144,17 @@ def subjects():
     init_user()
 
     planets = [
-        ("math", "math.png", "Math Planet"),
-        ("science", "science.png", "Science Planet"),
-        ("history", "history.png", "History Planet"),
-        ("writing", "writing.png", "Writing Planet"),
-        ("bible", "bible.png", "Bible Planet"),
-        ("study", "study.png", "Study Planet"),
-        ("text", "text.png", "Text Planet"),
-        ("question", "question.png", "Question Planet"),
-        ("apologetics", "apologetics.png", "Apologetics Planet"),
-        ("accounting", "accounting.png", "Accounting Planet"),
-        ("investment", "investment.png", "Investment Planet")
+        ("chrono_core", "chrono_core.png", "ChronoCore"),
+        ("num_forge", "num_forge.png", "NumForge"),
+        ("atom_sphere", "atom_sphere.png", "AtomSphere"),
+        ("story_verse", "story_verse.png", "StoryVerse"),
+        ("ink_haven", "ink_haven.png", "InkHaven"),
+        ("faith_realm", "faith_realm.png", "FaithRealm"),
+        ("coin_quest", "coin_quest.png", "CoinQuest"),
+        ("stock_star", "stock_star.png", "StockStar"),
+        ("terra_nova", "terra_nova.png", "TerraNova"),
+        ("power_grid", "power_grid.png", "PowerGrid"),
+        ("truth_forge", "truth_forge.png", "TruthForge")
     ]
 
     return render_template("subjects.html", planets=planets, character=session["character"])
@@ -171,7 +176,7 @@ def ask_question():
 
 
 # ============================================================
-# SUBJECT → AI ANSWER
+# SUBJECT → AI ANSWER ROUTER
 # ============================================================
 @app.route("/subject", methods=["POST"])
 def subject_answer():
@@ -182,31 +187,30 @@ def subject_answer():
     question = request.form.get("question")
     character = session["character"]
 
-    # Track progress
     session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
     session["progress"][subject]["questions"] += 1
 
-    # AI routing
     subject_map = {
-        "math": math_helper.explain_math,
-        "text": text_helper.summarize_text,
+        "num_forge": math_helper.explain_math,
+        "text": text_helper.summarize_text,  # REMOVE SOON if renaming
         "general": question_helper.answer_question,
-        "science": science_helper.explain_science,
-        "bible": bible_helper.bible_lesson,
-        "history": history_helper.explain_history,
-        "writing": writing_helper.help_write,
-        "study": study_helper.generate_quiz,
-        "apologetics": apologetics_helper.apologetics_answer,
-        "investment": investment_helper.explain_investing,
-        "money": money_helper.explain_money,
+        "atom_sphere": science_helper.explain_science,
+        "faith_realm": bible_helper.bible_lesson,
+        "chrono_core": history_helper.explain_history,
+        "ink_haven": writing_helper.help_write,
+        "power_grid": study_helper.generate_quiz,
+        "truth_forge": apologetics_helper.apologetics_answer,
+        "stock_star": investment_helper.explain_investing,
+        "coin_quest": money_helper.explain_money,
+        "terra_nova": question_helper.answer_question,
+        "story_verse": text_helper.summarize_text
     }
 
     if subject in subject_map:
         answer = subject_map[subject](question, grade, character)
     else:
-        answer = "I'm not sure what subject that is."
+        answer = "I'm not sure what planet this question belongs to."
 
-    # Rewards
     add_xp(20)
     session["tokens"] += 2
 
@@ -306,7 +310,6 @@ def parent_dashboard():
 
     total_usage = session["usage_minutes"]
 
-    # Flatten progress stats for display
     progress_display = {
         subject: int((data["correct"] / data["questions"]) * 100) if data["questions"] > 0 else 0
         for subject, data in session["progress"].items()
@@ -324,7 +327,7 @@ def parent_dashboard():
 
 
 # ============================================================
-# RUN SERVER (LOCAL ONLY)
+# RUN SERVER
 # ============================================================
 if __name__ == "__main__":
     app.run(debug=True)

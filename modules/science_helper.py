@@ -4,24 +4,59 @@ from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
 
 
-# -------------------------
-# Detect Christian-related question
-# -------------------------
+# -------------------------------------------------------
+# Detect Christian-related science questions
+# -------------------------------------------------------
 def is_christian_question(text: str) -> bool:
     keywords = [
-        "Christian", "Christianity", "God", "Jesus", "Bible",
+        "christian", "christianity", "god", "jesus", "bible",
         "biblical", "creation", "faith",
-        "Christian perspective",
-        "from a Christian view",
-        "how does this relate to Christianity",
-        "how does this relate to God"
+        "christian perspective",
+        "from a christian view",
+        "how does this relate to christianity",
+        "how does this relate to god"
     ]
     return any(k.lower() in text.lower() for k in keywords)
 
 
-# -------------------------
-# Grade-Level Science Topics (guiding difficulty)
-# -------------------------
+# -------------------------------------------------------
+# Socratic Tutor Layer (used on all explanations)
+# -------------------------------------------------------
+def socratic_layer(base_explanation: str, question: str, grade_level: str):
+    """
+    Wraps any explanation inside Socratic guidance:
+    restate → hint → guiding question → small nudge → full explanation.
+    """
+
+    return f"""
+A student asked: "{question}"
+
+Before teaching the full explanation, help the student think on their own.
+
+Start by restating the question in simple, kid-friendly language so they feel understood.
+
+Then offer a small hint that gently points them in the right direction.
+
+Next, ask a guiding question that gets them thinking about what they already know
+about nature, science, or the world around them.
+
+After that, give a soft nudge that helps them move closer to the idea
+without revealing the whole explanation too early.
+
+Once you have guided their thinking step-by-step,
+transition naturally into the full explanation below.
+
+Full Explanation:
+{base_explanation}
+
+End with a warm, encouraging summary written at a grade {grade_level} level
+that reassures them it is wonderful to be curious about how the world works.
+"""
+
+
+# -------------------------------------------------------
+# Grade-Level Science Topics
+# -------------------------------------------------------
 SCIENCE_TOPICS = {
     "1": ["plants", "animals", "senses", "weather", "seasons"],
     "2": ["habitats", "life cycles", "basic forces", "energy", "earth materials"],
@@ -39,129 +74,133 @@ SCIENCE_TOPICS = {
 
 
 # -------------------------------------------------------------
-# EXPLAIN A SCIENCE TOPIC (FULL LESSON)
+# EXPLAIN A SCIENCE TOPIC (FULL LESSON w/ Socratic tutoring)
 # -------------------------------------------------------------
 def explain_science(topic: str, grade_level="8", character=None):
+
     if character is None:
         character = "valor_strike"
 
-    # If student wants Christian perspective
+    # Christian worldview requested
     if is_christian_question(topic):
-        christian_prompt = f"""
-The student asked how this science topic connects to Christianity.
+        christian_base = f"""
+The student asked how this science topic relates to Christianity.
 
 Topic: {topic}
 
-Offer a gentle explanation:
-Explain that science studies the natural world and how it works.
-Explain that many Christians appreciate science because they see the natural world as something created with order and purpose.
-Avoid claiming that the Bible teaches modern scientific models or theories.
-Keep it simple and appropriate for grade {grade_level}.
+Explain gently that science studies the natural world and helps us understand
+how things work by observing patterns, gathering evidence, and testing ideas.
 
-Do not teach the science lesson here. Only address the Christian connection.
+Explain that many Christians appreciate science because they see the natural world
+as something created with order and purpose, but avoid claiming that the Bible
+teaches modern scientific theories.
+
+Keep the tone warm, simple, and respectful.
 """
-        christian_prompt = apply_personality(character, christian_prompt)
-        return study_buddy_ai(christian_prompt, grade_level, character)
+        prompt = socratic_layer(christian_base, topic, grade_level)
+        prompt = apply_personality(character, prompt)
+        return study_buddy_ai(prompt, grade_level, character)
 
+    # Standard science explanation
     grade_topics = ", ".join(SCIENCE_TOPICS.get(str(grade_level), []))
 
-    prompt = f"""
+    base_prompt = f"""
 Teach the science topic: {topic}
-Student grade level: {grade_level}
+Grade level: {grade_level}
 
-Use a gentle, calm, conversational tone. Avoid dramatic or energetic wording.
-Be patient, clear, and friendly.
+Use a calm, patient, conversational voice.
+Avoid energetic or dramatic language.
 
-Include:
-A simple overview
-A step-by-step explanation of the idea
-A couple worked examples or real-life applications
-Key ideas to remember
-Five practice questions
-Then the answers
+Include a simple overview, gentle step-by-step thinking,
+and real-world examples that help the idea make sense.
+Explain key ideas in plain language, then guide the student 
+through a few practice questions and answers in a natural,
+spoken tone without lists or headings.
 
-Write naturally, like you are sitting beside the student and helping them understand.
-
-Grade level reference topics: {grade_topics}
-Use this list to choose the right difficulty.
+Grade-level reference topics include: {grade_topics}
+Use this to match the difficulty.
 """
-    prompt = apply_personality(character, prompt)
-    return study_buddy_ai(prompt, grade_level, character)
+
+    guided_prompt = socratic_layer(base_prompt, topic, grade_level)
+    guided_prompt = apply_personality(character, guided_prompt)
+    return study_buddy_ai(guided_prompt, grade_level, character)
 
 
 # -------------------------------------------------------------
-# ANSWER GENERAL SCIENCE QUESTIONS
+# ANSWER A SCIENCE QUESTION (Socratic + Personality)
 # -------------------------------------------------------------
 def answer_science_question(question: str, grade_level="8", character=None):
+
     if character is None:
         character = "valor_strike"
 
     # Christian worldview version
     if is_christian_question(question):
-        christian_prompt = f"""
+        christian_base = f"""
 The student asked about this science question from a Christian perspective.
 
 Question: {question}
 
 Explain gently:
-Science explains how the natural world works.
-Christians see scientific order and patterns as signs of a world created with structure and purpose.
-Do not claim that the Bible directly teaches modern scientific concepts.
-Keep the tone soft and simple.
+Science describes how the natural world works.
+Many Christians see scientific patterns and order as signs of a world created with consistency.
+Avoid claiming that Scripture directly teaches modern scientific theories.
 
-Do not answer the science question itself here, unless the student directly asks for both explanations.
+Speak in a warm, calm tone for a grade {grade_level} student.
 """
-        christian_prompt = apply_personality(character, christian_prompt)
-        return study_buddy_ai(christian_prompt, grade_level, character)
+        guided_prompt = socratic_layer(christian_base, question, grade_level)
+        guided_prompt = apply_personality(character, guided_prompt)
+        return study_buddy_ai(guided_prompt, grade_level, character)
 
     # Standard explanation
-    prompt = f"""
-Answer the following science question for a grade {grade_level} student in a calm, conversational way.
+    base_prompt = f"""
+Answer this science question for a grade {grade_level} student
+using a slow, friendly, conversational tone:
 
-Question: {question}
+{question}
 
-Explain:
-What the question is really asking
-The answer in clear, simple reasoning
-One short example or illustration
-One helpful reminder for similar questions
-
-Keep things warm, patient, and easy to follow.
+Explain what the question is asking,
+walk through the idea step by step in natural language,
+give a gentle example, and offer one small reminder.
 """
-    prompt = apply_personality(character, prompt)
-    return study_buddy_ai(prompt, grade_level, character)
+    guided_prompt = socratic_layer(base_prompt, question, grade_level)
+    guided_prompt = apply_personality(character, guided_prompt)
+    return study_buddy_ai(guided_prompt, grade_level, character)
 
 
 # -------------------------------------------------------------
-# GENERATE A SCIENCE QUIZ
+# GENERATE A SCIENCE QUIZ (Socratic + Personality)
 # -------------------------------------------------------------
 def generate_science_quiz(topic: str, grade_level="8", character=None):
+
     if character is None:
         character = "valor_strike"
 
     # Christian worldview quiz
     if is_christian_question(topic):
-        christian_prompt = f"""
-The student asked for a Christian perspective on this science topic before a quiz.
+        christian_base = f"""
+The student wants a Christian perspective before a small science quiz.
 
 Topic: {topic}
 
-Begin with a short gentle explanation that many Christians appreciate the order of nature.
-Then provide three simple science questions and an answer key.
-Keep everything age-appropriate.
+Explain gently that many Christians appreciate the order in nature.
+Then offer several gentle practice questions and a conversational answer key.
 """
-        christian_prompt = apply_personality(character, christian_prompt)
-        return study_buddy_ai(christian_prompt, grade_level, character)
+        guided_prompt = socratic_layer(christian_base, topic, grade_level)
+        guided_prompt = apply_personality(character, guided_prompt)
+        return study_buddy_ai(guided_prompt, grade_level, character)
 
-    prompt = f"""
-Create a short science quiz for the topic: {topic}
+    # Standard quiz
+    base_prompt = f"""
+Create a soft, conversational science quiz for the topic: {topic}
 Grade level: {grade_level}
 
-Speak in a gentle, patient, conversational tone.
-Include five questions and then an answer key.
-Keep the difficulty appropriate for grade {grade_level}.
+Ask five gentle practice questions in spoken, natural language.
+Then offer an answer key in the same tone.
 """
-    prompt = apply_personality(character, prompt)
-    return study_buddy_ai(prompt, grade_level, character)
+    guided_prompt = socratic_layer(base_prompt, topic, grade_level)
+    guided_prompt = apply_personality(character, guided_prompt)
+    return study_buddy_ai(guided_prompt, grade_level, character)
+
 
 

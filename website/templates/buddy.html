@@ -7,46 +7,38 @@
 
 <body class="fade-in">
 
-<!-- TOP BAR -->
 <div class="top-bar">
     <span>XP: {{ xp }}</span>
     <span>Tokens: {{ tokens }}</span>
     <span>Streak: {{ streak }} days</span>
 </div>
 
-<!-- MAIN BUDDY WRAPPER -->
 <div class="buddy-container">
 
-    <!-- CHARACTER SECTION -->
+    <!-- Character Section -->
     <div class="character-box">
-        <img src="/static/{{ character }}.png" 
-             class="character-universal character-float">
-
-        <h2 class="character-name">
-            {{ character.replace("_"," ").title() }}
-        </h2>
+        <img src="/static/{{ character }}.png" class="character-img character-large">
+        <h2 class="character-name">{{ character.replace("_"," ").title() }}</h2>
     </div>
 
-    <!-- CHAT SECTION -->
+    <!-- Chat Section -->
     <div class="chat-box">
 
         {% if answer %}
-        <div class="ai-response fade-in">
+        <div class="ai-response">
             {{ answer }}
         </div>
         {% endif %}
 
-        <form action="/ask" method="POST" class="question-form fade-in">
+        <form action="/ask" method="POST" class="question-form">
 
-            <label class="grade-label">Grade:</label>
-            <input type="text" name="grade" value="{{ grade }}" class="grade-input">
+            <label>Grade:</label>
+            <input type="text" name="grade" value="{{ grade }}" style="width:120px;">
 
-            <textarea name="question"
-                      placeholder="Ask anything you want to learn..."
-                      class="question-area"
-                      required></textarea>
+            <label style="margin-top:15px;">Ask Your Question:</label>
+            <textarea name="question" placeholder="Ask anything you want to learn..." class="question-textarea" required></textarea>
 
-            <button type="submit" class="btn btn-glow">Ask Buddy</button>
+            <button type="submit" class="btn btn-glow" style="margin-top:10px;">Ask Buddy</button>
 
         </form>
     </div>
@@ -55,5 +47,6 @@
 
 </body>
 </html>
+
 
 

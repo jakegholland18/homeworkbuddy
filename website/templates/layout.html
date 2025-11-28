@@ -11,6 +11,79 @@
     <!-- OPTIONAL ANIMATION CSS -->
     <link rel="stylesheet" href="/static/animations.css">
 
+    <style>
+        /* ----------- SIDEBAR ----------- */
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            background: #0b1424;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+        }
+
+        .sidebar-title {
+            font-size: 1.6rem;
+            color: #bcdfff;
+            margin-bottom: 25px;
+            text-shadow: 0 0 10px #78aaff;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: #e2eeff;
+            font-size: 1.2rem;
+            padding: 10px 12px;
+            border-radius: 10px;
+            transition: 0.25s;
+        }
+
+        .sidebar a:hover {
+            background: #1d2c49;
+            transform: translateX(5px);
+        }
+
+        /* ----------- MAIN CONTENT ----------- */
+        .main-content {
+            margin-left: 260px;
+            padding: 40px;
+            min-height: 100vh;
+        }
+
+        /* MOBILE */
+        @media(max-width: 900px) {
+            .sidebar {
+                width: 180px;
+            }
+
+            .main-content {
+                margin-left: 200px;
+                padding: 20px;
+            }
+        }
+
+        @media(max-width: 700px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+
 </head>
 
 <body>
@@ -21,11 +94,10 @@
 <div class="sidebar">
     <h2 class="sidebar-title">📚 Homework Buddy</h2>
 
-    <a href="/">🏠 Home</a>
+    <a href="/subjects">🏠 Home</a>
     <a href="/dashboard">📊 Student Dashboard</a>
-    <a href="/buddy">🤖 Study Buddy</a>
     <a href="/choose-character">🎨 Choose Buddy</a>
-    <a href="/parent">👨‍👩‍👦 Parent Dashboard</a>
+    <a href="/parent-dashboard">👨‍👩‍👦 Parent Dashboard</a>
 </div>
 
 <!-- ========================= -->
@@ -38,6 +110,7 @@
 
 </body>
 </html>
+
 
 
 
