@@ -24,22 +24,51 @@ sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "modules")))
 # ---------------------------------------
 # IMPORT AI LOGIC + CHARACTER DATA
 # ---------------------------------------
+
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import get_all_characters
+from modules.answer_formatter import format_answer
 
-# Updated helpers using your NEW 6-section strategy
-import modules.math_helper     as math_helper
-import modules.text_helper     as text_helper
+import modules.math_helper as math_helper
+import modules.text_helper as text_helper
 import modules.question_helper as question_helper
-import modules.science_helper  as science_helper
-import modules.bible_helper    as bible_helper
-import modules.history_helper  as history_helper
-import modules.writing_helper  as writing_helper
-import modules.study_helper    as study_helper
+import modules.science_helper as science_helper
+import modules.bible_helper as bible_helper
+import modules.history_helper as history_helper
+import modules.writing_helper as writing_helper
+import modules.study_helper as study_helper
 import modules.apologetics_helper as apologetics_helper
-import modules.investment_helper  as investment_helper
-import modules.money_helper       as money_helper
+import modules.investment_helper as investment_helper
+import modules.money_helper as money_helper
 
+
+# ============================================================
+# HIDDEN SHOP ITEMS
+# ============================================================
+
+SHOP_ITEMS = {
+    "space_glasses": {"name": "Space Glasses", "price": 30},
+    "angel_aura": {"name": "Angel Aura", "price": 50},
+    "golden_cape": {"name": "Golden Cape", "price": 75},
+    "galaxy_trail": {"name": "Galaxy Trail", "price": 100},
+    "meteor_boots": {"name": "Meteor Boots", "price": 40},
+    "cosmic_wings": {"name": "Cosmic Wings", "price": 90},
+
+    "double_xp_card": {"name": "Double XP (30 minutes)", "price": 60},
+    "token_booster": {"name": "Galaxy Token Booster", "price": 40},
+    "subject_pass": {"name": "Subject Fast Pass (24hr)", "price": 25},
+
+    "mystery_crate": {"name": "Mystery Crate", "price": 50},
+    "legendary_crate": {"name": "Legendary Crate", "price": 120},
+
+    "valor_galaxy_armor": {"name": "Valor Strike: Galaxy Armor", "price": 200},
+    "everly_starlight": {"name": "Princess Everly: Starlight Dress", "price": 175},
+    "nova_hypercoat": {"name": "Nova Circuit: Hypercoat", "price": 150},
+
+    "shield_of_faith": {"name": "Shield of Faith", "price": 60},
+    "light_aura": {"name": "Aura of Light", "price": 80},
+    "dove_trail": {"name": "Dove Trail", "price": 75},
+}
 
 # ============================================================
 # INITIALIZE USER SESSION
@@ -53,25 +82,11 @@ def init_user():
         "streak": 1,
         "last_visit": str(datetime.today().date()),
         "inventory": [],
-        "usage_minutes": 0,
-
-        # Default character (must match personality helper keys)
         "character": "everly",
 
-        # Track subject usage
-        "progress": {
-            "num_forge": {"questions": 0},
-            "atom_sphere": {"questions": 0},
-            "chrono_core": {"questions": 0},
-            "ink_haven": {"questions": 0},
-            "faith_realm": {"questions": 0},
-            "coin_quest": {"questions": 0},
-            "stock_star": {"questions": 0},
-            "story_verse": {"questions": 0},
-            "power_grid": {"questions": 0},
-            "terra_nova": {"questions": 0},
-            "truth_forge": {"questions": 0},
-        }
+        "usage_minutes": 0,
+
+        "progress": {}
     }
 
     for key, val in defaults.items():
@@ -79,7 +94,6 @@ def init_user():
             session[key] = val
 
     update_streak()
-
 
 # ============================================================
 # DAILY STREAK
@@ -89,14 +103,18 @@ def update_streak():
     today = datetime.today().date()
     last = datetime.strptime(session["last_visit"], "%Y-%m-%d").date()
 
-    if today != last:
-        session["streak"] = session["streak"] + 1 if today - last == timedelta(days=1) else 1
+    if today == last:
+        return
+
+    if today - last == timedelta(days=1):
+        session["streak"] += 1
+    else:
+        session["streak"] = 1
 
     session["last_visit"] = str(today)
 
-
 # ============================================================
-# XP SYSTEM
+# XP & LEVEL SYSTEM
 # ============================================================
 
 def add_xp(amount):
@@ -108,9 +126,8 @@ def add_xp(amount):
         session["level"] += 1
         flash(f"LEVEL UP! You reached Level {session['level']}!", "info")
 
-
 # ============================================================
-# HOME → SUBJECTS
+# ROOT → SUBJECTS
 # ============================================================
 
 @app.route("/")
@@ -118,9 +135,8 @@ def home():
     init_user()
     return redirect("/subjects")
 
-
 # ============================================================
-# SUBJECTS PLANET SCREEN
+# SUBJECT PLANETS SCREEN
 # ============================================================
 
 @app.route("/subjects")
@@ -143,7 +159,6 @@ def subjects():
 
     return render_template("subjects.html", planets=planets, character=session["character"])
 
-
 # ============================================================
 # CHARACTER SELECTION
 # ============================================================
@@ -154,7 +169,6 @@ def choose_character():
     characters = get_all_characters()
     return render_template("choose_character.html", characters=characters)
 
-
 @app.route("/select-character", methods=["POST"])
 def select_character():
     init_user()
@@ -163,9 +177,8 @@ def select_character():
         session["character"] = chosen
     return redirect("/dashboard")
 
-
 # ============================================================
-# CHOOSE GRADE LEVEL
+# CHOOSE GRADE
 # ============================================================
 
 @app.route("/choose-grade")
@@ -174,17 +187,16 @@ def choose_grade():
     subject = request.args.get("subject")
     return render_template("subject_select_form.html", subject=subject)
 
-
 # ============================================================
-# ASK QUESTION
+# ASK QUESTION SCREEN
 # ============================================================
 
 @app.route("/ask-question")
 def ask_question():
     init_user()
-
     subject = request.args.get("subject")
     grade = request.args.get("grade")
+
     characters = get_all_characters()
 
     return render_template(
@@ -195,9 +207,8 @@ def ask_question():
         characters=characters
     )
 
-
 # ============================================================
-# SUBJECT → AI PROCESSING
+# SUBJECT → AI ANSWER PAGE
 # ============================================================
 
 @app.route("/subject", methods=["POST"])
@@ -209,16 +220,16 @@ def subject_answer():
     question = request.form.get("question")
     character = session["character"]
 
-    # Track number of questions asked
+    # Track progress safely
+    session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
     session["progress"][subject]["questions"] += 1
 
-    # NEW: All helpers now return 6-section structured answer
     subject_map = {
-        "num_forge":  math_helper.explain_math,
+        "num_forge": math_helper.explain_math,
         "atom_sphere": science_helper.explain_science,
         "faith_realm": bible_helper.bible_lesson,
         "chrono_core": history_helper.explain_history,
-        "ink_haven":  writing_helper.help_write,
+        "ink_haven": writing_helper.help_write,
         "power_grid": study_helper.generate_quiz,
         "truth_forge": apologetics_helper.apologetics_answer,
         "stock_star": investment_helper.explain_investing,
@@ -227,18 +238,20 @@ def subject_answer():
         "story_verse": text_helper.summarize_text,
     }
 
-    # Fetch correct helper
+    # AI raw answer
     if subject in subject_map:
         raw_answer = subject_map[subject](question, grade, character)
     else:
-        raw_answer = "Hmm… I’m not sure which planet this belongs to."
+        raw_answer = "Unknown subject."
 
-    # Render final answer
+    # Format into structured JSON
+    answer = format_answer(raw_answer)
+
+    # Rewards
     add_xp(20)
     session["tokens"] += 2
 
-    return render_template("subject.html", answer=raw_answer, character=character)
-
+    return render_template("subject.html", answer=answer, character=character)
 
 # ============================================================
 # STUDENT DASHBOARD
@@ -264,9 +277,9 @@ def dashboard():
     ]
 
     locked_characters = {
-        "Everly": "Reach Level 3",
-        "Nova": "3-day streak",
-        "Lio": "Earn 200 XP total",
+        "Princess Everly": "Reach Level 3",
+        "Nova Circuit": "3-day streak",
+        "Agent Cluehart": "Earn 200 XP total",
         "Buddy Barkston": "Buy for 100 tokens",
     }
 
@@ -283,23 +296,21 @@ def dashboard():
         locked_characters=locked_characters
     )
 
-
 # ============================================================
-# DISABLED SHOP + INVENTORY (UNTIL READY)
+# SHOP (HIDDEN)
 # ============================================================
 
 @app.route("/shop")
 def shop():
     return redirect("/dashboard")
 
-@app.route("/inventory")
-def inventory():
-    return redirect("/dashboard")
-
 @app.route("/buy/<item_id>")
 def buy_item(item_id):
     return redirect("/dashboard")
 
+@app.route("/inventory")
+def inventory():
+    return redirect("/dashboard")
 
 # ============================================================
 # PARENT DASHBOARD
@@ -310,7 +321,8 @@ def parent_dashboard():
     init_user()
 
     progress_display = {
-        subject: data["questions"]
+        subject: int((data["correct"] / data["questions"]) * 100)
+        if data["questions"] > 0 else 0
         for subject, data in session["progress"].items()
     }
 
@@ -323,7 +335,6 @@ def parent_dashboard():
         tokens=session["tokens"],
         character=session["character"]
     )
-
 
 # ============================================================
 # RUN SERVER
