@@ -3,8 +3,22 @@ import os
 from flask import Flask, render_template, request, redirect, session, flash
 from datetime import datetime, timedelta
 
-# Make sure Python can see /modules
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# ============================================================
+# FIX STATIC + TEMPLATE PATHS FOR RENDER
+# ============================================================
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, "website", "templates"),
+    static_folder=os.path.join(BASE_DIR, "website", "static")
+)
+
+app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
+
+# Make sure Python can see `/modules`
+sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "modules")))
 
 # ---------------------------------------
 # IMPORT AI LOGIC
@@ -55,17 +69,6 @@ SHOP_ITEMS = {
 
 
 # ============================================================
-# FLASK APP SETUP
-# ============================================================
-app = Flask(
-    __name__,
-    template_folder="website/templates",
-    static_folder="website/static"
-)
-app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
-
-
-# ============================================================
 # INIT USER SESSION
 # ============================================================
 def init_user():
@@ -76,7 +79,7 @@ def init_user():
         "streak": 1,
         "last_visit": str(datetime.today().date()),
         "inventory": [],
-        "character": "valor",  # ✅ FIXED — MUST match new character ID
+        "character": "valor",  # default character ID
         "usage_minutes": 0,
         "progress": {
             "num_forge": {"questions": 0, "correct": 0},
@@ -184,7 +187,6 @@ def select_character():
 # ============================================================
 # CHOOSE GRADE
 # ============================================================
-
 @app.route("/choose-grade")
 def choose_grade():
     init_user()
@@ -195,7 +197,6 @@ def choose_grade():
 # ============================================================
 # ASK QUESTION PAGE
 # ============================================================
-
 @app.route("/ask-question")
 def ask_question():
     init_user()
@@ -286,6 +287,7 @@ def dashboard():
         locked_characters=locked_characters
     )
 
+
 # ============================================================
 # INVENTORY
 # ============================================================
@@ -323,3 +325,37 @@ def buy_item(item_id):
     session["tokens"] -= price
     session["inventory"].append(item_id)
     flash(f"You bought {item['name']}!", "success")
+    return redirect("/shop")
+
+
+# ============================================================
+# PARENT DASHBOARD
+# ============================================================
+@app.route("/parent_dashboard")
+def parent_dashboard():
+    init_user()
+
+    total_usage = session["usage_minutes"]
+
+    progress_display = {
+        subject: int((data["correct"] / data["questions"]) * 100)
+        if data["questions"] > 0 else 0
+        for subject, data in session["progress"].items()
+    }
+
+    return render_template(
+        "parent_dashboard.html",
+        progress=progress_display,
+        utilization=total_usage,
+        xp=session["xp"],
+        level=session["level"],
+        tokens=session["tokens"],
+        character=session["character"]
+    )
+
+
+# ============================================================
+# RUN SERVER
+# ============================================================
+if __name__ == "__main__":
+    app.run(debug=True)
