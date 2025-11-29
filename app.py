@@ -286,45 +286,6 @@ def dashboard():
         locked_characters=locked_characters
     )
 
-# -------------------------------
-# GALAXY MAP DASHBOARD (NEW, EXPERIMENTAL)
-# -------------------------------
-@app.route("/galaxy")
-def galaxy_dashboard():
-    init_user()
-
-    xp = session["xp"]
-    level = session["level"]
-    tokens = session["tokens"]
-    streak = session["streak"]
-    character = session.get("character")
-
-    xp_to_next = level * 100
-    xp_percent = min(max(int((xp / xp_to_next) * 100), 0), 100)
-
-    # Same missions as classic dashboard for now
-    mission_items = [
-        {"id": "num_forge", "title": "Math", "tag": "Puzzle Planet"},
-        {"id": "chrono_core", "title": "History", "tag": "Ancient Ruins"},
-        {"id": "atom_sphere", "title": "Science", "tag": "Lab Nebula"},
-        {"id": "story_verse", "title": "Reading", "tag": "Story Star"},
-        {"id": "ink_haven", "title": "Writing", "tag": "Idea Moon"},
-        {"id": "power_grid", "title": "Test Prep", "tag": "Boss Arena"},
-    ]
-
-    return render_template(
-        "dashboard_galaxy.html",
-        xp=xp,
-        level=level,
-        tokens=tokens,
-        streak=streak,
-        xp_percent=xp_percent,
-        xp_to_next=xp_to_next,
-        selected_character=character,
-        mission_items=mission_items,
-        active_page="galaxy"
-    )
-
 # ============================================================
 # INVENTORY
 # ============================================================

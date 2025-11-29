@@ -9,22 +9,18 @@
     <!-- CHARACTER SECTION -->
     {% if character %}
     <div class="dashboard-character">
-
         <h2>Your Study Buddy</h2>
 
-        <!-- Consistent Size + Floating -->
+        <!-- Character Art -->
         <img src="/static/{{ character }}.png"
              class="character-large character-float">
 
         <p class="character-tagline">
-            {{ character.replace('_',' ').title() }} is excited to keep learning with you!
+            {{ character.replace('_',' ').title() }} is ready for the next mission!
         </p>
 
-        <!-- Continue Button -->
         <a href="/buddy" class="btn btn-glow">Continue Learning</a>
-
     </div>
-
     {% else %}
     <p class="no-character">
         You haven't chosen a Study Buddy yet.  
@@ -32,7 +28,7 @@
     </p>
     {% endif %}
 
-    <!-- PROGRESS BOXES -->
+    <!-- STATS -->
     <div class="stats-row">
 
         <div class="stat-box">
@@ -46,27 +42,89 @@
         </div>
 
         <div class="stat-box">
-            <h3>📘 Subjects Learned</h3>
-            <p>{{ subjects_count }}</p>
+            <h3>💰 Tokens</h3>
+            <p>{{ tokens }}</p>
+        </div>
+
+        <div class="stat-box">
+            <h3>🔥 Streak</h3>
+            <p>{{ streak }} days</p>
         </div>
 
     </div>
 
-    <!-- PROGRESS REPORT PLACEHOLDER -->
-    <h2 class="section-title">📊 Progress Report</h2>
+    <!-- DAILY MISSIONS -->
+    <h2 class="section-title">🚀 Today’s Missions</h2>
 
-    <p class="progress-description">
-        Coming soon! This area will show grades, mastery levels, strengths and weaknesses,
-        and parent-friendly analytics.
-    </p>
+    <div class="missions-grid">
+
+        <a href="/ask-question?subject=num_forge" class="mission-card">
+            <h3>🧮 Math Mission</h3>
+            <p>Solve a problem or learn a new concept.</p>
+        </a>
+
+        <a href="/ask-question?subject=story_verse" class="mission-card">
+            <h3>📖 Reading Adventure</h3>
+            <p>Summarize or decode a text.</p>
+        </a>
+
+        <a href="/ask-question?subject=ink_haven" class="mission-card">
+            <h3>✍ Writing Forge</h3>
+            <p>Practice writing or get feedback.</p>
+        </a>
+
+        <a href="/ask-question?subject=atom_sphere" class="mission-card">
+            <h3>🔬 Science Lab</h3>
+            <p>Ask about experiments or concepts.</p>
+        </a>
+
+        <a href="/ask-question?subject=chrono_core" class="mission-card">
+            <h3>🏺 History Quest</h3>
+            <p>Explore a moment from the past.</p>
+        </a>
+
+        <a href="/ask-question?subject=faith_realm" class="mission-card">
+            <h3>✨ Faith Realm</h3>
+            <p>Ask a Bible question or devotional.</p>
+        </a>
+
+        <a href="/ask-question?subject=money" class="mission-card">
+            <h3>💵 Money Mastery</h3>
+            <p>Learn budgeting or financial basics.</p>
+        </a>
+
+        <a href="/ask-question?subject=power_grid" class="mission-card">
+            <h3>⚡ Study Prep</h3>
+            <p>Review for upcoming tests.</p>
+        </a>
+
+    </div>
+
+
+    <!-- SHOP PREVIEW -->
+    <h2 class="section-title">🛒 Featured Shop Items</h2>
+
+    <div class="shop-preview">
+
+        <div class="shop-item">
+            <h4>✨ Space Glasses</h4>
+            <p>30 Tokens</p>
+        </div>
+
+        <div class="shop-item">
+            <h4>🛡 Golden Cape</h4>
+            <p>75 Tokens</p>
+        </div>
+
+        <div class="shop-item">
+            <h4>🔥 Galaxy Trail</h4>
+            <p>100 Tokens</p>
+        </div>
+
+        <a href="/shop" class="btn">Enter Shop</a>
+
+    </div>
 
 </div>
 
 {% endblock %}
-
-
-
-
-
-
-
