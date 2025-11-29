@@ -1,4 +1,7 @@
-/* Base Character Structure */
+/* ===========================================================
+   CLEAN BASE — STRUCTURE ONLY
+   All visible styling comes from per-character CSS.
+=========================================================== */
 
 .character {
     position: relative;
@@ -17,7 +20,7 @@
     width: 70px;
     height: 70px;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 20%, #ffddb8, #d9a57a);
+    background: transparent;
     z-index: 10;
 }
 
@@ -56,7 +59,7 @@
     z-index: 12;
 }
 
-/* Body */
+/* Body / Torso */
 .char-body {
     position: absolute;
     top: 65px;
@@ -64,7 +67,7 @@
     width: 110px;
     height: 120px;
     border-radius: 40px;
-    background: #345;
+    background: transparent;
     z-index: 8;
 }
 
@@ -75,12 +78,12 @@
     left: 45px;
     width: 90px;
     height: 14px;
-    background: transparent;
     border-radius: 10px;
+    background: transparent;
     z-index: 9;
 }
 
-/* Cape */
+/* Cape / Dress back */
 .char-cape {
     position: absolute;
     top: 70px;
@@ -92,7 +95,7 @@
     z-index: 1;
 }
 
-/* Emblem */
+/* Chest emblem */
 .char-emblem {
     position: absolute;
     top: 110px;
@@ -104,7 +107,7 @@
     z-index: 15;
 }
 
-/* Coat */
+/* Coat / Jacket / Robe */
 .char-coat {
     position: absolute;
     top: 80px;
@@ -136,7 +139,7 @@
     width: 30px;
     height: 90px;
     border-radius: 20px;
-    background: #233;
+    background: transparent;
     z-index: 6;
 }
 .char-arm.left { left: 10px; }
@@ -149,17 +152,19 @@
     width: 40px;
     height: 90px;
     border-radius: 20px;
-    background: #111726;
+    background: transparent;
     z-index: 4;
 }
 .char-leg.left { left: 50px; }
 .char-leg.right { right: 50px; }
 
-/* Floating Animation */
+/* FLOATING ANIMATION */
 @keyframes float-buddy {
     0% { transform: translateY(0); }
     50% { transform: translateY(-8px); }
     100% { transform: translateY(0); }
 }
+
+
 
 

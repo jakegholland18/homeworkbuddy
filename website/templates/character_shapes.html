@@ -1,3 +1,4 @@
+<!-- HUMAN CHARACTER PARTS -->
 <div class="char-head"></div>
 <div class="char-hair"></div>
 <div class="char-mask"></div>
@@ -18,7 +19,8 @@
 <div class="char-leg left"></div>
 <div class="char-leg right"></div>
 
-<!-- Dog Parts -->
+{% if id == "barkston" %}
+<!-- DOG PARTS — ONLY RENDER FOR BARKSTON -->
 <div class="dog-ear left"></div>
 <div class="dog-ear right"></div>
 <div class="dog-head"></div>
@@ -29,5 +31,7 @@
 <div class="dog-leg back-left"></div>
 <div class="dog-leg back-right"></div>
 <div class="dog-tail"></div>
+{% endif %}
+
 
 

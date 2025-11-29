@@ -1,36 +1,65 @@
-/* ANALYTICAL REED — SMART HERO */
+/* ANALYTICAL REED — academic, glasses, holding a book */
 
-/* Body — teal academic suit */
-.reed .char-body {
-    background: linear-gradient(#4db6ac, #00695c);
-    position: relative;
+.reed .char-head {
+    background: radial-gradient(circle at 30% 20%, #ffe7d1, #d9aa7c);
 }
 
-/* Glasses — centered nerd-superhero frames */
-.reed .char-glasses {
-    background: transparent;
-    border: 3px solid #b2ebf2;
+/* Hair */
+.reed .char-hair {
+    top: -6px;
+    left: 40px;
+    width: 100px;
+    height: 54px;
+    border-radius: 48px;
+    background: linear-gradient(#424242, #111);
+}
+
+/* Glasses with pseudo-element */
+.reed .char-head::after {
+    content: "";
+    position: absolute;
+    top: 26px;
+    left: 5px;
+    width: 58px;
+    height: 20px;
     border-radius: 6px;
-    box-shadow: 0 0 6px rgba(178,235,242,0.6);
+    border: 3px solid #b2ebf2;
 }
 
-/* Book — white notebook tucked under the arm */
-.reed .char-book {
-    background: #ffffff;
-    border-radius: 4px;
-    box-shadow: 0 0 8px rgba(255,255,255,0.4);
+/* Teal academic sweater */
+.reed .char-body {
+    top: 72px;
+    left: 38px;
+    width: 108px;
+    height: 118px;
+    border-radius: 36px;
+    background: linear-gradient(#4db6ac, #00695c);
 }
 
-/* Arms — academic pose */
-.reed .char-arm.left {
-    transform: rotate(-10deg);
+/* Book held at chest using emblem */
+.reed .char-emblem {
+    top: 118px;
+    left: 72px;
+    width: 46px;
+    height: 34px;
+    border-radius: 6px;
+    background: linear-gradient(#fafafa, #e0e0e0);
+    box-shadow: 0 0 10px rgba(0,0,0,0.4);
 }
-.reed .char-arm.right {
-    transform: rotate(12deg);
+.reed .char-emblem::after {
+    content: "";
+    position: absolute;
+    inset: 4px 6px;
+    border-top: 2px solid #bdbdbd;
 }
 
-/* Legs — subtle confident stance */
+/* Arms */
+.reed .char-arm {
+    background: linear-gradient(#4db6ac, #00695c);
+}
+
+/* Legs */
 .reed .char-leg {
-    background: linear-gradient(#00695c, #004d40);
+    background: linear-gradient(#263238, #000);
 }
 

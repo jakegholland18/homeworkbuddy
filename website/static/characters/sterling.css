@@ -1,38 +1,70 @@
-/* STERLING CHASE — WALL STREET SPACE BROKER */
+/* STERLING CHASE — cool finance guy, suit + tie + subtle glasses */
 
-/* Luxury black suit */
-.sterling .char-body {
-    background: linear-gradient(#263238, #000000);
-    position: relative;
-    box-shadow: 0 0 14px rgba(180,180,200,0.15);
+.sterling .char-head {
+    background: radial-gradient(circle at 30% 20%, #ffe4ca, #d9a77e);
 }
 
-/* Designer sunglasses */
-.sterling .char-glasses {
-    background: rgba(255,255,255,0.05);
-    border: 3px solid #eceff1;
+/* Slick hair */
+.sterling .char-hair {
+    top: -8px;
+    left: 42px;
+    width: 96px;
+    height: 52px;
+    border-radius: 40px;
+    background: linear-gradient(#212121, #000);
+}
+
+/* Glasses using outline on head */
+.sterling .char-head::after {
+    content: "";
+    position: absolute;
+    top: 28px;
+    left: 8px;
+    width: 52px;
+    height: 18px;
     border-radius: 6px;
-    box-shadow: 0 0 10px rgba(236,239,241,0.5);
+    border: 3px solid rgba(236,239,241,0.9);
 }
 
-/* Bold red tie */
-.sterling .char-tie {
+/* Dark suit */
+.sterling .char-coat {
+    top: 82px;
+    left: 24px;
+    width: 132px;
+    height: 140px;
+    border-radius: 40px;
+    background: linear-gradient(#263238, #000);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+}
+
+/* Shirt */
+.sterling .char-body {
+    top: 82px;
+    left: 60px;
+    width: 68px;
+    height: 110px;
+    border-radius: 26px;
+    background: linear-gradient(#eceff1, #cfd8dc);
+}
+
+/* Red tie */
+.sterling .char-emblem {
+    top: 100px;
+    left: 84px;
+    width: 14px;
+    height: 48px;
+    border-radius: 10px;
     background: linear-gradient(#c62828, #8e0000);
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(200,0,0,0.4);
 }
 
-/* Confident broker stance */
-.sterling .char-arm.left {
-    transform: rotate(-6deg);
+/* Arms */
+.sterling .char-arm {
+    background: linear-gradient(#37474f, #111);
 }
 
-.sterling .char-arm.right {
-    transform: rotate(8deg);
-}
-
-/* Premium tailored pants */
+/* Legs (dress pants) */
 .sterling .char-leg {
-    background: linear-gradient(#1c1f22, #000000);
+    background: linear-gradient(#212121, #000);
 }
+
 

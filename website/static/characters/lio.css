@@ -1,93 +1,111 @@
-/* CYBER-SPY LIO STORMHEART — A + B HYBRID STYLE */
+/* LIO STORMHEART — cyber spy, sleek dark suit, visor */
 
-/* Sleek tactical suit */
-.lio .char-body {
-    background: linear-gradient(#0c111a, #00040a);
-    border: 2px solid rgba(0, 150, 255, 0.15);
-    box-shadow: 0 0 18px rgba(0, 140, 255, 0.15);
-    position: relative;
+.lio .char-head {
+    background: radial-gradient(circle at 30% 20%, #fddfc6, #d6a17a);
 }
 
-/* Thin high-tech panel lines */
-.lio .char-body::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: 35px;
-    background:
-        linear-gradient(90deg, rgba(0,150,255,0.1) 0%, transparent 60%),
-        linear-gradient(0deg, rgba(0,150,255,0.1) 0%, transparent 60%);
-    opacity: 0.25;
-    mix-blend-mode: screen;
+/* Stealth hair */
+.lio .char-hair {
+    top: -4px;
+    left: 40px;
+    width: 96px;
+    height: 50px;
+    border-radius: 44px;
+    background: linear-gradient(#1d1d1d, #050505);
+    box-shadow: 0 0 14px rgba(0,0,0,0.6);
 }
 
-/* High-tech visor */
+/* Visor */
 .lio .char-mask {
-    background: linear-gradient(90deg, #68d6ff, #0066cc);
+    top: 28px;
+    left: 44px;
+    width: 76px;
+    height: 26px;
     border-radius: 16px;
-    box-shadow: 0 0 15px rgba(0,150,255,0.65);
+    background: linear-gradient(90deg, #68d6ff, #0066cc);
+    box-shadow: 0 0 16px rgba(0,150,255,0.7);
     overflow: hidden;
 }
-
-/* Animated scanning effect */
 .lio .char-mask::after {
     content: "";
     position: absolute;
     inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
     transform: translateX(-100%);
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
-    animation: visor-scan 2s infinite linear;
+    animation: lio-visor-scan 2.2s infinite linear;
 }
 
-@keyframes visor-scan {
+@keyframes lio-visor-scan {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(120%); }
 }
 
-/* Hair — stealth look */
-.lio .char-hair {
-    background: linear-gradient(#1d1d1d, #080808);
-    border-radius: 45px;
-    box-shadow: 0 0 12px rgba(0,0,0,0.4);
+/* Dark tactical suit */
+.lio .char-body {
+    top: 72px;
+    left: 40px;
+    width: 104px;
+    height: 120px;
+    border-radius: 38px;
+    background: linear-gradient(#0c111a, #00040a);
+    border: 2px solid rgba(0,150,255,0.2);
+    box-shadow: 0 0 18px rgba(0,140,255,0.35);
+}
+.lio .char-body::after {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    border-radius: 30px;
+    background:
+        linear-gradient(90deg, rgba(0,150,255,0.1), transparent 60%),
+        linear-gradient(0deg, rgba(0,150,255,0.1), transparent 60%);
+    opacity: 0.3;
 }
 
-/* Futuristic chest emblem */
+/* Chest emblem */
 .lio .char-emblem {
-    background: radial-gradient(circle at 40% 40%, #00c6ff, #004b80);
+    top: 110px;
+    left: 76px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    box-shadow: 0 0 10px rgba(0,150,255,0.5);
+    background: radial-gradient(circle at 40% 40%, #00c6ff, #004b80);
+    box-shadow: 0 0 14px rgba(0,150,255,0.7);
 }
 
-/* Tactical micro-cape */
+/* Cloak */
 .lio .char-cape {
+    top: 78px;
+    left: 22px;
+    width: 136px;
+    height: 115px;
+    border-radius: 0 0 25px 25px;
     background: linear-gradient(#0a1829, #00050c);
-    opacity: 0.55;
-    filter: blur(1px);
+    opacity: 0.6;
 }
-
-/* Glowing trim */
 .lio .char-cape::after {
     content: "";
     position: absolute;
-    width: 90%;
-    height: 4px;
     bottom: 4px;
-    left: 5%;
+    left: 15px;
+    width: 90px;
+    height: 4px;
+    border-radius: 3px;
     background: linear-gradient(90deg, #00aaff, transparent);
     opacity: 0.4;
-    border-radius: 3px;
 }
 
-/* Pose — confident agent stance */
-.lio .char-arm.left { transform: rotate(-12deg); }
-.lio .char-arm.right { transform: rotate(14deg); }
-
-.lio .char-leg.left { transform: rotate(-2deg); }
-.lio .char-leg.right { transform: rotate(3deg); }
-
-/* Sleek boots */
+/* Arms & legs sleek */
+.lio .char-arm {
+    background: linear-gradient(#111826, #02050b);
+}
 .lio .char-leg {
     background: linear-gradient(#0f1b2a, #000);
 }
+.lio .char-arm.left { transform: rotate(-10deg); transform-origin: top center; }
+.lio .char-arm.right { transform: rotate(12deg); transform-origin: top center; }
+.lio .char-leg.left { transform: rotate(-2deg); }
+.lio .char-leg.right { transform: rotate(3deg); }
+
 
 
