@@ -33,21 +33,18 @@
         position: relative;
     }
 
-    /* Hover glow */
     .character-card:hover {
         transform: translateY(-10px) scale(1.03);
         border-color: rgba(150, 220, 255, 0.6);
         box-shadow: 0 0 22px rgba(120,180,255,0.55);
     }
 
-    /* Selected state */
     .character-card.selected {
         border-color: #4da6ff;
         box-shadow: 0 0 35px rgba(90,150,255,0.9);
         transform: translateY(-12px) scale(1.05);
     }
 
-    /* CHARACTER NAME */
     .character-name {
         margin-top: 15px;
         font-size: 1.2rem;
@@ -56,7 +53,6 @@
         font-weight: 600;
     }
 
-    /* CONTINUE BUTTON */
     #continue-btn {
         display: none;
         margin: 45px auto 10px;
@@ -79,7 +75,6 @@
     .character {
         margin: 0 auto;
     }
-
 </style>
 
 <h1 class="page-title fade-in">Choose Your Study Buddy</h1>
@@ -91,7 +86,7 @@
 
         <!-- CSS-Based Character -->
         <div class="character {{ id }}">
-            {% include 'character_shapes.html' %}
+            {% include 'character_shapes.html' with id=id %}
         </div>
 
         <div class="character-name">{{ char.name }}</div>
@@ -100,29 +95,20 @@
 
 </div>
 
-<!-- CONTINUE BUTTON -->
 <button id="continue-btn" onclick="submitCharacter()">Continue</button>
 
 <script>
 let selectedCharacter = null;
 
-/* When clicking a character */
 function selectCharacterCard(card, charId) {
-
-    // Remove selection from all cards
     document.querySelectorAll(".character-card")
             .forEach(c => c.classList.remove("selected"));
-
-    // Apply selection to clicked one
     card.classList.add("selected");
 
     selectedCharacter = charId;
-
-    // Show continue button
     document.getElementById("continue-btn").style.display = "block";
 }
 
-/* When pressing CONTINUE */
 function submitCharacter() {
     if (!selectedCharacter) return;
 
@@ -130,18 +116,15 @@ function submitCharacter() {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: "character=" + selectedCharacter
-    })
-    .then(res => {
-        if (res.ok) {
-            window.location.href = "/dashboard";
-        } else {
-            alert("Error selecting character.");
-        }
+    }).then(res => {
+        if (res.ok) window.location.href = "/dashboard";
+        else alert("Error selecting character.");
     });
 }
 </script>
 
 {% endblock %}
+
 
 
 
