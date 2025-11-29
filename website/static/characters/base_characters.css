@@ -1,142 +1,231 @@
-/* UNIVERSAL CHARACTER STRUCTURE */
+/* ===========================================================
+   UNIVERSAL CHARACTER BASE — HIGH QUALITY 2D GAME STYLE
+=========================================================== */
+
 .character {
     position: relative;
-    width: 160px;
+    width: 180px;
     height: 260px;
     margin: 0 auto;
     transform-origin: center bottom;
     animation: float-buddy 3s ease-in-out infinite;
 }
 
-/* BASIC HUMAN SHAPES */
+/* --------------------------------------------
+   HEAD
+-------------------------------------------- */
 .char-head {
     position: absolute;
     top: 0;
-    left: 40px;
-    width: 80px;
-    height: 80px;
+    left: 55px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
-    background: radial-gradient(circle at 30% 20%, #ffe0c2, #d29a72);
-    box-shadow: 0 0 10px rgba(0,0,0,0.25);
-    z-index: 3;
+    background: radial-gradient(circle at 30% 20%, #ffddb8, #d9a57a);
+    z-index: 10;
 }
 
+/* Hair sits behind the head */
+.char-hair {
+    position: absolute;
+    top: -10px;
+    left: 35px;
+    width: 110px;
+    height: 90px;
+    border-radius: 50%;
+    background: transparent;
+    z-index: 5;
+}
+
+/* Mask / Visor */
+.char-mask {
+    position: absolute;
+    top: 25px;
+    left: 40px;
+    width: 90px;
+    height: 35px;
+    background: transparent;
+    border-radius: 20px;
+    z-index: 11;
+}
+
+/* Crown / Headpiece */
+.char-crown {
+    position: absolute;
+    top: -15px;
+    left: 55px;
+    width: 50px;
+    height: 25px;
+    background: transparent;
+    z-index: 12;
+}
+
+/* --------------------------------------------
+   TORSO & BODY
+-------------------------------------------- */
 .char-body {
     position: absolute;
-    top: 70px;
-    left: 30px;
-    width: 100px;
+    top: 65px;
+    left: 35px;
+    width: 110px;
     height: 120px;
-    border-radius: 35px;
-    background: linear-gradient(#243b70, #0e1630);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-    z-index: 2;
+    border-radius: 40px;
+    background: linear-gradient(#344, #122);
+    z-index: 8;
 }
 
-.char-arm {
-    position: absolute;
-    top: 80px;
-    width: 26px;
-    height: 90px;
-    border-radius: 20px;
-    background: linear-gradient(#243b70, #0e1630);
-    z-index: 1;
-}
-.char-arm.left { left: 5px; }
-.char-arm.right { right: 5px; }
-
-.char-leg {
-    position: absolute;
-    top: 170px;
-    width: 36px;
-    height: 90px;
-    border-radius: 20px;
-    background: linear-gradient(#1b2648, #050814);
-    z-index: 1;
-}
-.char-leg.left { left: 40px; }
-.char-leg.right { right: 40px; }
-
-/* GENERIC ACCESSORY SHAPES */
 .char-belt {
     position: absolute;
-    top: 145px;
-    left: 35px;
+    top: 135px;
+    left: 45px;
     width: 90px;
     height: 14px;
     border-radius: 10px;
+    background: transparent;
+    z-index: 9;
 }
 
 .char-cape {
     position: absolute;
+    top: 70px;
+    left: 20px;
+    width: 140px;
+    height: 160px;
+    border-radius: 25px;
+    background: transparent;
+    z-index: 1;
+}
+
+/* Emblem */
+.char-emblem {
+    position: absolute;
+    top: 110px;
+    left: 70px;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border-radius: 50%;
+    z-index: 15;
+}
+
+/* Coat / Jacket */
+.char-coat {
+    position: absolute;
     top: 80px;
     left: 25px;
-    width: 110px;
+    width: 130px;
     height: 140px;
-    border-radius: 15px 15px 30px 30px;
-    z-index: 0;
-}
-
-.char-hair, .char-mask, .char-crown, .char-emblem, .char-coat, .char-shoulder {
-    position: absolute;
-}
-
-/* DOG STRUCTURE */
-.dog-head {
-    position: absolute;
-    top: 40px;
-    left: 45px;
-    width: 70px;
-    height: 60px;
+    background: transparent;
     border-radius: 45px;
-    background: #f0d28a;
+    z-index: 7;
 }
-.dog-snout {
+
+/* --------------------------------------------
+   SHOULDERS
+-------------------------------------------- */
+.char-shoulder {
     position: absolute;
-    top: 75px;
-    left: 57px;
-    width: 46px;
+    top: 80px;
+    width: 40px;
     height: 30px;
-    border-radius: 25px;
-    background: #e2be6c;
-}
-.dog-body {
-    position: absolute;
-    top: 90px;
-    left: 35px;
-    width: 90px;
-    height: 70px;
-    border-radius: 45px;
-    background: #f0d28a;
-}
-.dog-ear {
-    position: absolute;
-    width: 26px;
-    height: 40px;
     border-radius: 20px;
-    background: #e2be6c;
+    background: transparent;
+    z-index: 12;
 }
-.dog-ear.left { top: 25px; left: 40px; }
-.dog-ear.right { top: 25px; right: 40px; }
+.char-shoulder.left { left: 5px; }
+.char-shoulder.right { right: 5px; }
+
+/* --------------------------------------------
+   ARMS
+-------------------------------------------- */
+.char-arm {
+    position: absolute;
+    top: 100px;
+    width: 30px;
+    height: 90px;
+    border-radius: 20px;
+    background: #233;
+    z-index: 6;
+}
+.char-arm.left { left: 10px; }
+.char-arm.right { right: 10px; }
+
+/* --------------------------------------------
+   LEGS
+-------------------------------------------- */
+.char-leg {
+    position: absolute;
+    top: 170px;
+    width: 40px;
+    height: 90px;
+    border-radius: 20px;
+    background: #111726;
+    z-index: 4;
+}
+.char-leg.left { left: 50px; }
+.char-leg.right { right: 50px; }
+
+/* --------------------------------------------
+   DOG PARTS
+-------------------------------------------- */
+.dog-head, .dog-body, .dog-leg, .dog-snout, .dog-tail, .dog-ear {
+    position: absolute;
+    background: transparent;
+}
+
+.dog-head {
+    top: 40px; left: 55px;
+    width: 70px; height: 60px;
+    border-radius: 40px;
+    z-index: 10;
+}
+
+.dog-snout {
+    top: 75px; left: 70px;
+    width: 40px; height: 28px;
+    border-radius: 25px;
+    z-index: 11;
+}
+
+.dog-body {
+    top: 100px; left: 40px;
+    width: 100px; height: 65px;
+    border-radius: 40px;
+    z-index: 8;
+}
+
+.dog-ear {
+    width: 26px; height: 40px;
+    border-radius: 20px;
+    top: 25px;
+    z-index: 9;
+}
+.dog-ear.left { left: 40px; }
+.dog-ear.right { right: 40px; }
 
 .dog-leg {
-    position: absolute;
-    width: 20px;
-    height: 50px;
+    width: 24px; height: 55px;
     border-radius: 15px;
-    background: #e2be6c;
+    z-index: 7;
 }
+.dog-leg.front-left { top: 135px; left: 50px; }
+.dog-leg.front-right { top: 135px; right: 50px; }
+.dog-leg.back-left { top: 150px; left: 50px; }
+.dog-leg.back-right { top: 150px; right: 50px; }
+
 .dog-tail {
-    position: absolute;
-    top: 105px;
-    right: 25px;
-    width: 40px;
-    height: 14px;
+    top: 120px; right: 20px;
+    width: 40px; height: 12px;
     border-radius: 20px;
+    z-index: 6;
 }
 
+/* --------------------------------------------
+   FLOATING ANIMATION
+-------------------------------------------- */
 @keyframes float-buddy {
-    0% { transform: translateY(0);}
-    50% { transform: translateY(-10px);}
-    100% { transform: translateY(0);}
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0); }
 }
+
