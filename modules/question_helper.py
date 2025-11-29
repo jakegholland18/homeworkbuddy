@@ -2,7 +2,7 @@
 
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
-from modules.answer_formatter import format_answer
+from modules.answer_formatter import format_answer, parse_into_sections
 
 
 # -------------------------------------------------------
@@ -11,8 +11,10 @@ from modules.answer_formatter import format_answer
 def is_christian_question(text: str) -> bool:
     keywords = [
         "christian", "christianity", "jesus", "god", "faith",
-        "biblical", "bible", "how does this relate to god",
-        "from a christian perspective", "christian worldview"
+        "biblical", "bible",
+        "how does this relate to god",
+        "from a christian perspective",
+        "christian worldview"
     ]
     return any(k.lower() in text.lower() for k in keywords)
 
@@ -22,42 +24,21 @@ def is_christian_question(text: str) -> bool:
 # -------------------------------------------------------
 def build_general_prompt(question: str, grade_level: str):
     return f"""
-You are a gentle teacher for a grade {grade_level} student.
+The student asked a general question:
 
-The student asked:
-"{question}"
+\"{question}\"
 
-Answer using SIX child-friendly sections.
+Explain it using the **six-section Homework Buddy format**.
 
-SECTION 1 — OVERVIEW  
-Explain the topic in 3–4 very simple sentences using everyday language.
+SECTION REQUIREMENTS:
+• OVERVIEW: 2–3 calm sentences.
+• KEY FACTS: short dash-bullet list (“- ”).
+• CHRISTIAN VIEW: gentle explanation of purpose, morality, meaning.
+• AGREEMENT: short dash-bullet list of things all worldviews share.
+• DIFFERENCE: dash-bullet list showing worldview additions.
+• PRACTICE: 2–3 kid-sized questions with short example answers.
 
-SECTION 2 — KEY FACTS  
-Share a few important ideas about how this works in real life  
-(keep sentences short, soft, and warm).
-
-SECTION 3 — CHRISTIAN VIEW  
-If the topic has moral or worldview elements, gently explain  
-how many Christians think about it  
-(kindness, honesty, purpose, design, wisdom).  
-If the topic isn’t naturally Christian, still explain how Christians  
-look for meaning, responsibility, or gratitude in learning.
-
-SECTION 4 — AGREEMENT  
-Explain what people of ANY worldview agree on  
-(common sense facts, science basics, kindness, cause & effect).
-
-SECTION 5 — DIFFERENCE  
-Explain gently where a Christian worldview might add  
-a different motivation or meaning  
-(hope, purpose, responsibility, compassion, stewardship).
-
-SECTION 6 — PRACTICE  
-Ask 2–3 child-friendly reflection questions  
-and give short example answers in simple wording.
-
-Do not use lists or bullet symbols.  
-Keep everything calm, slow, and spoken-like.
+Make everything smooth and simple for grade {grade_level}.
 """
 
 
@@ -66,76 +47,50 @@ Keep everything calm, slow, and spoken-like.
 # -------------------------------------------------------
 def build_christian_prompt(question: str, grade_level: str):
     return f"""
-The student asked from a Christian perspective:
+The student asked this question from a Christian perspective:
 
-"{question}"
+\"{question}\"
 
-Answer using SIX warm, simple sections.
+Explain using the **six-section Homework Buddy format**.
 
-SECTION 1 — OVERVIEW  
-Explain what the question means in simple, everyday language.
+RULES:
+• OVERVIEW is short and gentle.
+• KEY FACTS list uses dash bullets.
+• CHRISTIAN VIEW explains beliefs kindly, with Scripture only if natural.
+• AGREEMENT uses dash bullets.
+• DIFFERENCE uses dash bullets.
+• PRACTICE lists 2–3 tiny reflection questions with example answers.
 
-SECTION 2 — KEY FACTS  
-Share the important ideas Christians consider  
-(meaning, purpose, morality, creation, choices, wisdom).
-
-SECTION 3 — CHRISTIAN VIEW  
-Explain gently how many Christians understand this topic  
-using Scripture softly if relevant.  
-Keep the tone calm, slow, and age-appropriate.
-
-SECTION 4 — AGREEMENT  
-Explain what Christians and non-Christians often agree on  
-(kindness, truthfulness, learning from mistakes, curiosity).
-
-SECTION 5 — DIFFERENCE  
-Explain kindly how Christian beliefs may add a different  
-motivation or meaning behind actions or ideas.
-
-SECTION 6 — PRACTICE  
-Ask 2–3 reflection questions  
-and then give short example answers  
-to help them think.
-
-No lists, no bullets, no intense language.  
-Just gentle conversation.
+Keep everything soft, slow, and age-appropriate for grade {grade_level}.
 """
 
 
 # -------------------------------------------------------
-# Main Public Function — uses formatter.py
+# MAIN PUBLIC FUNCTION — uses formatter + parser
 # -------------------------------------------------------
 def answer_question(question: str, grade_level="8", character="everly"):
 
-    # Choose which 6-section format to use
+    # Choose which prompt to build
     if is_christian_question(question):
-        prompt = build_christian_prompt(question, grade_level)
+        base_prompt = build_christian_prompt(question, grade_level)
     else:
-        prompt = build_general_prompt(question, grade_level)
+        base_prompt = build_general_prompt(question, grade_level)
 
-    # Apply personality
-    prompt = apply_personality(character, prompt)
+    # Add personality
+    final_prompt = apply_personality(character, base_prompt)
 
-    # Get AI output
-    raw = study_buddy_ai(prompt, grade_level, character)
+    # Get raw AI output (already in 6-section text form)
+    raw_output = study_buddy_ai(final_prompt, grade_level, character)
 
-    # Helper to extract each labeled section
-    def extract(label):
-        return raw.split(label)[-1].strip() if label in raw else "No information provided."
+    # Convert AI text → clean structured dictionary
+    sections = parse_into_sections(raw_output)
 
-    overview       = extract("SECTION 1")
-    key_facts      = extract("SECTION 2")
-    christian_view = extract("SECTION 3")
-    agreement      = extract("SECTION 4")
-    difference     = extract("SECTION 5")
-    practice       = extract("SECTION 6")
-
-    # Format using your kid-friendly answer HTML generator
+    # Return HTML-ready formatted answer
     return format_answer(
-        overview=overview,
-        key_facts=key_facts,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
+        overview=sections.get("overview", ""),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", ""),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", [])
     )

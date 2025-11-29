@@ -18,94 +18,106 @@ def is_christian_question(text: str) -> bool:
 
 
 # ------------------------------------------------------------
-# GRADE-LEVEL TOPIC GUIDE
+# Universal extractor (keeps everything consistent)
 # ------------------------------------------------------------
-HISTORY_TOPICS = {
-    "1": ["families", "communities", "holidays", "basic timelines"],
-    "2": ["local history", "famous americans", "geography basics"],
-    "3": ["early american history", "native cultures", "maps", "civics"],
-    "4": ["state history", "colonial times", "revolutions"],
-    "5": ["us history overview", "exploration", "founding documents"],
-    "6": ["ancient civilizations", "world religions overview", "government basics"],
-    "7": ["middle ages", "renaissance", "exploration"],
-    "8": ["constitution", "american gov.", "civil war", "industrial era"],
-    "9": ["world history", "ancient to medieval", "global empires"],
-    "10": ["modern world", "world wars", "global conflicts"],
-    "11": ["us history", "government systems", "civil rights"],
-    "12": ["economics", "modern issues", "civics advanced"]
-}
+def _extract(raw: str, label: str) -> str:
+    return raw.split(label)[-1].strip() if label in raw else "Not available."
 
 
 # ------------------------------------------------------------
-# MAIN HISTORY EXPLAINER — 6 SECTIONS
+# Build prompt for non-Christian history questions
 # ------------------------------------------------------------
-def explain_history(topic: str, grade_level="8", character="everly"):
-    """
-    Explains any history topic using 6 small sections:
-    overview, key facts, Christian view, agreement, difference, practice.
-    """
-
-    christian = is_christian_question(topic)
-
-    prompt = f"""
-You are a gentle history tutor for a grade {grade_level} student.
+def build_history_prompt(topic: str, grade: str):
+    return f"""
+You are a gentle history tutor for a grade {grade} student.
 
 The student asked about:
 "{topic}"
 
-Answer using SIX very simple sections.
+Answer using SIX soft, child-friendly sections.
 
-SECTION 1 — OVERVIEW  
-Explain the topic in 3–4 short sentences without overwhelming them.
+SECTION 1 — OVERVIEW
+Explain the topic in calm, short sentences.
 
-SECTION 2 — KEY FACTS  
-Give 3–5 simple, kid-friendly facts about this topic.
-Keep sentences short.
+SECTION 2 — KEY FACTS
+Explain the important ideas using slow, simple sentences.
+Talk about when it happened, who was involved, and why it matters.
 
-SECTION 3 — CHRISTIAN VIEW  
-If the student wants a Christian perspective, explain gently how many Christians
-see this historical event in terms of human choices, right/wrong, and God's
-long-term plan. Keep it calm and non-forceful.
-If not, simply say how Christians might understand the moral lessons involved.
+SECTION 3 — CHRISTIAN VIEW
+Explain softly how many Christians look at history.
+Focus on choices, character, and learning from the past.
+If Christianity is not part of the topic, explain that Christians
+still try to learn moral lessons from history.
 
-SECTION 4 — AGREEMENT  
-Explain what people of any worldview might agree on
-(e.g., what happened, cause/effect, lessons about human behavior).
+SECTION 4 — AGREEMENT
+Explain what people of all worldviews agree on
+(what happened, cause and effect, lessons about human behavior).
 
-SECTION 5 — DIFFERENCE  
-Explain softly how Christian and secular worldviews may interpret the event differently,
-but stay very respectful and simple.
+SECTION 5 — DIFFERENCE
+Explain gently how Christian and secular views may differ
+in meaning, purpose, or lessons learned.
 
-SECTION 6 — PRACTICE  
-Ask 2–3 reflection questions and provide short example answers.
+SECTION 6 — PRACTICE
+Ask 2–3 small reflection questions and give short example answers.
 
-Tone must be:
-calm, friendly, gentle, non-dramatic, and perfect for kids.
-
-Grade-level guidance:
-{", ".join(HISTORY_TOPICS.get(str(grade_level), []))}
+Tone must stay slow, warm, gentle, and simple.
 """
 
-    # Apply character personality
+
+# ------------------------------------------------------------
+# Build prompt for Christian-directed questions
+# ------------------------------------------------------------
+def build_christian_history_prompt(topic: str, grade: str):
+    return f"""
+The student asked this history question from a Christian perspective:
+
+"{topic}"
+
+Answer using SIX warm, gentle sections.
+
+SECTION 1 — OVERVIEW
+Explain the topic slowly and clearly.
+
+SECTION 2 — KEY FACTS
+Explain the basic historical ideas in short sentences.
+
+SECTION 3 — CHRISTIAN VIEW
+Explain softly how Christians understand the event,
+focusing on choices, character, and God’s long-term plan,
+while staying gentle and age-appropriate.
+
+SECTION 4 — AGREEMENT
+Explain what people of any worldview agree on about the event.
+
+SECTION 5 — DIFFERENCE
+Explain kindly how interpretations may differ.
+
+SECTION 6 — PRACTICE
+Ask 2–3 small reflection questions with short example answers.
+"""
+
+
+# ------------------------------------------------------------
+# MAIN HISTORY EXPLAINER
+# ------------------------------------------------------------
+def explain_history(topic: str, grade_level="8", character="everly"):
+
+    if is_christian_question(topic):
+        prompt = build_christian_history_prompt(topic, grade_level)
+    else:
+        prompt = build_history_prompt(topic, grade_level)
+
     prompt = apply_personality(character, prompt)
 
-    # Get raw AI output
     raw = study_buddy_ai(prompt, grade_level, character)
 
-    # Helper to extract sections safely
-    def extract(label):
-        if label not in raw:
-            return "Not available."
-        return raw.split(label)[-1].strip()
+    overview       = _extract(raw, "SECTION 1")
+    key_facts      = _extract(raw, "SECTION 2")
+    christian_view = _extract(raw, "SECTION 3")
+    agreement      = _extract(raw, "SECTION 4")
+    difference     = _extract(raw, "SECTION 5")
+    practice       = _extract(raw, "SECTION 6")
 
-    overview = extract("SECTION 1")
-    key_facts = extract("SECTION 2")
-    christian_view = extract("SECTION 3")
-    agreement = extract("SECTION 4")
-    difference = extract("SECTION 5")
-    practice = extract("SECTION 6")
-
-    # Final formatting for answer.html
     return format_answer(
         overview=overview,
         key_facts=key_facts,
@@ -117,54 +129,22 @@ Grade-level guidance:
 
 
 # ------------------------------------------------------------
-# GENERAL HISTORY QUESTION — SAME FORMAT
+# GENERAL HISTORY QUESTION
 # ------------------------------------------------------------
 def answer_history_question(question: str, grade_level="8", character="everly"):
 
-    prompt = f"""
-You are a kind and gentle history tutor for a grade {grade_level} student.
-
-The student asked:
-"{question}"
-
-Answer using SIX very small sections:
-
-SECTION 1 — OVERVIEW  
-Restate the question's topic in simple terms.
-
-SECTION 2 — KEY FACTS  
-Explain 3–5 easy facts that help answer the question.
-
-SECTION 3 — CHRISTIAN VIEW  
-Explain softly how Christians might see moral lessons, human behavior,
-or God's larger plan in history.
-
-SECTION 4 — AGREEMENT  
-Explain what people of any worldview typically agree on.
-
-SECTION 5 — DIFFERENCE  
-Explain respectfully how Christian and secular interpretations differ.
-
-SECTION 6 — PRACTICE  
-Ask 2–3 kid-friendly reflection questions with sample answers.
-
-Tone: calm, friendly, simple.
-"""
-
+    # Always reuse the standard structure
+    prompt = build_history_prompt(question, grade_level)
     prompt = apply_personality(character, prompt)
+
     raw = study_buddy_ai(prompt, grade_level, character)
 
-    def extract(label):
-        if label not in raw:
-            return "Not available."
-        return raw.split(label)[-1].strip()
-
-    overview = extract("SECTION 1")
-    key_facts = extract("SECTION 2")
-    christian_view = extract("SECTION 3")
-    agreement = extract("SECTION 4")
-    difference = extract("SECTION 5")
-    practice = extract("SECTION 6")
+    overview       = _extract(raw, "SECTION 1")
+    key_facts      = _extract(raw, "SECTION 2")
+    christian_view = _extract(raw, "SECTION 3")
+    agreement      = _extract(raw, "SECTION 4")
+    difference     = _extract(raw, "SECTION 5")
+    practice       = _extract(raw, "SECTION 6")
 
     return format_answer(
         overview=overview,
@@ -177,52 +157,47 @@ Tone: calm, friendly, simple.
 
 
 # ------------------------------------------------------------
-# HISTORY QUIZ — works with new format
+# HISTORY QUIZ
 # ------------------------------------------------------------
 def generate_history_quiz(topic: str, grade_level="8", character="everly"):
 
     prompt = f"""
-Create a gentle, kid-friendly history quiz for a grade {grade_level} student.
+Create a calm, gentle history quiz for a grade {grade_level} student.
 
 Topic: "{topic}"
 
-Use SIX SECTIONS:
+Use SIX sections:
 
-SECTION 1 — OVERVIEW  
-Short explanation of the topic.
+SECTION 1 — OVERVIEW
+Explain the topic softly.
 
-SECTION 2 — KEY FACTS  
-3–5 simple facts to help them remember.
+SECTION 2 — KEY FACTS
+Explain the basics they should remember.
 
-SECTION 3 — CHRISTIAN VIEW  
-Soft explanation of how Christians see lessons about choices, morality, or character.
+SECTION 3 — CHRISTIAN VIEW
+Soft explanation of how many Christians understand moral lessons in history.
 
-SECTION 4 — AGREEMENT  
-Common ground people agree on.
+SECTION 4 — AGREEMENT
+Explain what all worldviews agree on.
 
-SECTION 5 — DIFFERENCE  
-Respectful explanation of different interpretations.
+SECTION 5 — DIFFERENCE
+Explain respectful differences in interpretation.
 
-SECTION 6 — PRACTICE  
-Write 5 quiz questions and then the answer key.
+SECTION 6 — PRACTICE
+Write a few quiz questions with short answers.
 
-Keep the tone warm, calm, and not dramatic.
+Tone must stay warm, slow, and non-dramatic.
 """
 
     prompt = apply_personality(character, prompt)
     raw = study_buddy_ai(prompt, grade_level, character)
 
-    def extract(label):
-        if label not in raw:
-            return "Not available."
-        return raw.split(label)[-1].strip()
-
-    overview = extract("SECTION 1")
-    key_facts = extract("SECTION 2")
-    christian_view = extract("SECTION 3")
-    agreement = extract("SECTION 4")
-    difference = extract("SECTION 5")
-    practice = extract("SECTION 6")
+    overview       = _extract(raw, "SECTION 1")
+    key_facts      = _extract(raw, "SECTION 2")
+    christian_view = _extract(raw, "SECTION 3")
+    agreement      = _extract(raw, "SECTION 4")
+    difference     = _extract(raw, "SECTION 5")
+    practice       = _extract(raw, "SECTION 6")
 
     return format_answer(
         overview=overview,
@@ -232,5 +207,6 @@ Keep the tone warm, calm, and not dramatic.
         difference=difference,
         practice=practice
     )
+
 
 

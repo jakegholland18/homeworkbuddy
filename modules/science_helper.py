@@ -2,7 +2,7 @@
 
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
-from modules.answer_formatter import format_answer
+from modules.answer_formatter import parse_into_sections, format_answer
 
 
 # -------------------------------------------------------
@@ -19,120 +19,75 @@ def is_christian_question(text: str) -> bool:
 
 
 # -------------------------------------------------------
-# Build 6-section prompt (standard science question)
+# Build standard science prompt (FOR NEW 6-SECTION FORMAT)
 # -------------------------------------------------------
 def build_science_prompt(topic: str, grade_level: str):
     return f"""
-You are a gentle science teacher for a grade {grade_level} student.
+The student asked a science question:
 
-The student asked:
-"{topic}"
+\"{topic}\"
 
-Write the answer using SIX very kid-friendly sections.
+Teach the idea using the **six-section Homework Buddy format**.
 
-SECTION 1 — OVERVIEW  
-Explain the science idea in 3–4 smooth, simple sentences  
-using everyday language. Keep it soft and calm.
-
-SECTION 2 — KEY FACTS  
-Explain the important science ideas using slow, warm sentences  
-matter, energy, organisms, ecosystems, forces, space, weather, etc.  
-No bullet points. No lists. Just small, clear sentences.
-
-SECTION 3 — CHRISTIAN VIEW  
-Explain gently how many Christians see science as studying  
-the order, structure, and patterns in creation.  
-Do not claim the Bible teaches modern science.  
-Just explain the gentle worldview piece.
-
-SECTION 4 — AGREEMENT  
-Explain what all people agree on  
-(observation, evidence, experiments, nature patterns).
-
-SECTION 5 — DIFFERENCE  
-Explain kindly how a Christian worldview may add meaning  
-like purpose, stewardship, responsibility, or gratitude.
-
-SECTION 6 — PRACTICE  
-Ask 2–3 kid-friendly reflection questions  
-and then give simple example answers that model how to think.
-
-No lists. No headings. Just smooth conversation.
+RULES:
+• OVERVIEW must be 2–3 gentle sentences.
+• KEY FACTS must be a short list using dash bullets ("- ").
+• CHRISTIAN VIEW must stay soft and respectful.
+• AGREEMENT and DIFFERENCE must use dash bullets.
+• PRACTICE must include 2–3 tiny questions with short sample answers.
+Keep it warm and very easy for a grade {grade_level} student.
 """
 
 
 # -------------------------------------------------------
-# Build 6-section prompt (Christian-directed science question)
+# Build Christian-directed science prompt
 # -------------------------------------------------------
 def build_christian_science_prompt(topic: str, grade_level: str):
     return f"""
 The student asked this science question from a Christian perspective:
 
-"{topic}"
+\"{topic}\"
 
-Answer using SIX warm, simple, child-friendly sections.
+Explain the idea using the **six-section Homework Buddy format**.
 
-SECTION 1 — OVERVIEW  
-Explain what the question means in very gentle language.
+SECTION GUIDELINES:
+• OVERVIEW: gentle recap
+• KEY FACTS: dash-bullet list
+• CHRISTIAN VIEW: soft explanation about order and creation
+• AGREEMENT: dash-bullet list
+• DIFFERENCE: dash-bullet list
+• PRACTICE: 2–3 small questions with sample answers
 
-SECTION 2 — KEY FACTS  
-Explain the important science ideas  
-(observation, evidence, nature, forces, life, space, earth).
-
-SECTION 3 — CHRISTIAN VIEW  
-Explain softly how many Christians understand science  
-as exploring a world with order, patterns, and consistency.  
-Keep Scripture references gentle and simple, only if relevant.
-
-SECTION 4 — AGREEMENT  
-Explain what Christians and non-Christians agree on in science  
-(facts, experiments, natural laws, curiosity, learning).
-
-SECTION 5 — DIFFERENCE  
-Explain kindly how Christians may add meaning  
-(purpose, creation care, moral responsibility, wonder).
-
-SECTION 6 — PRACTICE  
-Ask 2–3 reflection questions and give short example answers  
-appropriate for a grade {grade_level} student.
-
-Keep everything slow, calm, and conversational.
+Keep everything calm and simple for grade {grade_level}.
 """
 
 
 # -------------------------------------------------------
-# MAIN PUBLIC FUNCTION — integrates with new formatter
+# MAIN PUBLIC FUNCTION — FULLY UPDATED FOR NEW SYSTEM
 # -------------------------------------------------------
 def explain_science(topic: str, grade_level="8", character="everly"):
-    # Choose the correct prompt format
+
+    # Pick the prompt style
     if is_christian_question(topic):
-        prompt = build_christian_science_prompt(topic, grade_level)
+        base_prompt = build_christian_science_prompt(topic, grade_level)
     else:
-        prompt = build_science_prompt(topic, grade_level)
+        base_prompt = build_science_prompt(topic, grade_level)
 
-    # Add personality wrapper
-    prompt = apply_personality(character, prompt)
+    # Add character personality
+    enriched = apply_personality(character, base_prompt)
 
-    # Get raw AI output
-    raw = study_buddy_ai(prompt, grade_level, character)
+    # Get the raw 6-section text from AI
+    raw_output = study_buddy_ai(enriched, grade_level, character)
 
-    # Helper to slice labeled sections
-    def extract(label):
-        return raw.split(label)[-1].strip() if label in raw else "No information provided."
+    # Convert raw text → structured dict
+    parsed = parse_into_sections(raw_output)
 
-    overview       = extract("SECTION 1")
-    key_facts      = extract("SECTION 2")
-    christian_view = extract("SECTION 3")
-    agreement      = extract("SECTION 4")
-    difference     = extract("SECTION 5")
-    practice       = extract("SECTION 6")
-
-    # Format everything into the clean kid-friendly HTML structure
+    # Format final result for subject.html template
     return format_answer(
-        overview=overview,
-        key_facts=key_facts,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
+        overview=parsed.get("overview", ""),
+        key_facts=parsed.get("key_facts", []),
+        christian_view=parsed.get("christian_view", ""),
+        agreement=parsed.get("agreement", []),
+        difference=parsed.get("difference", []),
+        practice=parsed.get("practice", [])
     )

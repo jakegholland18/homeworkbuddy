@@ -51,24 +51,24 @@
     .section-title {
         font-size: 1.4rem;
         color: #bfe6ff;
-        margin-top: 25px;
+        margin-top: 30px;
         font-weight: 700;
         text-shadow: 0 0 10px #5ecbff;
     }
 
-    .answer-card ul {
-        padding-left: 20px;
-        margin-top: 8px;
+    ul {
+        padding-left: 18px;
+        margin-top: 10px;
     }
 
-    .answer-card li {
-        margin-bottom: 6px;
+    li {
+        margin-bottom: 8px;
     }
 
     /* BUTTON */
     .btn-back {
         display: inline-block;
-        margin-top: 30px;
+        margin-top: 35px;
         padding: 14px 36px;
         background: #0059ff;
         color: white;
@@ -97,95 +97,54 @@
     <!-- MAIN ANSWER -->
     <div class="answer-card">
 
-        {# ----------------------------------------------------
-           CASE 1: answer is a plain string (current behavior)
-           ---------------------------------------------------- #}
-        {% if answer is string %}
-            <div class="section-title">🌟 Here’s Your Answer</div>
-            <p>{{ answer | safe }}</p>
-
-            <div class="section-title">🧠 Now You Try!</div>
-            <p>Can you explain this in your own words, or make up your own example?</p>
-
-            <div class="section-title">➡ Want Help With Another Question?</div>
-            <p>You can go back and explore more planets anytime.</p>
-
-        {# ----------------------------------------------------
-           CASE 2: answer is a dict with sections
-           (future structured format)
-           ---------------------------------------------------- #}
-        {% elif answer is mapping %}
-
-            {% if answer.overview %}
+        {% if answer.overview %}
             <div class="section-title">🌟 Overview</div>
             <p>{{ answer.overview }}</p>
-            {% endif %}
+        {% endif %}
 
-            {% if answer.key_facts %}
+        {% if answer.key_facts and answer.key_facts|length > 0 %}
             <div class="section-title">📘 Key Facts</div>
-            {% if answer.key_facts is string %}
-                <p>{{ answer.key_facts }}</p>
-            {% else %}
-                <ul>
-                    {% for fact in answer.key_facts %}
-                        <li>{{ fact }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-            {% endif %}
+            <ul>
+                {% for fact in answer.key_facts %}
+                <li>{{ fact }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
 
-            {% if answer.christian_view %}
+        {% if answer.christian_view %}
             <div class="section-title">✨ Christian Viewpoint</div>
             <p>{{ answer.christian_view }}</p>
-            {% endif %}
-
-            {% if answer.agreement %}
-            <div class="section-title">🤝 Where Christian & Secular Views Agree</div>
-            {% if answer.agreement is string %}
-                <p>{{ answer.agreement }}</p>
-            {% else %}
-                <ul>
-                    {% for item in answer.agreement %}
-                        <li>{{ item }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-            {% endif %}
-
-            {% if answer.difference %}
-            <div class="section-title">🔍 Where They Differ</div>
-            {% if answer.difference is string %}
-                <p>{{ answer.difference }}</p>
-            {% else %}
-                <ul>
-                    {% for diff in answer.difference %}
-                        <li>{{ diff }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-            {% endif %}
-
-            {% if answer.practice %}
-            <div class="section-title">🧠 Now You Try!</div>
-            {% if answer.practice is string %}
-                <p>{{ answer.practice }}</p>
-            {% else %}
-                <ul>
-                    {% for q in answer.practice %}
-                        <li>{{ q }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-            {% endif %}
-
-            <div class="section-title">➡ Want Help With Another Question?</div>
-            <p>You can go back and explore more planets anytime.</p>
-
-        {% else %}
-            {# super-defensive fallback #}
-            <div class="section-title">🌟 Here’s Your Answer</div>
-            <p>{{ answer }}</p>
         {% endif %}
+
+        {% if answer.agreement and answer.agreement|length > 0 %}
+            <div class="section-title">🤝 Where Christian & Secular Views Agree</div>
+            <ul>
+                {% for item in answer.agreement %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if answer.difference and answer.difference|length > 0 %}
+            <div class="section-title">🔍 Where They Differ</div>
+            <ul>
+                {% for diff in answer.difference %}
+                <li>{{ diff }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if answer.practice and answer.practice|length > 0 %}
+            <div class="section-title">🧠 Now You Try!</div>
+            <ul>
+                {% for q in answer.practice %}
+                <li>{{ q }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <div class="section-title">➡ Want Help With Another Question?</div>
+        <p>You can go back and explore more planets anytime.</p>
 
     </div>
 
@@ -194,5 +153,6 @@
 </div>
 
 {% endblock %}
+
 
 

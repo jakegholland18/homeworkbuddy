@@ -2,82 +2,98 @@
 
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
+from modules.answer_formatter import parse_into_sections, format_answer
 
 
 # -----------------------------------------------------------
-# Build QUIZ prompt using the new 6-section structure
+# Socratic Tutor Layer
+# -----------------------------------------------------------
+def socratic_layer(topic: str, grade_level: str):
+    """
+    Adds a gentle pre-explanation to help students think before giving the final
+    6-section structured answer.
+    """
+    return f"""
+The student wants help studying this topic:
+
+\"{topic}\"
+
+Before giving the final 6-section answer:
+
+1. Restate what they are trying to study in very simple words.
+2. Give one small hint to make them think.
+3. Ask one gentle guiding question.
+4. Give one tiny nudge without revealing the whole answer.
+
+After this guidance, continue with the full 6-section Homework Buddy format.
+Everything should be warm, simple, and grade {grade_level} friendly.
+"""
+
+
+# -----------------------------------------------------------
+# QUIZ prompt using the new 6-section structure
 # -----------------------------------------------------------
 def build_quiz_prompt(topic: str, grade_level: str):
-    """
-    Creates a quiz request using the new simplified 6-section answer model.
-    The AI will still output 6 sections because of shared_ai.py.
-    """
-
     return f"""
-Create a gentle study quiz for the topic "{topic}".
+Create a gentle study quiz for the topic "{topic}" using the 6-section Homework Buddy model.
 
-Make the questions calm and short so a grade {grade_level} student can understand.
-Ask simple questions the way a tutor would talk while sitting beside the student.
+OVERVIEW: Very short introduction to what the quiz is about.
+KEY FACTS: The most basic facts a student should know.
+CHRISTIAN VIEW (if relevant): Keep soft and non-confrontational.
+AGREEMENT & DIFFERENCE: Only include if naturally relevant.
+PRACTICE: Include several quiz questions with short example answers.
 
-The 6-section structure should still be used, but the explanation in the OVERVIEW
-and KEY FACTS sections should stay short and quiz-focused.
-
-In the PRACTICE section, include a few quiz questions with short example answers.
+Questions should be calm, short, and easy for grade {grade_level}.
 """
 
 
 # -----------------------------------------------------------
-# Build FLASHCARD prompt (6-section friendly)
+# FLASHCARD prompt using the 6-section structure
 # -----------------------------------------------------------
 def build_flashcard_prompt(topic: str, grade_level: str):
-    """
-    Creates a flashcard-style study guide under the 6-section format.
-    AI will still format final output using the 6 sections.
-    """
-
     return f"""
-Create simple flashcards for the topic "{topic}" 
-for a grade {grade_level} student.
+Create flashcards for the topic "{topic}" using the 6-section Homework Buddy format.
 
-Each flashcard should be explained inside the 6-section structure.
-Keep OVERVIEW and KEY FACTS gentle and simple.
+Flashcards should be extremely simple:
+- One idea per card
+- Clear, short explanation
+- Friendly tutoring tone
 
-In the PRACTICE section, show 3–5 flashcard-style Q&A pairs
-spoken like a friendly tutor holding real cards.
+In the PRACTICE section, include 3–5 flashcard-style Q&A pairs.
 """
 
 
 # -----------------------------------------------------------
-# PUBLIC FUNCTIONS — NO MORE SOCRATIC LAYER
-# (Because your new 6-section AI system handles structure)
+# PUBLIC FUNCTIONS — SOCratic + 6-SECTION ANSWER
 # -----------------------------------------------------------
+
 def generate_quiz(topic: str, grade_level="8", character=None):
-    """
-    Creates a gentle quiz using the new universal 6-section output.
-    """
 
     if character is None:
-        character = "theo"  # default calm teacher
+        character = "theo"
 
     base_prompt = build_quiz_prompt(topic, grade_level)
+    full_prompt = socratic_layer(topic, grade_level) + "\n" + base_prompt
 
-    # Add character personality
-    enriched_prompt = apply_personality(character, base_prompt)
+    enriched = apply_personality(character, full_prompt)
+    ai_text = study_buddy_ai(enriched, grade_level, character)
 
-    # Send through new 6-section study_buddy model
-    return study_buddy_ai(enriched_prompt, grade_level, character)
+    sections = parse_into_sections(ai_text)
+    return format_answer(**sections)
+
 
 
 def flashcards(topic: str, grade_level="8", character=None):
-    """
-    Creates flashcards using the new 6-section output.
-    """
 
     if character is None:
         character = "theo"
 
     base_prompt = build_flashcard_prompt(topic, grade_level)
+    full_prompt = socratic_layer(topic, grade_level) + "\n" + base_prompt
 
-    enriched_prompt = apply_personality(character, base_prompt)
+    enriched = apply_personality(character, full_prompt)
+    ai_text = study_buddy_ai(enriched, grade_level, character)
 
-    return study_buddy_ai(enriched_prompt, grade_level, character)
+    sections = parse_into_sections(ai_text)
+    return format_answer(**sections)
+

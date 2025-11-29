@@ -208,7 +208,7 @@ def ask_question():
     )
 
 # ============================================================
-# SUBJECT → AI ANSWER PAGE
+# SUBJECT → AI ANSWER PAGE  (FIXED)
 # ============================================================
 
 @app.route("/subject", methods=["POST"])
@@ -238,14 +238,18 @@ def subject_answer():
         "story_verse": text_helper.summarize_text,
     }
 
-    # AI raw answer
+    # AI response (already structured dictionary)
     if subject in subject_map:
-        raw_answer = subject_map[subject](question, grade, character)
+        answer = subject_map[subject](question, grade, character)
     else:
-        raw_answer = "Unknown subject."
-
-    # Format into structured JSON
-    answer = format_answer(raw_answer)
+        answer = format_answer(
+            overview="Unknown subject.",
+            key_facts="",
+            christian_view="",
+            agreement="",
+            difference="",
+            practice=""
+        )
 
     # Rewards
     add_xp(20)
@@ -342,3 +346,4 @@ def parent_dashboard():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
