@@ -39,7 +39,13 @@
             <div class="xp-bar-wrapper">
                 <div class="xp-label">LEVEL {{ level }} · {{ xp }}/{{ xp_to_next }} XP</div>
                 <div class="xp-bar">
+<<<<<<< HEAD
                     <div class="xp-fill" style="width: {{ xp_percent | default(0) }}%;"></div>
+=======
+    {% set xp_width = xp_percent|default(0,true) %}
+    <div class="xp-fill" style="width: {{ xp_width }}%"></div>
+</div>
+>>>>>>> galaxy-ui
                 </div>
             </div>
         </div>
