@@ -86,7 +86,8 @@
 
         <!-- CSS-Based Character -->
         <div class="character {{ id }}">
-            {% include 'character_shapes.html' with id=id %}
+            {% set current_id = id %}
+            {% include 'character_shapes.html' %}
         </div>
 
         <div class="character-name">{{ char.name }}</div>
@@ -124,12 +125,3 @@ function submitCharacter() {
 </script>
 
 {% endblock %}
-
-
-
-
-
-
-
-
-
