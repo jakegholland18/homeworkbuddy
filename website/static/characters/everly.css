@@ -1,0 +1,25 @@
+.everly .char-body {
+    background: linear-gradient(#0f8b8d, #145da0);
+}
+
+.everly .char-belt {
+    background: linear-gradient(#fdd36a, #f8b400);
+    box-shadow: 0 0 10px rgba(255,215,0,0.6);
+}
+
+.everly .char-cape {
+    background: radial-gradient(circle at top, #ffeaa7, #f39c12);
+    opacity: 0.9;
+}
+
+.everly .char-hair {
+    top: 10px;
+    left: 30px;
+    width: 100px;
+    height: 90px;
+    border-radius: 50px;
+    background: linear-gradient(#1b1b1b, #3d3d3d);
+}
+
+.everly .char-arm.left { transform: rotate(-8deg); }
+.everly .char-arm.right { transform: rotate(12deg); }

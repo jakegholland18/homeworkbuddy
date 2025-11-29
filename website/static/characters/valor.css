@@ -1,0 +1,31 @@
+.valor .char-body {
+    background: linear-gradient(#b71c1c, #5a0000);
+}
+
+.valor .char-emblem {
+    top: 105px;
+    left: 60px;
+    width: 40px;
+    height: 40px;
+    background: radial-gradient(circle, #ffeb3b, #f57f17);
+    border-radius: 50%;
+}
+
+.valor .char-mask {
+    top: 22px;
+    left: 42px;
+    width: 76px;
+    height: 30px;
+    border-radius: 20px;
+    background: linear-gradient(#37474f, #263238);
+}
+
+.valor .char-shoulder {
+    top: 85px;
+    width: 36px;
+    height: 24px;
+    border-radius: 20px;
+    background: linear-gradient(#cfd8dc, #78909c);
+}
+.valor .char-shoulder.left { left: 15px;}
+.valor .char-shoulder.right { right: 15px;}

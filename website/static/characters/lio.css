@@ -1,0 +1,119 @@
+/* CYBER-SPY LIO STORMHEART — A + B HYBRID STYLE */
+
+/* Sleek tactical suit */
+.lio .char-body {
+    background: linear-gradient(#0c111a, #00040a);
+    border: 2px solid rgba(0, 150, 255, 0.15);
+    box-shadow: 0 0 18px rgba(0, 140, 255, 0.15);
+    position: relative;
+}
+
+/* Thin high-tech panel lines */
+.lio .char-body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 35px;
+    background:
+        linear-gradient(90deg, rgba(0,150,255,0.1) 0%, transparent 60%),
+        linear-gradient(0deg, rgba(0,150,255,0.1) 0%, transparent 60%);
+    opacity: 0.25;
+    mix-blend-mode: screen;
+}
+
+/* High-tech visor (sleeker & sharper) */
+.lio .char-mask {
+    top: 28px;
+    left: 44px;
+    width: 72px;
+    height: 26px;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #68d6ff, #0066cc);
+    box-shadow: 0 0 15px rgba(0,150,255,0.65);
+    overflow: hidden;
+    position: absolute;
+}
+
+/* Animated scanning effect */
+.lio .char-mask::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    animation: visor-scan 2s infinite linear;
+}
+
+@keyframes visor-scan {
+    0% { left: -100%; }
+    100% { left: 120%; }
+}
+
+/* Hair — refined stealth look */
+.lio .char-hair {
+    top: -3px;
+    left: 34px;
+    width: 95px;
+    height: 50px;
+    border-radius: 45px;
+    background: linear-gradient(#1d1d1d, #080808);
+    box-shadow: 0 0 12px rgba(0,0,0,0.4);
+    position: absolute;
+}
+
+/* Futuristic chest emblem (small & subtle) */
+.lio .char-emblem {
+    top: 102px;
+    left: 67px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, #00c6ff, #004b80);
+    box-shadow: 0 0 10px rgba(0,150,255,0.5);
+}
+
+/* Tactical micro-cape (cloak-style, not superhero) */
+.lio .char-cape {
+    top: 78px;
+    left: 20px;
+    width: 120px;
+    height: 100px;
+    border-radius: 0 0 25px 25px;
+    background: linear-gradient(#0a1829, #00050c);
+    opacity: 0.55;
+    filter: blur(1px);
+}
+
+/* Glowing agent trim lines on cloak */
+.lio .char-cape::after {
+    content: "";
+    position: absolute;
+    bottom: 4px;
+    left: 15px;
+    width: 90px;
+    height: 4px;
+    background: linear-gradient(90deg, #00aaff, transparent);
+    opacity: 0.4;
+    border-radius: 3px;
+}
+
+/* Pose: classy, confident agent stance */
+.lio .char-arm.left {
+    transform: rotate(-12deg);
+}
+.lio .char-arm.right {
+    transform: rotate(14deg);
+}
+
+.lio .char-leg.left {
+    transform: rotate(-2deg);
+}
+.lio .char-leg.right {
+    transform: rotate(3deg);
+}
+
+/* Sleek boots */
+.lio .char-leg {
+    background: linear-gradient(#0f1b2a, #000);
+}
+

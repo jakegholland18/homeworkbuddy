@@ -1,0 +1,111 @@
+/* SPACE PRINCESS JASMINE STARFLARE — A + B HYBRID STYLE */
+
+/* Radiant cosmic gown */
+.jasmine .char-body {
+    background: linear-gradient(#9fd9ff, #4b63d1);
+    box-shadow: 0 0 25px rgba(150,200,255,0.55);
+    position: relative;
+}
+
+/* Soft luminous dress folds */
+.jasmine .char-body::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 35px;
+    background:
+        radial-gradient(circle at 30% 40%, rgba(255,255,255,0.3), transparent 60%),
+        linear-gradient(90deg, rgba(255,255,255,0.12), transparent 70%);
+    opacity: 0.35;
+}
+
+/* Flowing cosmic hair */
+.jasmine .char-hair {
+    position: absolute;
+    top: 0px;
+    left: 8px;
+    width: 140px;
+    height: 120px;
+    background: linear-gradient(#1b2b7c, #231a7a);
+    border-radius: 70px;
+    box-shadow: 0 0 15px rgba(80,80,255,0.3);
+    z-index: 2;
+}
+
+/* Space gown — holographic shine */
+.jasmine .char-cape {
+    background: radial-gradient(circle at top, #f2e5ff, #a86fff);
+    opacity: 0.95;
+    border: 1px solid rgba(255,255,255,0.45);
+    backdrop-filter: blur(1px);
+    position: relative;
+}
+
+/* Animated star shimmer */
+.jasmine .char-cape::after {
+    content: "";
+    position: absolute;
+    top: 10px; left: 20px;
+    width: 70%; height: 20%;
+    background: radial-gradient(circle, rgba(255,255,255,0.9), transparent 70%);
+    opacity: 0.35;
+    border-radius: 50%;
+    animation: star-pulse 3s infinite ease-in-out;
+}
+
+@keyframes star-pulse {
+    0% { transform: scale(0.9); opacity: 0.25; }
+    50% { transform: scale(1.2); opacity: 0.5; }
+    100% { transform: scale(0.9); opacity: 0.25; }
+}
+
+/* Royal belt */
+.jasmine .char-belt {
+    background: linear-gradient(#fff3a0, #ffcf33);
+    box-shadow: 0 0 15px rgba(255,215,0,0.85);
+}
+
+/* Energy crown — glowing + animated */
+.jasmine .char-crown {
+    position: absolute;
+    top: -18px;
+    left: 55px;
+    width: 50px;
+    height: 28px;
+    background: radial-gradient(circle, #ffe680, #f0b000);
+    border-radius: 0 0 12px 12px;
+    box-shadow:
+        0 0 16px rgba(255,230,120,0.8),
+        0 0 35px rgba(255,190,80,0.55);
+    z-index: 5;
+    overflow: hidden;
+}
+
+/* Crown energy pulse */
+.jasmine .char-crown::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+    animation: crown-glow 2.5s infinite linear;
+    opacity: 0.6;
+}
+
+@keyframes crown-glow {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(120%); }
+}
+
+/* Arms — refined graceful positioning */
+.jasmine .char-arm.left {
+    transform: rotate(-8deg);
+}
+.jasmine .char-arm.right {
+    transform: rotate(12deg);
+}
+
+/* Subtle glowing trim on legs */
+.jasmine .char-leg {
+    background: linear-gradient(#3a4aa8, #1f2a63);
+}
+

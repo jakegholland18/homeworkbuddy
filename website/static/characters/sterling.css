@@ -1,0 +1,17 @@
+.sterling .char-body {
+    background: linear-gradient(#263238, #000);
+}
+
+.sterling .char-glasses {
+    top: 35px; left: 50px;
+    width: 60px; height: 20px;
+    border: 3px solid #eceff1;
+    border-radius: 6px;
+}
+
+.sterling .char-tie {
+    top: 105px; left: 75px;
+    width: 18px; height: 50px;
+    background: linear-gradient(#c62828, #8e0000);
+    border-radius: 8px;
+}

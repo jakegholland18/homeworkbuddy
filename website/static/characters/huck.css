@@ -1,0 +1,17 @@
+.huck .char-body {
+    background: linear-gradient(#ffcc80, #fb8c00);
+}
+
+.huck .char-overalls {
+    top: 110px; left: 35px;
+    width: 90px; height: 90px;
+    background: linear-gradient(#1565c0, #0d47a1);
+    border-radius: 25px;
+}
+
+.huck .char-hair {
+    top: 0; left: 25px;
+    width: 90px; height: 55px;
+    background: linear-gradient(#fdd835, #f9a825);
+    border-radius: 50px;
+}

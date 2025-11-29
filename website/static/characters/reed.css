@@ -1,0 +1,17 @@
+.reed .char-body {
+    background: linear-gradient(#4db6ac, #00695c);
+}
+
+.reed .char-glasses {
+    top: 35px; left: 50px;
+    width: 60px; height: 20px;
+    border-radius: 6px;
+    border: 3px solid #b2ebf2;
+}
+
+.reed .char-book {
+    top: 120px; left: 65px;
+    width: 50px; height: 35px;
+    background: white;
+    border-radius: 4px;
+}

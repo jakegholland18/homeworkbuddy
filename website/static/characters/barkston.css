@@ -1,0 +1,18 @@
+.barkston .dog-head,
+.barkston .dog-body,
+.barkston .dog-leg,
+.barkston .dog-ear,
+.barkston .dog-snout {
+    background: #f6d48a;
+}
+
+.barkston .dog-tail {
+    animation: wag-tail 0.5s ease-in-out infinite;
+}
+
+@keyframes wag-tail {
+    0% { transform: rotate(20deg); }
+    50% { transform: rotate(45deg); }
+    100% { transform: rotate(20deg); }
+}
+

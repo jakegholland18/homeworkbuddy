@@ -76,7 +76,7 @@ def init_user():
         "streak": 1,
         "last_visit": str(datetime.today().date()),
         "inventory": [],
-        "character": "valor_strike",
+        "character": "valor",  # ✅ FIXED — MUST match new character ID
         "usage_minutes": 0,
         "progress": {
             "num_forge": {"questions": 0, "correct": 0},
@@ -162,7 +162,7 @@ def subjects():
 
 
 # ============================================================
-# CHOOSE CHARACTER (FIXED)
+# CHOOSE CHARACTER
 # ============================================================
 
 @app.route("/choose_character")
@@ -323,40 +323,3 @@ def buy_item(item_id):
     session["tokens"] -= price
     session["inventory"].append(item_id)
     flash(f"You bought {item['name']}!", "success")
-
-    return redirect("/shop")
-
-
-# ============================================================
-# PARENT DASHBOARD  (Correct route)
-# ============================================================
-@app.route("/parent_dashboard")
-def parent_dashboard():
-    init_user()
-
-    total_usage = session["usage_minutes"]
-
-    progress_display = {
-        subject: int((data["correct"] / data["questions"]) * 100)
-        if data["questions"] > 0 else 0
-        for subject, data in session["progress"].items()
-    }
-
-    return render_template(
-        "parent_dashboard.html",
-        progress=progress_display,
-        utilization=total_usage,
-        xp=session["xp"],
-        level=session["level"],
-        tokens=session["tokens"],
-        character=session["character"]
-    )
-
-
-# ============================================================
-# RUN SERVER
-# ============================================================
-if __name__ == "__main__":
-    app.run(debug=True)
-
-
