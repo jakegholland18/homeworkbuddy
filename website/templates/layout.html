@@ -12,6 +12,7 @@
 </head>
 <body>
 <div class="app-shell">
+
     <!-- SIDEBAR -->
     <aside class="sidebar">
         <div class="sidebar-logo">
@@ -23,15 +24,20 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a href="{{ url_for('dashboard') }}" class="nav-item {% if active_page == 'student' %}active{% endif %}">
+            <a href="{{ url_for('dashboard') }}" 
+               class="nav-item {% if active_page == 'student' %}active{% endif %}">
                 <span class="nav-dot"></span>
                 <span>Student Dashboard</span>
             </a>
-            <a href="{{ url_for('parent_dashboard') }}" class="nav-item {% if active_page == 'parent' %}active{% endif %}">
+
+            <a href="{{ url_for('parent_dashboard') }}" 
+               class="nav-item {% if active_page == 'parent' %}active{% endif %}">
                 <span class="nav-dot"></span>
                 <span>Parent View</span>
             </a>
-            <a href="{{ url_for('choose_character') }}" class="nav-item {% if active_page == 'characters' %}active{% endif %}">
+
+            <a href="{{ url_for('choose_character') }}" 
+               class="nav-item {% if active_page == 'characters' %}active{% endif %}">
                 <span class="nav-dot"></span>
                 <span>Choose Character</span>
             </a>
@@ -44,25 +50,33 @@
 
     <!-- MAIN CONTENT AREA -->
     <main class="main-area">
+
         <!-- TOP BAR -->
         <header class="topbar">
+
+            <!-- LEFT SIDE -->
             <div class="topbar-left">
                 <h1 class="page-title">
                     {% block page_title %}Dashboard{% endblock %}
                 </h1>
                 <p class="page-subtitle">
-                    {% block page_subtitle %}Welcome back! Let’s tackle your next mission.{% endblock %}
+                    {% block page_subtitle %}
+                        Welcome back! Let’s tackle your next mission.
+                    {% endblock %}
                 </p>
             </div>
 
+            <!-- RIGHT SIDE: Character Display -->
             <div class="topbar-right">
-                {% if selected_character %}
+
+                {% if selected_character is defined and selected_character %}
                     <div class="character-pill">
                         <div class="character-avatar">
                             <span class="character-initial">
-                                {{ selected_character[0]|upper }}
+                                {{ selected_character[0] | upper }}
                             </span>
                         </div>
+
                         <div class="character-info">
                             <div class="character-name">
                                 {{ selected_character.replace('_', ' ').title() }}
@@ -70,29 +84,22 @@
                             <div class="character-label">Active Guide</div>
                         </div>
                     </div>
+
                 {% else %}
                     <a href="{{ url_for('choose_character') }}" class="btn-ghost">
                         Choose your guide
                     </a>
                 {% endif %}
+
             </div>
         </header>
 
-        <!-- PAGE BODY -->
+        <!-- MAIN PAGE BODY -->
         <section class="page-content">
             {% block content %}{% endblock %}
         </section>
+
     </main>
 </div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-

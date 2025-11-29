@@ -3,27 +3,48 @@
 {% block title %}Choose Your Guide | Homework Buddy{% endblock %}
 
 {% block page_title %}Choose Your Guide{% endblock %}
-{% block page_subtitle %}Pick the character who will travel through learning with you.{% endblock %}
+{% block page_subtitle %}
+Pick the character who will travel through learning with you.
+{% endblock %}
 
 {% block content %}
 <div class="character-grid">
+
     {% for char in characters %}
-    <form method="POST" action="{{ url_for('set_character') }}" class="character-card">
-        <input type="hidden" name="character_id" value="{{ char.id }}">
+
+    <form method="POST" action="{{ url_for('select_character') }}" class="character-card">
+
+        {# SUPPORTS object OR string #}
+        <input type="hidden" name="character_id"
+               value="{{ char.id if char.id is defined else char }}">
+
         <div class="character-avatar-lg">
-            <span class="character-initial-lg">{{ char.short }}</span>
+            <span class="character-initial-lg">
+                {{ char.short if char.short is defined else char[0] | upper }}
+            </span>
         </div>
+
         <div class="character-main">
-            <div class="character-name-lg">{{ char.name }}</div>
-            <div class="character-role">{{ char.role }}</div>
+            <div class="character-name-lg">
+                {{ char.name if char.name is defined else char.replace('_', ' ').title() }}
+            </div>
+
+            <div class="character-role">
+                {{ char.role if char.role is defined else "Guide" }}
+            </div>
         </div>
+
         <button type="submit" class="btn-primary full-width">
             Select
         </button>
+
     </form>
+
     {% endfor %}
+
 </div>
 {% endblock %}
+
 
 
 

@@ -76,7 +76,7 @@ def init_user():
         "streak": 1,
         "last_visit": str(datetime.today().date()),
         "inventory": [],
-        "character": None,   # No default character selected
+        "character": None,
         "usage_minutes": 0,
         "progress": {
             "num_forge": {"questions": 0, "correct": 0},
@@ -147,6 +147,7 @@ def home():
 def choose_character():
     init_user()
     characters = get_all_characters()
+
     return render_template(
         "choose_character.html",
         characters=characters,
@@ -158,9 +159,15 @@ def choose_character():
 @app.route("/select-character", methods=["POST"])
 def select_character():
     init_user()
-    chosen = request.form.get("character")
+
+    chosen = request.form.get("character")  # OPTION A — backend expects "character"
+
+    if not chosen:
+        flash("Please select a character.", "error")
+        return redirect(url_for("choose_character"))
+
     session["character"] = chosen
-    return redirect("/dashboard")
+    return redirect(url_for("dashboard"))
 
 
 # -------------------------------
@@ -346,4 +353,3 @@ def parent_dashboard():
 # ============================================================
 if __name__ == "__main__":
     app.run(debug=True)
-
