@@ -12,6 +12,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 app = Flask(
     __name__,
     template_folder=os.path.join(BASE_DIR, "website", "templates"),
+    static_url_path="/static",
     static_folder=os.path.join(BASE_DIR, "website", "static")
 )
 
@@ -71,6 +72,7 @@ SHOP_ITEMS = {
 # ============================================================
 # INIT USER SESSION
 # ============================================================
+
 def init_user():
     defaults = {
         "tokens": 0,
@@ -79,7 +81,7 @@ def init_user():
         "streak": 1,
         "last_visit": str(datetime.today().date()),
         "inventory": [],
-        "character": "valor",  # default character ID
+        "character": "valor",
         "usage_minutes": 0,
         "progress": {
             "num_forge": {"questions": 0, "correct": 0},
@@ -105,6 +107,7 @@ def init_user():
 # ============================================================
 # STREAK SYSTEM
 # ============================================================
+
 def update_streak():
     today = datetime.today().date()
     last = datetime.strptime(session["last_visit"], "%Y-%m-%d").date()
@@ -123,6 +126,7 @@ def update_streak():
 # ============================================================
 # XP & LEVEL-UP SYSTEM
 # ============================================================
+
 def add_xp(amount):
     session["xp"] += amount
     xp_needed = session["level"] * 100
@@ -208,6 +212,7 @@ def ask_question():
 # ============================================================
 # SUBJECT → AI ANSWER LOGIC
 # ============================================================
+
 @app.route("/subject", methods=["POST"])
 def subject_answer():
     init_user()
@@ -359,3 +364,4 @@ def parent_dashboard():
 # ============================================================
 if __name__ == "__main__":
     app.run(debug=True)
+
