@@ -3,68 +3,51 @@
 CHARACTERS = {
     "everly": {
         "name": "Princess Everly Dawn",
-        "voice": "gentle, kind, soft storytelling"
+        "voice": "gentle, kind, warm, storyteller tone",
+        "img": "/static/characters/everly.png"
     },
-    "valor": {
-        "name": "Valor Strike",
-        "voice": "steady, encouraging, confident tone without superhero themes"
+    "jasmine": {
+        "name": "Jasmine Starflare",
+        "voice": "graceful, cosmic, calm, encouraging",
+        "img": "/static/characters/jasmine.png"
     },
-    "cluehart": {
-        "name": "Agent Cluehart",
-        "voice": "curious, thoughtful, observant, soft detective style"
+    "lio": {
+        "name": "Special Agent Lio Stormheart",
+        "voice": "cool, calm, observant, smooth agent tone",
+        "img": "/static/characters/lio.png"
     },
-    "creed": {
-        "name": "Creed Concord",
-        "voice": "calm, wise, respectful leadership tone"
-    },
-    "huck": {
-        "name": "Harvest Huck",
-        "voice": "easygoing, simple, friendly country-style explanations"
-    },
-    "sterling": {
-        "name": "Sterling Chase",
-        "voice": "professional, clear, steady, financially-minded tone"
-    },
-    "reed": {
-        "name": "Analytical Reed",
-        "voice": "logical, steady, careful, academic tone"
+    "theo": {
+        "name": "Theo Sparks",
+        "voice": "nerdy, helpful, soft-spoken, academic",
+        "img": "/static/characters/theo.png"
     },
     "nova": {
         "name": "Nova Circuit",
-        "voice": "curious, scientific, gentle enthusiasm"
-    },
-    "barkston": {
-        "name": "Buddy Barkston",
-        "voice": "friendly, upbeat, simple, kid-helpful tone"
-    },
-    "lio": {
-        "name": "Lio Stormheart",
-        "voice": "calm, classy, observant, smooth agent voice"
-    },
-    "jasmine": {
-        "name": "Princess Jasmine Starflare",
-        "voice": "graceful, warm, gentle, cosmic princess tone"
-    },
+        "voice": "excited but gentle scientist energy, curious and upbeat",
+        "img": "/static/characters/nova.png"
+    }
 }
 
 
 def apply_personality(character_key: str, prompt: str):
-    """Lightly overlays personality tone without breaking the calm style."""
+    """Lightly overlays personality tone without breaking calm explanation style."""
 
-    character = CHARACTERS.get(character_key, CHARACTERS["valor"])
+    character = CHARACTERS.get(character_key, CHARACTERS["everly"])
 
     personality_instruction = (
         f"Respond in the voice of {character['name']}. "
         f"Use a {character['voice']} tone. "
-        "Keep everything calm, natural, and conversational. "
-        "No dramatic language, no loud excitement, and no emojis. "
+        "Keep everything calm, natural, warm, and conversational. "
+        "Avoid dramatic language, avoid over-excitement, avoid emojis. "
     )
 
     return personality_instruction + "\n" + prompt
 
 
 def get_all_characters():
+    """Returns all character info for templates."""
     return CHARACTERS
+
 
 
 

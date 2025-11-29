@@ -7,62 +7,89 @@
         margin: 0;
         padding: 0;
         overflow-x: hidden;
+        color: white;
     }
 
+    /* STARFIELD */
     .stars {
         position: absolute;
         inset: 0;
         background: url('/static/stars.png');
         background-size: cover;
-        opacity: 0.4;
-        animation: drift 45s linear infinite;
+        opacity: 0.45;
+        animation: drift 50s linear infinite;
         z-index: -1;
     }
 
     @keyframes drift {
         from { transform: translateY(0); }
-        to { transform: translateY(-900px); }
+        to { transform: translateY(-1300px); }
     }
 
+    /* TITLE */
     .grade-title {
         text-align: center;
-        margin-top: 60px;
-        font-size: 2.6rem;
-        color: #bcdfff;
-        text-shadow: 0 0 18px rgba(255,255,255,0.6);
+        margin-top: 70px;
+        font-size: 3rem;
+        font-weight: 700;
+        color: #cfe8ff;
+        text-shadow: 
+            0 0 25px rgba(130,180,255,0.7),
+            0 0 10px rgba(255,255,255,0.3);
+        letter-spacing: 1.5px;
     }
 
+    /* GRADE GRID */
     .grade-container {
-        margin-top: 60px;
+        margin-top: 80px;
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 25px;
+        gap: 35px;
+        padding-bottom: 70px;
     }
 
+    /* GRADE BOX */
     .grade-box {
-        background: #ffffffee;
-        padding: 20px 35px;
-        border-radius: 18px;
-        font-size: 1.6rem;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(180,210,255,0.3);
+        padding: 22px 50px;
+        border-radius: 16px;
+        font-size: 1.8rem;
         font-weight: 700;
-        color: #002c63;
+        color: #d9ecff;
         cursor: pointer;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-        transition: 0.28s;
+        transition: 0.3s ease;
+        backdrop-filter: blur(8px);
+        text-shadow: 0 0 12px rgba(130,180,255,0.45);
+        user-select: none;
     }
 
     .grade-box:hover {
-        transform: translateY(-6px) scale(1.05);
-        background: #eaf4ff;
+        transform: translateY(-8px) scale(1.08);
+        box-shadow: 
+            0 0 18px rgba(140,200,255,0.7),
+            0 0 35px rgba(60,140,255,0.4);
+        border-color: rgba(160,200,255,0.7);
+    }
+
+    /* MOBILE */
+    @media(max-width: 700px) {
+        .grade-title {
+            font-size: 2.2rem;
+            margin-top: 50px;
+        }
+
+        .grade-box {
+            font-size: 1.4rem;
+            padding: 18px 40px;
+        }
     }
 </style>
 
 <div class="stars"></div>
 
-<h1 class="grade-title">
-    Choose Your Grade for {{ subject.replace("_", " ").title() }}
-</h1>
+<h1 class="grade-title">Choose Grade Level for {{ subject.replace("_", " ").title() }}</h1>
 
 <div class="grade-container">
     {% for g in range(1, 13) %}
@@ -81,6 +108,7 @@ function goToQuestion(grade) {
 </script>
 
 {% endblock %}
+
 
 
 

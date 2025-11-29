@@ -1,16 +1,101 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="fade-in">
-    <h1 class="page-title">{{ character|replace('_',' ')|title }}</h1>
+<style>
+    .answer-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+    }
 
-    <div class="card">
-        <h2>Your Answer:</h2>
-        <p>{{ answer|safe }}</p>
+    .character-box {
+        margin-bottom: 25px;
+    }
 
-        <a href="/" class="btn" style="margin-top:20px;">Ask Another Question</a>
+    .character-img {
+        width: 260px;
+        height: auto;
+        animation: float 4s ease-in-out infinite;
+        filter: drop-shadow(0 0 22px #000);
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0); }
+    }
+
+    .character-name {
+        font-size: 1.6rem;
+        margin-top: 10px;
+        color: #ffd86b;
+        text-shadow: 0 0 10px #ffb300;
+    }
+
+    .answer-card {
+        margin-top: 30px;
+        background: rgba(255,255,255,0.1);
+        padding: 25px 30px;
+        border-radius: 16px;
+        backdrop-filter: blur(8px);
+        text-align: left;
+        box-shadow: 0 0 25px rgba(0,0,0,0.4);
+    }
+
+    .answer-card h2 {
+        margin-bottom: 15px;
+        color: #bfe6ff;
+        text-shadow: 0 0 10px #5ecbff;
+        font-size: 1.8rem;
+    }
+
+    .answer-card p {
+        font-size: 1.2rem;
+        line-height: 1.7;
+        color: #e9f4ff;
+    }
+
+    .btn-back {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 14px 38px;
+        background: #0059ff;
+        color: white;
+        font-size: 1.2rem;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: 0.25s ease;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .btn-back:hover {
+        background: #2f74ff;
+        transform: translateY(-3px);
+    }
+</style>
+
+<div class="answer-page fade-in">
+
+    <!-- Character -->
+    <div class="character-box">
+        <img src="/static/characters/{{ character }}.png" class="character-img">
+        <div class="character-name">
+            {{ character.replace("_"," ").title() }}
+        </div>
     </div>
+
+    <!-- The Answer -->
+    <div class="answer-card">
+        <h2>Your Answer</h2>
+        <p>{{ answer | safe }}</p>
+    </div>
+
+    <!-- Back Button -->
+    <a href="/subjects" class="btn-back">Ask Another Question</a>
+
 </div>
 
 {% endblock %}
+
 

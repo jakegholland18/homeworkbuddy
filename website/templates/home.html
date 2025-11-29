@@ -1,77 +1,263 @@
-{% extends "layout.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Homework Buddy – Meet the Team</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<!-- ⭐ ANIMATED HERO SECTION -->
-<div class="home-hero fade-in">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
-    <h1 class="home-title">
-        Welcome to <span>Homework Buddy</span> ✏️
-    </h1>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    <p class="home-subtitle">
-        Explore learning planets, ask anything, and let your Study Buddy guide your adventure!
-    </p>
+    body {
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1e3cff, #050816 40%, #02020a 100%);
+      color: #fff;
+      padding: 2.5rem 1.5rem 4rem;
+    }
 
-    <!-- FLOATING CHARACTER PREVIEW -->
-    <div class="home-preview">
-        <img src="/static/nova-circuit.png" class="float-char tilt-float"/>
-        <img src="/static/princess-everly-dawn.png" class="float-char small-spin"/>
-        <img src="/static/valor-strike.png" class="float-char slow-bounce"/>
-    </div>
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-    <div style="margin-top: 30px;">
-        <a href="/subjects" class="btn btn-glow">Start Your Adventure 🚀</a>
-    </div>
+    .page-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
 
-</div>
+    .page-title {
+      font-size: clamp(2.1rem, 4vw, 2.8rem);
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.05em;
+    }
 
+    .page-subtitle {
+      font-size: 0.95rem;
+      color: #c4d1ff;
+      max-width: 580px;
+      margin: 0.7rem auto;
+      line-height: 1.7;
+    }
 
-<!-- ⭐ MAIN CARD SECTION -->
-<div class="card fade-in" style="margin-top:50px;">
+    /* CTA BUTTON */
+    .start-btn {
+      margin: 2rem auto 2.8rem;
+      padding: 0.9rem 2rem;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #4dabff, #275dff);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: block;
+      transition: 0.3s ease-in-out;
+      box-shadow: 0 10px 25px rgba(50, 100, 255, 0.45);
+    }
 
-    <h2 style="text-align:center; margin-bottom:10px;">
-        Need Help Right Now?
-    </h2>
+    .start-btn:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 15px 35px rgba(60, 120, 255, 0.6);
+    }
 
-    <p style="text-align:center; margin-bottom:25px; font-size:1.1rem; opacity:0.9;">
-        Jump straight into a question — your Study Buddy is ready!
-    </p>
+    /* GRID */
+    .characters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.8rem;
+    }
 
-    <form action="/subject" method="POST" class="home-form">
+    /* CARD */
+    .character-card {
+      position: relative;
+      padding: 1.5rem;
+      border-radius: 1.6rem;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+    }
 
-        <label>Grade Level:</label>
-        <input type="text" name="grade" placeholder="ex: 4, 7, 10, or 'college'" required>
+    .character-card::before {
+      content: "";
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      top: -45px;
+      right: -45px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(75,150,255,0.9), transparent 70%);
+      filter: blur(2px);
+      opacity: 0.75;
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
 
-        <label>Subject:</label>
-        <select name="subject" required>
-            <option value="math">Math</option>
-            <option value="science">Science</option>
-            <option value="history">History</option>
-            <option value="bible">Bible</option>
-            <option value="writing">Writing</option>
-            <option value="text">Reading / Summaries</option>
-            <option value="general">General Questions</option>
-            <option value="apologetics">Apologetics</option>
-            <option value="investment">Investing</option>
-            <option value="money">Money & Accounting</option>
-        </select>
+    .character-top {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-end;
+      z-index: 2;
+      position: relative;
+    }
 
-        <label>Your Question:</label>
-        <textarea name="question" rows="4" placeholder="Ask anything you're confused about..." required></textarea>
+    .character-image-wrap {
+      width: 90px;
+      position: relative;
+    }
 
-        <button class="btn" style="margin-top:10px;">
-            Ask Your Study Buddy ✨
-        </button>
+    .character-image {
+      width: 100%;
+      animation: floatUpDown 3s ease-in-out infinite;
+      filter: drop-shadow(0 8px 14px rgba(0,0,0,0.8));
+    }
 
-    </form>
+    .character-info {
+      flex: 1;
+    }
 
-    <div style="text-align:center; margin-top:25px;">
-        <a href="/choose-character" class="btn">
-            Choose Your Buddy 🎨
-        </a>
-    </div>
+    .character-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+    }
 
-</div>
+    .character-role {
+      font-size: 0.82rem;
+      color: #a0b3ff;
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
 
-{% endblock %}
+    .character-desc {
+      font-size: 0.85rem;
+      color: #e5e7eb;
+      line-height: 1.6;
+    }
+
+    @keyframes floatUpDown {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { transform: scale(1); opacity: 0.65; }
+      50% { transform: scale(1.17); opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+
+    <header class="page-header">
+      <h1 class="page-title">Meet the Homework Buddy Team</h1>
+      <p class="page-subtitle">
+        Choose your guide, your coach, or your genius partner. Each one teaches differently —
+        but they all help make learning feel like an adventure.
+      </p>
+
+      <!-- CTA BUTTON -->
+      <button class="start-btn" onclick="window.location.href='/choose-character'">
+        Start Learning
+      </button>
+    </header>
+
+    <section class="characters-grid">
+
+      <!-- Everly -->
+      <article class="character-card">
+        <div class="character-top">
+          <div class="character-image-wrap">
+            <img src="{{ url_for('static', filename='characters/everly.png') }}" class="character-image">
+          </div>
+          <div class="character-info">
+            <h2 class="character-name">Princess Everly Dawn</h2>
+            <div class="character-role">Story Guide • Heart Leader</div>
+            <p class="character-desc">
+              Everly teaches reading, courage, and history through warmth and imagination.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Jasmine -->
+      <article class="character-card">
+        <div class="character-top">
+          <div class="character-image-wrap">
+            <img src="{{ url_for('static', filename='characters/jasmine.png') }}" class="character-image">
+          </div>
+          <div class="character-info">
+            <h2 class="character-name">Jasmine Starflare</h2>
+            <div class="character-role">Cosmic Princess • Reading Mentor</div>
+            <p class="character-desc">
+              Jasmine brings galaxies of creativity and calm confidence to reading and writing.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Lio -->
+      <article class="character-card">
+        <div class="character-top">
+          <div class="character-image-wrap">
+            <img src="{{ url_for('static', filename='characters/lio.png') }}" class="character-image">
+          </div>
+          <div class="character-info">
+            <h2 class="character-name">Agent Lio Stormheart</h2>
+            <div class="character-role">Secret Agent • Logic Trainer</div>
+            <p class="character-desc">
+              Calm, smooth, focused — Lio helps students solve problems like a true agent.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Theo -->
+      <article class="character-card">
+        <div class="character-top">
+          <div class="character-image-wrap">
+            <img src="{{ url_for('static', filename='characters/theo.png') }}" class="character-image">
+          </div>
+          <div class="character-info">
+            <h2 class="character-name">Theo Sparks</h2>
+            <div class="character-role">Nerd Genius • STEM Buddy</div>
+            <p class="character-desc">
+              Friendly, nerdy, patient — Theo makes math and science feel simple and doable.
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <!-- Nova -->
+      <article class="character-card">
+        <div class="character-top">
+          <div class="character-image-wrap">
+            <img src="{{ url_for('static', filename='characters/nova.png') }}" class="character-image">
+          </div>
+          <div class="character-info">
+            <h2 class="character-name">Nova Circuit</h2>
+            <div class="character-role">Scientist • Curiosity Coach</div>
+            <p class="character-desc">
+              Nova guides students through science with excited curiosity and gentle clarity.
+            </p>
+          </div>
+        </div>
+      </article>
+
+    </section>
+
+  </main>
+</body>
+</html>
+
 

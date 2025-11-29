@@ -1,128 +1,193 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<div class="card fade-in">
+<style>
+    body {
+        background: radial-gradient(circle at top, #0f1a2b, #000814);
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+        color: white;
+    }
 
-    <!-- TITLE -->
+    .stars {
+        position: absolute;
+        inset: 0;
+        background: url('/static/stars.png');
+        background-size: cover;
+        opacity: 0.45;
+        animation: drift 50s linear infinite;
+        z-index: -1;
+    }
+
+    @keyframes drift {
+        from { transform: translateY(0); }
+        to { transform: translateY(-1300px); }
+    }
+
+    .dashboard-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 20px 80px;
+        text-align: center;
+    }
+
+    .page-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: #cfe8ff;
+        text-shadow: 0 0 20px rgba(130,180,255,0.8);
+    }
+
+    .character-section {
+        margin-top: 40px;
+        margin-bottom: 40px;
+    }
+
+    .character-img {
+        width: 260px;
+        height: auto;
+        animation: float 4s ease-in-out infinite;
+        filter: drop-shadow(0 0 25px rgba(0,0,0,0.6));
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-12px); }
+        100% { transform: translateY(0); }
+    }
+
+    .character-name {
+        font-size: 1.8rem;
+        margin-top: 12px;
+        color: #ffd86a;
+        text-shadow: 0 0 12px #ffb84c;
+    }
+
+    .btn-main {
+        margin-top: 18px;
+        display: inline-block;
+        padding: 14px 40px;
+        font-size: 1.25rem;
+        color: white;
+        background: #0059ff;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: 0.3s ease;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+
+    .btn-main:hover {
+        background: #2f74ff;
+        transform: translateY(-3px);
+    }
+
+    .stats-grid {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 50px;
+        flex-wrap: wrap;
+    }
+
+    .stat-box {
+        background: rgba(255,255,255,0.1);
+        border: 1px solid rgba(160,200,255,0.35);
+        padding: 25px 40px;
+        border-radius: 18px;
+        backdrop-filter: blur(6px);
+        width: 200px;
+        text-align: center;
+        transition: 0.25s ease;
+    }
+
+    .stat-box:hover {
+        transform: translateY(-6px) scale(1.05);
+        box-shadow: 0 0 18px rgba(160,200,255,0.5);
+    }
+
+    .section-title {
+        margin-top: 70px;
+        margin-bottom: 20px;
+        font-size: 2rem;
+        color: #cfe8ff;
+        text-shadow: 0 0 15px rgba(130,180,255,0.6);
+    }
+
+    .missions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 25px;
+        padding-bottom: 50px;
+    }
+
+    .mission-card {
+        background: rgba(255,255,255,0.08);
+        padding: 25px 20px;
+        border-radius: 16px;
+        border: 1px solid rgba(140,180,255,0.3);
+        backdrop-filter: blur(6px);
+        text-decoration: none;
+        color: #e6f1ff;
+        transition: 0.25s ease;
+    }
+
+    .mission-card:hover {
+        transform: translateY(-6px) scale(1.05);
+        box-shadow: 0 0 16px rgba(160,200,255,0.5);
+    }
+</style>
+
+<div class="stars"></div>
+
+<div class="dashboard-wrapper fade-in">
+
     <h1 class="page-title">Student Dashboard</h1>
 
-    <!-- CHARACTER SECTION -->
     {% if character %}
-    <div class="dashboard-character">
-        <h2>Your Study Buddy</h2>
+    <div class="character-section">
+        <img src="/static/characters/{{ character }}.png" class="character-img">
+        <div class="character-name">{{ character.replace('_',' ').title() }}</div>
 
-        <!-- Character Art -->
-        <img src="/static/{{ character }}.png"
-             class="character-large character-float">
-
-        <p class="character-tagline">
-            {{ character.replace('_',' ').title() }} is ready for the next mission!
-        </p>
-
-        <a href="/buddy" class="btn btn-glow">Continue Learning</a>
+        <!-- FIXED ROUTE -->
+        <a href="/subjects" class="btn-main">Begin Learning</a>
     </div>
-    {% else %}
-    <p class="no-character">
-        You haven't chosen a Study Buddy yet.  
-        <a href="/choose-character">Pick one here</a>.
-    </p>
     {% endif %}
 
-    <!-- STATS -->
-    <div class="stats-row">
-
-        <div class="stat-box">
-            <h3>⭐ XP</h3>
-            <p>{{ xp }}</p>
-        </div>
-
-        <div class="stat-box">
-            <h3>🏆 Level</h3>
-            <p>{{ level }}</p>
-        </div>
-
-        <div class="stat-box">
-            <h3>💰 Tokens</h3>
-            <p>{{ tokens }}</p>
-        </div>
-
-        <div class="stat-box">
-            <h3>🔥 Streak</h3>
-            <p>{{ streak }} days</p>
-        </div>
-
+    <div class="stats-grid">
+        <div class="stat-box"><h3>XP</h3><p>{{ xp }}</p></div>
+        <div class="stat-box"><h3>Level</h3><p>{{ level }}</p></div>
+        <div class="stat-box"><h3>Tokens</h3><p>{{ tokens }}</p></div>
+        <div class="stat-box"><h3>Streak</h3><p>{{ streak }} Days</p></div>
     </div>
 
-    <!-- DAILY MISSIONS -->
-    <h2 class="section-title">🚀 Today’s Missions</h2>
+    <h2 class="section-title">Today’s Missions</h2>
 
     <div class="missions-grid">
-
         <a href="/ask-question?subject=num_forge" class="mission-card">
-            <h3>🧮 Math Mission</h3>
-            <p>Solve a problem or learn a new concept.</p>
+            <h3>Math Mission</h3><p>Solve a new challenge.</p>
         </a>
 
         <a href="/ask-question?subject=story_verse" class="mission-card">
-            <h3>📖 Reading Adventure</h3>
-            <p>Summarize or decode a text.</p>
+            <h3>Reading Adventure</h3><p>Summaries and decoding.</p>
         </a>
 
         <a href="/ask-question?subject=ink_haven" class="mission-card">
-            <h3>✍ Writing Forge</h3>
-            <p>Practice writing or get feedback.</p>
+            <h3>Writing Quest</h3><p>Practice and feedback.</p>
         </a>
 
         <a href="/ask-question?subject=atom_sphere" class="mission-card">
-            <h3>🔬 Science Lab</h3>
-            <p>Ask about experiments or concepts.</p>
+            <h3>Science Lab</h3><p>Ask about experiments.</p>
         </a>
 
         <a href="/ask-question?subject=chrono_core" class="mission-card">
-            <h3>🏺 History Quest</h3>
-            <p>Explore a moment from the past.</p>
+            <h3>History Quest</h3><p>Explore the past.</p>
         </a>
 
         <a href="/ask-question?subject=faith_realm" class="mission-card">
-            <h3>✨ Faith Realm</h3>
-            <p>Ask a Bible question or devotional.</p>
+            <h3>Faith Realm</h3><p>Ask Bible questions.</p>
         </a>
-
-        <a href="/ask-question?subject=money" class="mission-card">
-            <h3>💵 Money Mastery</h3>
-            <p>Learn budgeting or financial basics.</p>
-        </a>
-
-        <a href="/ask-question?subject=power_grid" class="mission-card">
-            <h3>⚡ Study Prep</h3>
-            <p>Review for upcoming tests.</p>
-        </a>
-
-    </div>
-
-
-    <!-- SHOP PREVIEW -->
-    <h2 class="section-title">🛒 Featured Shop Items</h2>
-
-    <div class="shop-preview">
-
-        <div class="shop-item">
-            <h4>✨ Space Glasses</h4>
-            <p>30 Tokens</p>
-        </div>
-
-        <div class="shop-item">
-            <h4>🛡 Golden Cape</h4>
-            <p>75 Tokens</p>
-        </div>
-
-        <div class="shop-item">
-            <h4>🔥 Galaxy Trail</h4>
-            <p>100 Tokens</p>
-        </div>
-
-        <a href="/shop" class="btn">Enter Shop</a>
-
     </div>
 
 </div>

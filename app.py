@@ -42,7 +42,7 @@ import modules.money_helper as money_helper
 
 
 # ============================================================
-# SHOP ITEMS
+# SHOP ITEMS (Kept for future use, but UI is hidden for now)
 # ============================================================
 SHOP_ITEMS = {
     "space_glasses": {"name": "Space Glasses", "price": 30},
@@ -81,7 +81,8 @@ def init_user():
         "streak": 1,
         "last_visit": str(datetime.today().date()),
         "inventory": [],
-        "character": "valor",
+        # default character ID (must match one of your PNG keys & CHARACTERS keys)
+        "character": "everly",
         "usage_minutes": 0,
         "progress": {
             "num_forge": {"questions": 0, "correct": 0},
@@ -134,7 +135,8 @@ def add_xp(amount):
     if session["xp"] >= xp_needed:
         session["xp"] -= xp_needed
         session["level"] += 1
-        flash(f"🎉 LEVEL UP! You reached Level {session['level']}!", "info")
+        # still allowed to flash, but you can tone this down later if you want
+        flash(f"LEVEL UP! You reached Level {session['level']}.", "info")
 
 
 # ============================================================
@@ -143,6 +145,11 @@ def add_xp(amount):
 
 @app.route("/")
 def home():
+    """
+    Home → subjects screen.
+    (You can change this to /choose-character if you ever want first-time users
+     to pick a buddy before seeing planets.)
+    """
     init_user()
     return redirect("/subjects")
 
@@ -184,13 +191,15 @@ def choose_character():
 def select_character():
     init_user()
     chosen = request.form.get("character")
-    session["character"] = chosen
+    if chosen:
+        session["character"] = chosen
     return redirect("/dashboard")
 
 
 # ============================================================
 # CHOOSE GRADE
 # ============================================================
+
 @app.route("/choose-grade")
 def choose_grade():
     init_user()
@@ -201,12 +210,18 @@ def choose_grade():
 # ============================================================
 # ASK QUESTION PAGE
 # ============================================================
+
 @app.route("/ask-question")
 def ask_question():
     init_user()
     subject = request.args.get("subject")
     grade = request.args.get("grade")
-    return render_template("ask_question.html", subject=subject, grade=grade, character=session["character"])
+    return render_template(
+        "ask_question.html",
+        subject=subject,
+        grade=grade,
+        character=session["character"]
+    )
 
 
 # ============================================================
@@ -236,7 +251,7 @@ def subject_answer():
         "stock_star": investment_helper.explain_investing,
         "coin_quest": money_helper.explain_money,
         "terra_nova": question_helper.answer_question,
-        "story_verse": text_helper.summarize_text
+        "story_verse": text_helper.summarize_text,
     }
 
     if subject in subject_map:
@@ -253,6 +268,7 @@ def subject_answer():
 # ============================================================
 # STUDENT DASHBOARD
 # ============================================================
+
 @app.route("/dashboard")
 def dashboard():
     init_user()
@@ -264,7 +280,7 @@ def dashboard():
     character = session["character"]
 
     xp_to_next = level * 100
-    xp_percent = int((xp / xp_to_next) * 100)
+    xp_percent = int((xp / xp_to_next) * 100) if xp_to_next > 0 else 0
 
     missions = [
         "Visit 2 different planets",
@@ -294,48 +310,38 @@ def dashboard():
 
 
 # ============================================================
-# INVENTORY
+# INVENTORY (TEMP HIDDEN – redirect to dashboard)
 # ============================================================
+
 @app.route("/inventory")
 def inventory():
     init_user()
-    items = [SHOP_ITEMS[i] for i in session["inventory"]]
-    return render_template("inventory.html", inventory=items)
+    # UI is currently hidden; keep route but redirect so users don't get stuck.
+    return redirect("/dashboard")
 
 
 # ============================================================
-# SHOP
+# SHOP (TEMP HIDDEN – redirect to dashboard)
 # ============================================================
+
 @app.route("/shop")
 def shop():
     init_user()
-    return render_template("shop.html", items=SHOP_ITEMS, tokens=session["tokens"], inventory=session["inventory"])
+    # Shop UI is disabled for now until items are equippable.
+    return redirect("/dashboard")
 
 
 @app.route("/buy/<item_id>")
 def buy_item(item_id):
     init_user()
-
-    if item_id not in SHOP_ITEMS:
-        flash("Item not found.")
-        return redirect("/shop")
-
-    item = SHOP_ITEMS[item_id]
-    price = item["price"]
-
-    if session["tokens"] < price:
-        flash("Not enough Galaxy Tokens!", "error")
-        return redirect("/shop")
-
-    session["tokens"] -= price
-    session["inventory"].append(item_id)
-    flash(f"You bought {item['name']}!", "success")
-    return redirect("/shop")
+    # Buying is disabled while shop is hidden.
+    return redirect("/dashboard")
 
 
 # ============================================================
 # PARENT DASHBOARD
 # ============================================================
+
 @app.route("/parent_dashboard")
 def parent_dashboard():
     init_user()
@@ -364,4 +370,5 @@ def parent_dashboard():
 # ============================================================
 if __name__ == "__main__":
     app.run(debug=True)
+
 

@@ -6,81 +6,114 @@
         background: radial-gradient(circle at top, #0f1a2b, #000814);
         overflow-x: hidden;
         margin: 0;
-        padding: 0; /* FIXED LINE */
+        padding: 0;
     }
 
+    /* STARFIELD */
     .stars {
         position: absolute;
         inset: 0;
         background: url('/static/stars.png');
         background-size: cover;
-        opacity: 0.4;
-        animation: drift 40s linear infinite;
+        opacity: 0.45;
+        animation: drift 45s linear infinite;
         z-index: -1;
     }
 
     @keyframes drift {
         from { transform: translateY(0); }
-        to { transform: translateY(-900px); }
+        to { transform: translateY(-1200px); }
     }
 
+    /* PAGE TITLE */
     .select-title {
         text-align: center;
-        margin-top: 60px;
-        font-size: 2.8rem;
-        color: #bcdfff;
-        text-shadow: 0 0 18px rgba(255,255,255,0.6);
+        margin-top: 50px;
+        font-size: 3rem;
+        font-weight: 700;
+        color: #cfe8ff;
+        text-shadow: 0 0 25px rgba(130,180,255,0.7), 
+                     0 0 10px rgba(255,255,255,0.3);
+        letter-spacing: 1.5px;
     }
 
+    /* CONTAINER */
     .planet-container {
-        margin-top: 80px;
+        margin: 80px auto 60px;
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 60px;
+        gap: 70px;
+        padding-bottom: 60px;
+        max-width: 1300px;
         position: relative;
         z-index: 10;
     }
 
+    /* PLANET CARD */
     .planet-wrapper {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+        text-align: center;
         cursor: pointer;
-        transition: 0.35s;
+        transition: 0.35s ease;
+        width: 200px;
     }
 
     .planet-wrapper:hover {
-        transform: translateY(-8px) scale(1.1);
+        transform: translateY(-12px) scale(1.12);
+        filter: drop-shadow(0 0 25px rgba(255,210,80,0.45));
     }
 
+    /* PLANET IMAGE */
     .planet {
-        width: 170px;
-        height: 170px;
+        width: 180px;
+        height: 180px;
         background-size: cover;
         background-position: center;
         border-radius: 50%;
-        animation: float 4s ease-in-out infinite;
+        animation: float 4.2s ease-in-out infinite;
+        box-shadow: 0 0 20px rgba(255,255,255,0.06),
+                    0 0 35px rgba(0, 140, 255, 0.25);
     }
 
     @keyframes float {
         0% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
+        50% { transform: translateY(-12px); }
         100% { transform: translateY(0); }
     }
 
+    /* LABEL */
     .planet-label {
-        margin-top: 12px;
-        font-size: 1.5rem;
-        font-weight: 800;
-        color: #ffdd55;
+        margin-top: 14px;
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ffd86a;
         text-shadow:
-            0 0 8px #ffa600,
-            0 0 18px #ffbb33,
-            3px 3px 0 #00000066;
-        letter-spacing: 1.5px;
+            0 0 10px rgba(255,180,70,0.8),
+            2px 2px 0 rgba(0,0,0,0.45);
+        letter-spacing: 1px;
+    }
+
+    /* MOBILE RESPONSIVE */
+    @media(max-width: 900px) {
+        .planet {
+            width: 150px;
+            height: 150px;
+        }
+        .planet-wrapper {
+            width: 160px;
+        }
+        .planet-label {
+            font-size: 1.3rem;
+        }
+    }
+
+    @media(max-width: 600px) {
+        .select-title {
+            font-size: 2.3rem;
+        }
     }
 </style>
+
 
 <div class="stars"></div>
 
@@ -99,11 +132,12 @@
 
 <script>
 function enterPlanet(subject) {
-    document.body.style.transition = "0.8s ease";
-    document.body.style.transform = "scale(1.08)";
+    // Page zoom animation
+    document.body.style.transition = "0.7s ease";
+    document.body.style.transform = "scale(1.05)";
     setTimeout(() => {
         window.location.href = "/choose-grade?subject=" + subject;
-    }, 500);
+    }, 450);
 }
 </script>
 
