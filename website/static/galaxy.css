@@ -1,0 +1,318 @@
+/* ============================================================
+   GALAXY MAP — CINEMATIC BACKGROUND SYSTEM
+   Mario Galaxy + Fortnite WILDS hybrid
+============================================================ */
+
+/* ---- GLOBAL ---- */
+body.galaxy-body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: radial-gradient(circle at top, #030617, #00040a 85%);
+    font-family: "Poppins", sans-serif;
+    color: white;
+}
+
+
+/* ---- CONTAINER ---- */
+.galaxy-bg {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    z-index: -5;
+}
+
+
+/* ============================================================
+   STARFIELDS (PARALLAX)
+============================================================ */
+
+.star-layer {
+    position: absolute;
+    inset: 0;
+    background-image: url('/static/stars.png');
+    background-size: cover;
+    background-repeat: repeat;
+    opacity: 0.35;
+    animation: driftStars 90s linear infinite;
+}
+
+.star-layer-1 {
+    opacity: 0.25;
+    animation-duration: 110s;
+}
+
+.star-layer-2 {
+    opacity: 0.15;
+    animation-duration: 170s;
+}
+
+@keyframes driftStars {
+    from { transform: translateY(0); }
+    to   { transform: translateY(-1800px); }
+}
+
+
+/* ============================================================
+   NEBULA LAYER (COLORFUL SOFT CLOUDS)
+============================================================ */
+
+.nebula-layer {
+    position: absolute;
+    inset: 0;
+    background: url('/static/nebula.png');
+    background-size: cover;
+    opacity: 0.18;
+    filter: blur(4px) saturate(140%);
+    animation: nebulaMove 120s ease-in-out infinite alternate;
+}
+
+@keyframes nebulaMove {
+    from { transform: scale(1) translate(0, 0); }
+    to   { transform: scale(1.12) translate(-60px, -40px); }
+}
+
+
+/* ============================================================
+   FOG (BOTTOM)
+============================================================ */
+
+.fog-layer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 120%;
+    height: 40%;
+    background: url('/static/fog.png');
+    background-size: cover;
+    opacity: 0.35;
+    filter: blur(12px);
+    transform: translateY(20px);
+    animation: fogRise 30s ease-in-out infinite alternate;
+}
+
+@keyframes fogRise {
+    from { transform: translateY(20px); opacity: 0.35; }
+    to   { transform: translateY(-20px); opacity: 0.25; }
+}
+
+
+/* ============================================================
+   BACKGROUND PLANETS (DECOR)
+============================================================ */
+
+.planet-bg {
+    position: absolute;
+    background-size: cover;
+    background-repeat: no-repeat;
+    border-radius: 50%;
+    filter: drop-shadow(0 0 40px rgba(255,255,255,0.3));
+    animation: floatPlanetBg 18s ease-in-out infinite;
+}
+
+@keyframes floatPlanetBg {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-18px); }
+    100% { transform: translateY(0); }
+}
+
+.planet-bg-1 {
+    width: 260px;
+    height: 260px;
+    top: 12%;
+    right: 8%;
+    background-image: url('/static/planet_blue.png');
+    opacity: 0.7;
+}
+
+.planet-bg-2 {
+    width: 340px;
+    height: 340px;
+    bottom: 6%;
+    left: 10%;
+    background-image: url('/static/planet_red.png');
+    opacity: 0.75;
+}
+
+
+/* ============================================================
+   TOPBAR (HUD)
+============================================================ */
+
+.galaxy-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 40px;
+    z-index: 20;
+}
+
+.logo-pill {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logo-icon {
+    background: #1768ff;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 1.2rem;
+    box-shadow: 0 0 15px rgba(23,104,255,0.6);
+}
+
+.logo-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+.logo-subtitle {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+
+/* ============================================================
+   XP BAR (GAME-STYLE)
+============================================================ */
+
+.xp-bar-wrapper {
+    margin-top: 10px;
+}
+
+.xp-label {
+    font-size: 0.95rem;
+    opacity: 0.8;
+    margin-bottom: 4px;
+}
+
+.xp-bar {
+    width: 260px;
+    height: 16px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #5bff9e, #faff80, #ffdb5b);
+    box-shadow: 0 0 12px rgba(255,255,118,0.6);
+    transition: width 0.6s ease-out;
+    border-radius: 10px;
+}
+
+/* ============================================================
+   GALAXY PLANETS — SUBJECT NODES
+============================================================ */
+
+.planet-map-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 70px;
+    justify-content: center;
+    padding: 60px 20px;
+    margin-top: 40px;
+}
+
+.planet-node {
+    text-decoration: none;
+    color: white;
+    text-align: center;
+    transition: 0.4s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.planet-node:hover {
+    transform: translateY(-12px) scale(1.1);
+}
+
+
+/* --- PLANET SPHERES --- */
+
+.planet-sphere {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 25px rgba(255,255,255,0.2);
+    animation: planetFloat 4.2s ease-in-out infinite;
+}
+
+@keyframes planetFloat {
+    0%   { transform: translateY(0); }
+    50%  { transform: translateY(-12px); }
+    100% { transform: translateY(0); }
+}
+
+.planet-glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    box-shadow: 0 0 35px rgba(255,255,255,0.35);
+    opacity: 0.7;
+}
+
+
+/* --- DIFFERENT PLANETS BY INDEX --- */
+
+.planet-1 {
+    background: url('/static/planet_math.png') center/cover;
+}
+
+.planet-2 {
+    background: url('/static/planet_history.png') center/cover;
+}
+
+.planet-3 {
+    background: url('/static/planet_science.png') center/cover;
+}
+
+.planet-4 {
+    background: url('/static/planet_reading.png') center/cover;
+}
+
+.planet-5 {
+    background: url('/static/planet_writing.png') center/cover;
+}
+
+.planet-6 {
+    background: url('/static/planet_testprep.png') center/cover;
+}
+
+
+/* --- PLANET LABELS --- */
+
+.planet-info {
+    margin-top: 14px;
+}
+
+.planet-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-shadow: 0 0 10px rgba(255,255,255,0.6);
+}
+
+.planet-tag {
+    font-size: 1rem;
+    opacity: 0.75;
+    margin-top: 4px;
+}
+
+/* ============================================================
+   MAIN AREA
+============================================================ */
+
+.galaxy-main {
+    margin-top: 40px;
+    padding: 20px 40px;
+    z-index: 10;
+}

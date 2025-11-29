@@ -1,0 +1,26 @@
+{% extends "layout_galaxy.html" %}
+
+{% block title %}Galaxy Map · Homework Buddy{% endblock %}
+
+{% block content %}
+
+<div class="planet-map-container">
+
+    {% for item in mission_items %}
+    <a href="{{ url_for('ask_question', subject=item.id) }}" class="planet-node fade-in">
+
+        <div class="planet-sphere planet-{{ loop.index }}">
+            <div class="planet-glow"></div>
+        </div>
+
+        <div class="planet-info">
+            <div class="planet-title">{{ item.title }}</div>
+            <div class="planet-tag">{{ item.tag }}</div>
+        </div>
+
+    </a>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Homework Buddy · Galaxy Map{% endblock %}</title>
+
+    <!-- Galaxy-only styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='galaxy.css') }}">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="galaxy-body">
+
+<div class="galaxy-bg">
+    <div class="star-layer star-layer-1"></div>
+    <div class="star-layer star-layer-2"></div>
+    <div class="nebula-layer"></div>
+    <div class="fog-layer"></div>
+
+    <!-- Planets in the background (decor, not clickable) -->
+    <div class="planet-bg planet-bg-1"></div>
+    <div class="planet-bg planet-bg-2"></div>
+</div>
+
+<div class="galaxy-ui-shell">
+
+    <!-- TOP BAR / HUD -->
+    <header class="galaxy-topbar">
+        <div class="topbar-left">
+            <div class="logo-pill">
+                <div class="logo-icon">HB</div>
+                <div class="logo-text">
+                    <div class="logo-title">Homework Buddy</div>
+                    <div class="logo-subtitle">The Learning Galaxy</div>
+                </div>
+            </div>
+
+            <div class="xp-bar-wrapper">
+                <div class="xp-label">LEVEL {{ level }} · {{ xp }}/{{ xp_to_next }} XP</div>
+                <div class="xp-bar">
+                    <div class="xp-fill" style="width: {{ xp_percent | default(0) }}%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="topbar-right">
+            {% if selected_character %}
+                <div class="character-chip">
+                    <div class="character-orbit">
+                        <div class="character-avatar-circle">
+                            <span class="character-initial">
+                                {{ selected_character[0] | upper }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="character-meta">
+                        <div class="character-name">
+                            {{ selected_character.replace('_', ' ').title() }}
+                        </div>
+                        <div class="character-role-label">Active Guide</div>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{{ url_for('choose_character') }}" class="btn-choose-guide">
+                    Choose Your Guide
+                </a>
+            {% endif %}
+
+            <a href="{{ url_for('dashboard') }}" class="btn-classic">
+                Classic View
+            </a>
+        </div>
+    </header>
+
+    <!-- MAIN GALAXY CONTENT -->
+    <main class="galaxy-main">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+</body>
+</html>
