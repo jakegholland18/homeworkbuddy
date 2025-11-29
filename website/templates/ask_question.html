@@ -16,56 +16,52 @@
         inset: 0;
         background: url('/static/stars.png');
         background-size: cover;
-        opacity: 0.35;
+        opacity: 0.30;
         z-index: -1;
         animation: drift 40s linear infinite;
     }
 
     @keyframes drift {
         from { transform: translateY(0); }
-        to { transform: translateY(-1000px); }
+        to { transform: translateY(-900px); }
     }
 
-    h1.select-title {
+    .select-title {
         text-align: center;
-        margin-top: 40px;
-        font-size: 2.6rem;
-        color: #bcdfff;
-        text-shadow: 0 0 15px rgba(255,255,255,0.5);
+        margin-top: 35px;
+        font-size: 2.3rem;
+        color: #cfe8ff;
+        text-shadow: 0 0 15px rgba(200,220,255,0.5);
     }
 
-    h2.select-title {
+    .sub-title {
         text-align: center;
-        margin-bottom: 20px;
-        font-size: 1.5rem;
-        color: #d1e6ff;
-        text-shadow: 0 0 10px rgba(200,200,255,0.4);
+        font-size: 1.3rem;
+        margin-top: 10px;
+        color: #dbe6ff;
+        opacity: 0.9;
     }
 
-    /* MAIN LAYOUT */
     .ask-container {
         margin: 50px auto 80px;
         display: flex;
-        max-width: 1200px;
-        gap: 60px;
-        align-items: flex-start;
+        max-width: 1100px;
+        gap: 50px;
         justify-content: center;
-        padding: 0 20px;
+        padding: 0 15px;
     }
 
-    /* CHARACTER PANEL */
+    /* CHARACTER SIDE */
     .character-panel {
-        width: 300px;
+        width: 280px;
         text-align: center;
         position: sticky;
         top: 40px;
-        animation: fadeIn 0.7s ease;
     }
 
     .character-avatar {
-        width: 250px;
-        height: auto;
-        animation: float 4s ease-in-out infinite;
+        width: 220px;
+        animation: float 3.8s ease-in-out infinite;
         filter: drop-shadow(0 0 22px #000);
     }
 
@@ -77,40 +73,24 @@
 
     .character-name {
         margin-top: 12px;
-        font-size: 1.4rem;
+        font-size: 1.45rem;
         font-weight: 600;
-        color: #ffdd55;
-        text-shadow: 0 0 8px #ffa600, 0 0 14px #ffbb33;
+        color: #ffd86a;
+        text-shadow: 0 0 8px #ffb340;
     }
 
-    /* GREETING BUBBLE */
     .greeting-bubble {
-        margin-top: 20px;
-        padding: 15px 20px;
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(150,170,255,0.25);
-        border-radius: 16px;
+        margin-top: 18px;
+        padding: 14px 18px;
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(180,200,255,0.25);
+        border-radius: 15px;
         font-size: 1rem;
         line-height: 1.5;
-        backdrop-filter: blur(8px);
-        animation: slideIn 0.7s ease;
-        color: #dbe8ff;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.25);
-    }
-
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateX(-10px); }
-        to   { opacity: 1; transform: translateX(0); }
-    }
-
-    /* QUESTION PANEL */
-    .ask-form {
-        background: rgba(255,255,255,0.97);
-        padding: 35px;
-        width: 550px;
-        border-radius: 18px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-        animation: fadeIn 0.6s ease;
+        color: #e6edff;
+        backdrop-filter: blur(7px);
+        animation: fadeIn 0.8s ease;
+        box-shadow: 0 5px 14px rgba(0,0,0,0.25);
     }
 
     @keyframes fadeIn {
@@ -118,20 +98,30 @@
         to   { opacity: 1; transform: translateY(0); }
     }
 
-    .ask-form textarea {
+    /* FORM PANEL (SIMPLE FOR KIDS) */
+    .ask-form {
+        background: white;
+        color: black;
+        padding: 30px;
+        width: 520px;
+        border-radius: 18px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+    }
+
+    textarea {
         width: 100%;
-        height: 180px;
-        border: none;
-        border-radius: 12px;
+        height: 160px;
         padding: 15px;
-        font-size: 1.15rem;
+        font-size: 1.2rem;
+        border-radius: 12px;
+        border: none;
         resize: none;
         outline: none;
         box-shadow: inset 0 0 8px rgba(0,0,0,0.25);
     }
 
-    .ask-form button {
-        margin-top: 20px;
+    button {
+        margin-top: 18px;
         width: 100%;
         padding: 16px;
         font-size: 1.25rem;
@@ -141,12 +131,12 @@
         color: white;
         font-weight: bold;
         cursor: pointer;
-        transition: 0.3s;
-        box-shadow: 0 5px 14px rgba(0,0,0,0.3);
+        transition: 0.25s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
 
-    .ask-form button:hover {
-        background: #3378ff;
+    button:hover {
+        background: #2a74ff;
         transform: translateY(-3px);
     }
 
@@ -155,53 +145,50 @@
             flex-direction: column;
             align-items: center;
         }
-        .ask-form { width: 100%; }
+        .character-panel {
+            position: relative;
+            top: 0;
+        }
     }
 </style>
 
 <div class="stars"></div>
 
-<!-- SUBJECT + GRADE TITLES -->
-<h1 class="select-title">{{ subject.replace("_"," ").title() }} Planet</h1>
-<h2 class="select-title">Grade {{ grade }}</h2>
+<h1 class="select-title">{{ subject.replace("_"," ").title() }}</h1>
+<div class="sub-title">Grade {{ grade }}</div>
 
-<!-- MAIN CONTENT -->
 <div class="ask-container">
 
-    <!-- FLOATING CHARACTER -->
+    <!-- CHARACTER PANEL -->
     <div class="character-panel">
         <img src="{{ characters[character].img }}" class="character-avatar">
         <h3 class="character-name">{{ characters[character].name }}</h3>
 
         <div class="greeting-bubble">
             {% if character == "everly" %}
-                What story or question would you like us to explore together?
+                I love learning with you! What should we explore today?
             {% elif character == "jasmine" %}
-                I’m listening—what would you like help with today?
+                Hi friend! What do you want help with?
             {% elif character == "lio" %}
-                Tell me the problem. We'll break it down like an agent on a mission.
+                Tell me the question — we’ll solve it together.
             {% elif character == "theo" %}
-                What question are we working on? I’m ready to help!
+                I’m ready when you are! What are we learning?
             {% elif character == "nova" %}
-                Ah! A new question—what are we discovering today?
+                A new question? Great! Let’s investigate!
             {% endif %}
         </div>
     </div>
 
-    <!-- QUESTION FORM -->
+    <!-- QUESTION FORM (Simplified) -->
     <form action="/subject" method="POST" class="ask-form">
         <input type="hidden" name="subject" value="{{ subject }}">
         <input type="hidden" name="grade" value="{{ grade }}">
 
-        <textarea name="question" placeholder="Ask your question here..." required></textarea>
+        <textarea name="question" placeholder="Type your question here..." required></textarea>
 
-        <button type="submit">Ask Homework Buddy</button>
+        <button type="submit">Ask Buddy</button>
     </form>
 
 </div>
 
 {% endblock %}
-
-
-
-

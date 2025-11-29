@@ -2,20 +2,21 @@
 {% block content %}
 
 <style>
-    .answer-page {
-        max-width: 900px;
+    .answer-wrapper {
+        max-width: 950px;
         margin: 0 auto;
         padding: 20px;
         text-align: center;
+        color: white;
     }
 
-    .character-box {
+    /* CHARACTER */
+    .character-section {
         margin-bottom: 25px;
     }
 
     .character-img {
-        width: 260px;
-        height: auto;
+        width: 240px;
         animation: float 4s ease-in-out infinite;
         filter: drop-shadow(0 0 22px #000);
     }
@@ -27,75 +28,98 @@
     }
 
     .character-name {
-        font-size: 1.6rem;
-        margin-top: 10px;
+        margin-top: 8px;
+        font-size: 1.5rem;
+        font-weight: 600;
         color: #ffd86b;
         text-shadow: 0 0 10px #ffb300;
     }
 
+    /* CARD */
     .answer-card {
         margin-top: 30px;
-        background: rgba(255,255,255,0.1);
-        padding: 25px 30px;
-        border-radius: 16px;
-        backdrop-filter: blur(8px);
+        background: rgba(255,255,255,0.12);
+        padding: 30px 28px;
+        border-radius: 18px;
+        backdrop-filter: blur(10px);
         text-align: left;
-        box-shadow: 0 0 25px rgba(0,0,0,0.4);
-    }
-
-    .answer-card h2 {
-        margin-bottom: 15px;
-        color: #bfe6ff;
-        text-shadow: 0 0 10px #5ecbff;
-        font-size: 1.8rem;
-    }
-
-    .answer-card p {
-        font-size: 1.2rem;
+        box-shadow: 0 0 25px rgba(0,0,0,0.45);
         line-height: 1.7;
-        color: #e9f4ff;
+        font-size: 1.15rem;
     }
 
+    /* SUBHEADINGS */
+    .section-title {
+        font-size: 1.4rem;
+        color: #bfe6ff;
+        margin-top: 20px;
+        text-shadow: 0 0 10px #5ecbff;
+        font-weight: 700;
+    }
+
+    /* BUTTON */
     .btn-back {
         display: inline-block;
         margin-top: 30px;
-        padding: 14px 38px;
+        padding: 14px 36px;
         background: #0059ff;
         color: white;
         font-size: 1.2rem;
         border-radius: 12px;
         text-decoration: none;
         transition: 0.25s ease;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.3);
     }
 
     .btn-back:hover {
         background: #2f74ff;
         transform: translateY(-3px);
     }
+
+    /* SIMPLE LIST STYLE FOR KIDS */
+    .answer-card ul {
+        padding-left: 18px;
+        margin-top: 10px;
+    }
+
+    .answer-card li {
+        margin-bottom: 8px;
+        line-height: 1.5;
+    }
+
 </style>
 
-<div class="answer-page fade-in">
 
-    <!-- Character -->
-    <div class="character-box">
+<div class="answer-wrapper fade-in">
+
+    <!-- CHARACTER -->
+    <div class="character-section">
         <img src="/static/characters/{{ character }}.png" class="character-img">
-        <div class="character-name">
-            {{ character.replace("_"," ").title() }}
-        </div>
+        <div class="character-name">{{ character.replace('_',' ').title() }}</div>
     </div>
 
-    <!-- The Answer -->
+    <!-- ANSWER OUTPUT -->
     <div class="answer-card">
-        <h2>Your Answer</h2>
-        <p>{{ answer | safe }}</p>
+
+        <div class="section-title">Here’s the Breakdown 👇</div>
+
+        <!-- We gently chunk the AI answer into readable pieces -->
+        <div id="formatted-answer">{{ answer | safe }}</div>
+
+        <div class="section-title">Now You Try! ⭐</div>
+        <p>
+            Can you explain this in *your own words*?  
+            Or try making up your own example!
+        </p>
+
+        <div class="section-title">Want Help With Another Question?</div>
+        <p>
+            You can go back and ask anything else you’re curious about!
+        </p>
+
     </div>
 
-    <!-- Back Button -->
     <a href="/subjects" class="btn-back">Ask Another Question</a>
-
 </div>
 
 {% endblock %}
-
-
