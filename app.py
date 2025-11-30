@@ -244,44 +244,10 @@ def powergrid_submit():
         text = topic or "No topic provided."
 
     # -------------------------------
-    # Build ULTRA study guide prompt
+    # Generate Master Study Guide (only call this!)
     # -------------------------------
-    prompt = f"""
-Create the most complete, extremely in-depth MASTER STUDY GUIDE possible.
-
-CONTENT SOURCE:
-{text}
-
-GOALS:
-• Teach EVERYTHING the AI knows about this topic  
-• Beginner → Intermediate → Advanced → Expert levels  
-• Break every concept into bullet points  
-• Use sub-bullets for deep detail  
-• Give examples, analogies, equations, diagrams-in-text (ASCII)  
-• Include common mistakes  
-• Provide mastery explanations  
-• Provide exam-style memory tips  
-• Extremely detailed, long, advanced  
-
-STYLE:
-• Structured  
-• Bullet points  
-• Sub-bullets  
-• No markdown formatting  
-• Smooth tutor tone  
-• Written for grade {grade} but as deep as possible  
-
-FORMAT:
-• Clean plain text  
-• Lots of sections  
-• Indented hierarchy  
-
-OUTPUT:
-• Very long (5x–10x normal)
-• A true master guide
-"""
-
-    study_guide = study_helper.generate_master_study_guide(text, grade, session["character"])
+    study_guide = study_helper.generate_master_study_guide(
+    text, grade, session["character"])
 
     # ============================================================
     # PDF GENERATION FIXED
