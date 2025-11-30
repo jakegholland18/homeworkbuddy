@@ -1,0 +1,202 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+    /* FLOATING STAR BACKGROUND */
+    body {
+        overflow: hidden;
+    }
+
+    .stars {
+        position: fixed;
+        inset: 0;
+        background: url('/static/stars.png');
+        background-size: cover;
+        opacity: 0.35;
+        animation: drift 45s linear infinite;
+        z-index: -1;
+    }
+
+    @keyframes drift {
+        from { transform: translateY(0); }
+        to   { transform: translateY(-1800px); }
+    }
+
+    /* WRAPPER */
+    .chat-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+        color: white;
+        margin-top: 20px;
+    }
+
+    /* CHARACTER */
+    .character-box {
+        text-align: center;
+        margin-bottom: 25px;
+        animation: fadeIn 1s ease-out;
+    }
+
+    .character-img {
+        width: 180px;
+        animation: float 4s ease-in-out infinite;
+        filter: drop-shadow(0 0 25px rgba(0,0,0,0.6));
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+        100% { transform: translateY(0); }
+    }
+
+    /* CHAT BOX */
+    .chat-box {
+        background: rgba(255,255,255,0.10);
+        border-radius: 20px;
+        padding: 25px;
+        height: 62vh;
+        overflow-y: auto;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 0 28px rgba(0,0,0,0.45);
+        animation: fadeIn 1s ease-out;
+    }
+
+    /* MESSAGES */
+    .msg {
+        margin-bottom: 22px;
+        padding: 15px 20px;
+        border-radius: 18px;
+        max-width: 80%;
+        line-height: 1.6;
+        font-size: 1.15rem;
+        opacity: 0;
+        animation: fadeSlideIn 0.5s forwards;
+    }
+
+    @keyframes fadeSlideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .user {
+        background: rgba(0,140,255,0.35);
+        margin-left: auto;
+        text-align: right;
+        box-shadow: 0 0 12px rgba(0,140,255,0.4);
+    }
+
+    .ai {
+        background: rgba(255,255,255,0.18);
+        margin-right: auto;
+        text-align: left;
+        box-shadow: 0 0 12px rgba(255,255,255,0.2);
+    }
+
+    /* INPUT BAR */
+    .input-form {
+        display: flex;
+        gap: 12px;
+        margin-top: 18px;
+        animation: fadeIn 1s ease-out;
+    }
+
+    .input-form input {
+        flex: 1;
+        padding: 14px 20px;
+        border-radius: 14px;
+        border: none;
+        background: rgba(255,255,255,0.15);
+        color: white;
+        font-size: 1.1rem;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 15px rgba(0,0,0,0.25);
+    }
+
+    .input-form input::placeholder {
+        color: #d0d0d0;
+    }
+
+    .input-form button {
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #006aff, #3a8bff);
+        color: white;
+        font-size: 1.15rem;
+        border-radius: 14px;
+        border: none;
+        cursor: pointer;
+        transition: 0.25s ease;
+        box-shadow: 0 0 16px rgba(0,106,255,0.45);
+    }
+
+    .input-form button:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0 20px rgba(0,106,255,0.7);
+    }
+
+    /* BACK BUTTON */
+    .btn-back {
+        display: inline-block;
+        margin-top: 30px;
+        padding: 14px 30px;
+        background: rgba(0,89,255,0.85);
+        color: white;
+        font-size: 1.1rem;
+        border-radius: 12px;
+        text-decoration: none;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+        transition: 0.25s ease;
+    }
+
+    .btn-back:hover {
+        background: #2f74ff;
+        transform: translateY(-3px);
+    }
+
+    /* FADE IN */
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+</style>
+
+<div class="stars"></div>
+
+<div class="chat-wrapper">
+
+    <!-- CHARACTER -->
+    <div class="character-box">
+        <img src="/static/characters/{{ character }}.png" class="character-img">
+        <div style="font-size:1.7rem; margin-top:12px;">{{ character.replace('_',' ').title() }}</div>
+    </div>
+
+    <!-- CHAT AREA -->
+    <div class="chat-box" id="chatBox">
+        {% for msg in conversation %}
+            <div class="msg {{ msg.role }}">
+                {{ msg.text | safe }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- INPUT -->
+    <form method="POST" class="input-form">
+        <input type="text" name="message" placeholder="Ask anything for deeper understanding..." autocomplete="off" autofocus>
+        <button type="submit">Send</button>
+    </form>
+
+    <div style="text-align:center;">
+        <a href="/subjects" class="btn-back">Return to Subjects</a>
+    </div>
+
+</div>
+
+<!-- AUTO-SCROLL SCRIPT -->
+<script>
+    const chatBox = document.getElementById("chatBox");
+    chatBox.scrollTop = chatBox.scrollHeight;
+</script>
+
+{% endblock %}
+

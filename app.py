@@ -367,6 +367,49 @@ def privacy():
 @app.route("/disclaimer")
 def disclaimer():
     return render_template("disclaimer.html")
+# ============================================================
+# POWERGRID — DEEP STUDY CHAT MODE
+# ============================================================
+from flask import session
+
+@app.route("/deep-study", methods=["GET", "POST"])
+def deep_study_chat():
+    # Initialize conversation storage in session
+    if "conversation" not in session:
+        session["conversation"] = []
+
+    if request.method == "POST":
+        user_msg = request.form.get("message", "").strip()
+
+        if user_msg:
+            # Save the user's message in conversation
+            session["conversation"].append({
+                "role": "user",
+                "text": user_msg
+            })
+
+            # Run deep study AI
+            ai_answer = deep_study(
+                user_msg,
+                grade_level=session.get("grade_level", "8"),
+                character=session.get("character", "everly")
+            )
+
+            # Append AI response
+            session["conversation"].append({
+                "role": "ai",
+                "text": ai_answer["raw_text"]
+            })
+
+        session.modified = True
+        return redirect("/deep-study")
+
+    # Render chat UI
+    return render_template(
+        "deep_study_chat.html",
+        conversation=session.get("conversation", []),
+        character=session.get("character", "everly")
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)
