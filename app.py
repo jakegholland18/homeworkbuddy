@@ -228,6 +228,26 @@ def subject_answer():
     question = request.form.get("question")
     character = session["character"]
 
+    # Build turns for chat-based planets like PowerGrid
+    turns = [{"role": "user", "content": question}]
+
+    # UNIVERSAL SAFE CALL:
+    # 1️⃣ Try the new chat format (used by PowerGrid)
+    # 2️⃣ If the subject only accepts raw strings, fallback automatically
+    try:
+        answer = subject_map[subject](turns, grade, character)
+    except TypeError:
+        answer = subject_map[subject](question, grade, character)
+
+    return render_template(
+        "answer.html",
+        subject=subject,
+        grade=grade,
+        question=question,
+        answer=answer,
+        character=character
+    )
+
     # Track progress safely
     session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
     session["progress"][subject]["questions"] += 1
