@@ -293,7 +293,7 @@ def subject_answer():
     session.modified = True
 
     return render_template(
-        "answer.html",
+        "subject.html",
         subject=subject,
         grade=grade,
         question=question,
