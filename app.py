@@ -1,7 +1,19 @@
 import sys
 import os
-from flask import Flask, render_template, request, redirect, session, flash
+import logging
+import traceback
 from datetime import datetime, timedelta
+
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    session,
+    flash,
+    jsonify,
+)
+from flask import got_request_exception
 
 # ============================================================
 # FIX STATIC + TEMPLATE PATHS FOR RENDER
@@ -13,11 +25,12 @@ app = Flask(
     __name__,
     template_folder=os.path.join(BASE_DIR, "website", "templates"),
     static_url_path="/static",
-    static_folder=os.path.join(BASE_DIR, "website", "static")
+    static_folder=os.path.join(BASE_DIR, "website", "static"),
 )
-import logging
-import traceback
-from flask import got_request_exception
+
+# ============================================================
+# ERROR LOGGING
+# ============================================================
 
 def log_exception(sender, exception, **extra):
     sender.logger.error("Exception during request: %s", traceback.format_exc())
@@ -26,7 +39,10 @@ got_request_exception.connect(log_exception, app)
 
 app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
 
-# Make sure Python can see /modules
+# ============================================================
+# PYTHON PATH: /modules
+# ============================================================
+
 sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "modules")))
 
 # ---------------------------------------
@@ -49,6 +65,23 @@ import modules.apologetics_helper as apologetics_helper
 import modules.investment_helper as investment_helper
 import modules.money_helper as money_helper
 
+# ============================================================
+# SUBJECT → FUNCTION MAP
+# ============================================================
+
+subject_map = {
+    "num_forge": math_helper.explain_math,
+    "atom_sphere": science_helper.explain_science,
+    "faith_realm": bible_helper.bible_lesson,
+    "chrono_core": history_helper.explain_history,
+    "ink_haven": writing_helper.help_write,
+    "power_grid": study_helper.deep_study_chat,
+    "truth_forge": apologetics_helper.apologetics_answer,
+    "stock_star": investment_helper.explain_investing,
+    "coin_quest": money_helper.explain_money,
+    "terra_nova": question_helper.answer_question,
+    "story_verse": text_helper.explain_text,
+}
 
 # ============================================================
 # HIDDEN SHOP ITEMS
@@ -91,10 +124,8 @@ def init_user():
         "last_visit": str(datetime.today().date()),
         "inventory": [],
         "character": "everly",
-
         "usage_minutes": 0,
-
-        "progress": {}
+        "progress": {},
     }
 
     for key, val in defaults.items():
@@ -152,17 +183,17 @@ def subjects():
     init_user()
 
     planets = [
-    ("chrono_core", "chrono_core.png", "ChronoCore", "History & Social Studies"),
-    ("num_forge", "num_forge.png", "NumForge", "Math Planet"),
-    ("atom_sphere", "atom_sphere.png", "AtomSphere", "Science Planet"),
-    ("story_verse", "story_verse.png", "StoryVerse", "Reading & Literature"),
-    ("ink_haven", "ink_haven.png", "InkHaven", "Writing & Composition"),
-    ("faith_realm", "faith_realm.png", "FaithRealm", "Bible & Christian Studies"),
-    ("coin_quest", "coin_quest.png", "CoinQuest", "Money Skills"),
-    ("stock_star", "stock_star.png", "StockStar", "Investing Basics"),
-    ("terra_nova", "terra_nova.png", "TerraNova", "General Knowledge"),
-    ("power_grid", "power_grid.png", "PowerGrid", "In Depth Study"),
-    ("truth_forge", "truth_forge.png", "TruthForge", "Christian Apologetics")
+        ("chrono_core", "chrono_core.png", "ChronoCore", "History & Social Studies"),
+        ("num_forge", "num_forge.png", "NumForge", "Math Planet"),
+        ("atom_sphere", "atom_sphere.png", "AtomSphere", "Science Planet"),
+        ("story_verse", "story_verse.png", "StoryVerse", "Reading & Literature"),
+        ("ink_haven", "ink_haven.png", "InkHaven", "Writing & Composition"),
+        ("faith_realm", "faith_realm.png", "FaithRealm", "Bible & Christian Studies"),
+        ("coin_quest", "coin_quest.png", "CoinQuest", "Money Skills"),
+        ("stock_star", "stock_star.png", "StockStar", "Investing Basics"),
+        ("terra_nova", "terra_nova.png", "TerraNova", "General Knowledge"),
+        ("power_grid", "power_grid.png", "PowerGrid", "In Depth Study"),
+        ("truth_forge", "truth_forge.png", "TruthForge", "Christian Apologetics"),
     ]
 
     return render_template("subjects.html", planets=planets, character=session["character"])
@@ -212,11 +243,11 @@ def ask_question():
         subject=subject,
         grade=grade,
         character=session["character"],
-        characters=characters
+        characters=characters,
     )
 
 # ============================================================
-# SUBJECT → AI ANSWER PAGE  (FIXED)
+# SUBJECT → AI ANSWER PAGE
 # ============================================================
 
 @app.route("/subject", methods=["POST"])
@@ -228,16 +259,38 @@ def subject_answer():
     question = request.form.get("question")
     character = session["character"]
 
-    # Build turns for chat-based planets like PowerGrid
-    turns = [{"role": "user", "content": question}]
+    # Ensure progress tracking exists for this subject
+    session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
+    session["progress"][subject]["questions"] += 1
 
-    # UNIVERSAL SAFE CALL:
-    # 1️⃣ Try the new chat format (used by PowerGrid)
-    # 2️⃣ If the subject only accepts raw strings, fallback automatically
-    try:
-        answer = subject_map[subject](turns, grade, character)
-    except TypeError:
-        answer = subject_map[subject](question, grade, character)
+    func = subject_map.get(subject)
+
+    if func is None:
+        # Unknown subject fallback
+        answer = format_answer(
+            overview="Unknown subject.",
+            key_facts="",
+            christian_view="",
+            agreement="",
+            difference="",
+            practice="",
+        )
+    else:
+        # Build turns for chat-based planets like PowerGrid
+        turns = [{"role": "user", "content": question}]
+
+        # UNIVERSAL SAFE CALL:
+        # 1️⃣ Try the new chat format (used by PowerGrid)
+        # 2️⃣ If the subject only accepts raw strings, fallback automatically
+        try:
+            answer = func(turns, grade, character)
+        except TypeError:
+            answer = func(question, grade, character)
+
+    # Rewards
+    add_xp(20)
+    session["tokens"] += 2
+    session.modified = True
 
     return render_template(
         "answer.html",
@@ -245,45 +298,8 @@ def subject_answer():
         grade=grade,
         question=question,
         answer=answer,
-        character=character
+        character=character,
     )
-
-    # Track progress safely
-    session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
-    session["progress"][subject]["questions"] += 1
-
-    subject_map = {
-        "num_forge": math_helper.explain_math,
-        "atom_sphere": science_helper.explain_science,
-        "faith_realm": bible_helper.bible_lesson,
-        "chrono_core": history_helper.explain_history,
-        "ink_haven": writing_helper.help_write,
-        "power_grid": study_helper.deep_study_chat,
-        "truth_forge": apologetics_helper.apologetics_answer,
-        "stock_star": investment_helper.explain_investing,
-        "coin_quest": money_helper.explain_money,
-        "terra_nova": question_helper.answer_question,
-        "story_verse": text_helper.explain_text,
-    }
-
-    # AI response (already structured dictionary)
-    if subject in subject_map:
-        answer = subject_map[subject](question, grade, character)
-    else:
-        answer = format_answer(
-            overview="Unknown subject.",
-            key_facts="",
-            christian_view="",
-            agreement="",
-            difference="",
-            practice=""
-        )
-
-    # Rewards
-    add_xp(20)
-    session["tokens"] += 2
-
-    return render_template("subject.html", answer=answer, character=character)
 
 # ============================================================
 # STUDENT DASHBOARD
@@ -300,7 +316,7 @@ def dashboard():
     character = session["character"]
 
     xp_to_next = level * 100
-    xp_percent = int((xp / xp_to_next) * 100)
+    xp_percent = int((xp / xp_to_next) * 100) if xp_to_next > 0 else 0
 
     missions = [
         "Visit 2 different planets",
@@ -325,11 +341,11 @@ def dashboard():
         xp_percent=xp_percent,
         xp_to_next=xp_to_next,
         missions=missions,
-        locked_characters=locked_characters
+        locked_characters=locked_characters,
     )
 
 # ============================================================
-# SHOP (HIDDEN)
+# SHOP (TEMP HIDDEN REDIRECTS)
 # ============================================================
 
 @app.route("/shop")
@@ -365,12 +381,8 @@ def parent_dashboard():
         xp=session["xp"],
         level=session["level"],
         tokens=session["tokens"],
-        character=session["character"]
+        character=session["character"],
     )
-
-# ============================================================
-# RUN SERVER
-# ============================================================
 
 # ============================================================
 # LEGAL PAGES
@@ -387,6 +399,7 @@ def privacy():
 @app.route("/disclaimer")
 def disclaimer():
     return render_template("disclaimer.html")
+
 # ============================================================
 # POWERGRID — DEEP STUDY CHAT SYSTEM
 # ============================================================
@@ -397,7 +410,7 @@ def deep_study_chat_page():
     return render_template(
         "deep_study_chat.html",
         character=session["character"],
-        conversation=session.get("deep_memory", [])
+        conversation=session.get("deep_memory", []),
     )
 
 @app.route("/deep_study_message", methods=["POST"])
@@ -419,7 +432,7 @@ def deep_study_message():
     ai_text = study_helper.deep_study_chat(
         user_msg,
         grade_level=grade,
-        character=character
+        character=character,
     )
     # --------------------------------------
 
@@ -429,6 +442,11 @@ def deep_study_message():
 
     return jsonify({"reply": ai_text})
 
+# ============================================================
+# RUN SERVER
+# ============================================================
+
 if __name__ == "__main__":
     app.run(debug=True)
+
 
