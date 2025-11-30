@@ -11,12 +11,12 @@ from flask import (
     redirect,
     session,
     flash,
-    jsonify,
+    jsonify
 )
 from flask import got_request_exception
 
 # ============================================================
-# FIX STATIC + TEMPLATE PATHS FOR RENDER
+# STATIC + TEMPLATE PATHS (RENDER SAFE)
 # ============================================================
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -28,6 +28,8 @@ app = Flask(
     static_folder=os.path.join(BASE_DIR, "website", "static"),
 )
 
+app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
+
 # ============================================================
 # ERROR LOGGING
 # ============================================================
@@ -37,18 +39,13 @@ def log_exception(sender, exception, **extra):
 
 got_request_exception.connect(log_exception, app)
 
-app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
-
 # ============================================================
 # PYTHON PATH: /modules
 # ============================================================
 
 sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "modules")))
 
-# ---------------------------------------
-# IMPORT AI LOGIC + CHARACTER DATA
-# ---------------------------------------
-
+# IMPORT AI HELPERS
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import get_all_characters
 from modules.answer_formatter import format_answer
@@ -75,40 +72,12 @@ subject_map = {
     "faith_realm": bible_helper.bible_lesson,
     "chrono_core": history_helper.explain_history,
     "ink_haven": writing_helper.help_write,
-    "power_grid": study_helper.deep_study_chat,
+    "power_grid": study_helper.deep_study_chat,  # Chat-based
     "truth_forge": apologetics_helper.apologetics_answer,
     "stock_star": investment_helper.explain_investing,
     "coin_quest": money_helper.explain_money,
     "terra_nova": question_helper.answer_question,
     "story_verse": text_helper.explain_text,
-}
-
-# ============================================================
-# HIDDEN SHOP ITEMS
-# ============================================================
-
-SHOP_ITEMS = {
-    "space_glasses": {"name": "Space Glasses", "price": 30},
-    "angel_aura": {"name": "Angel Aura", "price": 50},
-    "golden_cape": {"name": "Golden Cape", "price": 75},
-    "galaxy_trail": {"name": "Galaxy Trail", "price": 100},
-    "meteor_boots": {"name": "Meteor Boots", "price": 40},
-    "cosmic_wings": {"name": "Cosmic Wings", "price": 90},
-
-    "double_xp_card": {"name": "Double XP (30 minutes)", "price": 60},
-    "token_booster": {"name": "Galaxy Token Booster", "price": 40},
-    "subject_pass": {"name": "Subject Fast Pass (24hr)", "price": 25},
-
-    "mystery_crate": {"name": "Mystery Crate", "price": 50},
-    "legendary_crate": {"name": "Legendary Crate", "price": 120},
-
-    "valor_galaxy_armor": {"name": "Valor Strike: Galaxy Armor", "price": 200},
-    "everly_starlight": {"name": "Princess Everly: Starlight Dress", "price": 175},
-    "nova_hypercoat": {"name": "Nova Circuit: Hypercoat", "price": 150},
-
-    "shield_of_faith": {"name": "Shield of Faith", "price": 60},
-    "light_aura": {"name": "Aura of Light", "price": 80},
-    "dove_trail": {"name": "Dove Trail", "price": 75},
 }
 
 # ============================================================
@@ -127,11 +96,9 @@ def init_user():
         "usage_minutes": 0,
         "progress": {},
     }
-
-    for key, val in defaults.items():
-        if key not in session:
-            session[key] = val
-
+    for k, v in defaults.items():
+        if k not in session:
+            session[k] = v
     update_streak()
 
 # ============================================================
@@ -153,17 +120,17 @@ def update_streak():
     session["last_visit"] = str(today)
 
 # ============================================================
-# XP & LEVEL SYSTEM
+# XP SYSTEM
 # ============================================================
 
 def add_xp(amount):
     session["xp"] += amount
-
     xp_needed = session["level"] * 100
+
     if session["xp"] >= xp_needed:
         session["xp"] -= xp_needed
         session["level"] += 1
-        flash(f"LEVEL UP! You reached Level {session['level']}!", "info")
+        flash(f"LEVEL UP! You are now Level {session['level']}!", "info")
 
 # ============================================================
 # ROOT → SUBJECTS
@@ -175,7 +142,7 @@ def home():
     return redirect("/subjects")
 
 # ============================================================
-# SUBJECT PLANETS SCREEN
+# SUBJECT PLANET SELECT
 # ============================================================
 
 @app.route("/subjects")
@@ -199,21 +166,18 @@ def subjects():
     return render_template("subjects.html", planets=planets, character=session["character"])
 
 # ============================================================
-# CHARACTER SELECTION
+# CHARACTER SELECT
 # ============================================================
 
 @app.route("/choose-character")
 def choose_character():
     init_user()
-    characters = get_all_characters()
-    return render_template("choose_character.html", characters=characters)
+    return render_template("choose_character.html", characters=get_all_characters())
 
 @app.route("/select-character", methods=["POST"])
 def select_character():
     init_user()
-    chosen = request.form.get("character")
-    if chosen:
-        session["character"] = chosen
+    session["character"] = request.form.get("character")
     return redirect("/dashboard")
 
 # ============================================================
@@ -223,103 +187,53 @@ def select_character():
 @app.route("/choose-grade")
 def choose_grade():
     init_user()
-    subject = request.args.get("subject")
-    return render_template("subject_select_form.html", subject=subject)
+    return render_template("subject_select_form.html", subject=request.args.get("subject"))
 
 # ============================================================
-# ASK QUESTION SCREEN
+# ASK QUESTION PAGE
 # ============================================================
 
 @app.route("/ask-question")
 def ask_question():
     init_user()
-    subject = request.args.get("subject")
-    grade = request.args.get("grade")
-
-    characters = get_all_characters()
-
     return render_template(
         "ask_question.html",
-        subject=subject,
-        grade=grade,
+        subject=request.args.get("subject"),
+        grade=request.args.get("grade"),
         character=session["character"],
-        characters=characters,
+        characters=get_all_characters()
     )
 
 # ============================================================
-# SUBJECT → AI ANSWER PAGE
+# SUBJECT → AI ANSWER (NOT POWERGRID)
 # ============================================================
 
 @app.route("/subject", methods=["POST"])
-def subject():
+def subject_answer():
     init_user()
 
     grade = request.form.get("grade")
     subject = request.form.get("subject")
-    question = (request.form.get("question") or "").strip()
+    question = request.form.get("question")
     character = session["character"]
 
-    # Ensure progress tracking exists for this subject
+    # --- POWERGRID REDIRECT (Chat Mode Only) ---
+    if subject == "power_grid":
+        session["deep_memory"] = []
+        session["grade_level"] = grade
+        return redirect("/deep_study_chat")
+
+    # Normal subjects
     session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
     session["progress"][subject]["questions"] += 1
 
-    # ===========================
-    # SPECIAL CASE: POWER GRID
-    # ===========================
-    if subject == "power_grid":
-        # Save grade level for future turns
-        session["grade_level"] = grade or session.get("grade_level", "8")
-
-        # Initialize memory if needed
-        if "deep_memory" not in session:
-            session["deep_memory"] = []
-
-        # First user question
-        if question:
-            session["deep_memory"].append({"role": "user", "content": question})
-
-            # Call deep_study_chat ONCE for the initial reply
-            ai_text = study_helper.deep_study_chat(
-                question,
-                grade_level=session["grade_level"],
-                character=character,
-            )
-            session["deep_memory"].append({"role": "assistant", "content": ai_text})
-
-        # Rewards
-        add_xp(20)
-        session["tokens"] += 2
-        session.modified = True
-
-        # Go to conversational PowerGrid chat page
-        return redirect("/deep_study_chat")
-
-    # ===========================
-    # ALL OTHER SUBJECTS
-    # ===========================
-
     func = subject_map.get(subject)
-
-    if func is None:
-        # Unknown subject fallback
-        answer = format_answer(
-            overview="Unknown subject.",
-            key_facts="",
-            christian_view="",
-            agreement="",
-            difference="",
-            practice="",
-        )
-    else:
+    if func:
         result = func(question, grade, character)
+        answer = result.get("raw_text") if isinstance(result, dict) else result
+    else:
+        answer = "Unknown subject."
 
-        # Most helpers now return a dict with 'raw_text' plus the 6 sections
-        if isinstance(result, dict):
-            answer = result.get("raw_text") or str(result)
-        else:
-            answer = result
-
-    # Rewards
     add_xp(20)
     session["tokens"] += 2
     session.modified = True
@@ -345,10 +259,9 @@ def dashboard():
     level = session["level"]
     tokens = session["tokens"]
     streak = session["streak"]
-    character = session["character"]
 
     xp_to_next = level * 100
-    xp_percent = int((xp / xp_to_next) * 100) if xp_to_next > 0 else 0
+    xp_percent = int((xp / xp_to_next) * 100)
 
     missions = [
         "Visit 2 different planets",
@@ -356,10 +269,10 @@ def dashboard():
         "Earn 20 XP",
     ]
 
-    locked_characters = {
+    locked = {
         "Princess Everly": "Reach Level 3",
         "Nova Circuit": "3-day streak",
-        "Agent Cluehart": "Earn 200 XP total",
+        "Agent Cluehart": "Earn 200 XP",
         "Buddy Barkston": "Buy for 100 tokens",
     }
 
@@ -369,28 +282,12 @@ def dashboard():
         level=level,
         tokens=tokens,
         streak=streak,
-        character=character,
+        character=session["character"],
         xp_percent=xp_percent,
         xp_to_next=xp_to_next,
         missions=missions,
-        locked_characters=locked_characters,
+        locked_characters=locked,
     )
-
-# ============================================================
-# SHOP (TEMP HIDDEN REDIRECTS)
-# ============================================================
-
-@app.route("/shop")
-def shop():
-    return redirect("/dashboard")
-
-@app.route("/buy/<item_id>")
-def buy_item(item_id):
-    return redirect("/dashboard")
-
-@app.route("/inventory")
-def inventory():
-    return redirect("/dashboard")
 
 # ============================================================
 # PARENT DASHBOARD
@@ -400,15 +297,14 @@ def inventory():
 def parent_dashboard():
     init_user()
 
-    progress_display = {
-        subject: int((data["correct"] / data["questions"]) * 100)
-        if data["questions"] > 0 else 0
-        for subject, data in session["progress"].items()
+    progress = {
+        s: (int(data["correct"] / data["questions"] * 100) if data["questions"] else 0)
+        for s, data in session["progress"].items()
     }
 
     return render_template(
         "parent_dashboard.html",
-        progress=progress_display,
+        progress=progress,
         utilization=session["usage_minutes"],
         xp=session["xp"],
         level=session["level"],
@@ -421,29 +317,25 @@ def parent_dashboard():
 # ============================================================
 
 @app.route("/terms")
-def terms():
-    return render_template("terms.html")
+def terms(): return render_template("terms.html")
 
 @app.route("/privacy")
-def privacy():
-    return render_template("privacy.html")
+def privacy(): return render_template("privacy.html")
 
 @app.route("/disclaimer")
-def disclaimer():
-    return render_template("disclaimer.html")
+def disclaimer(): return render_template("disclaimer.html")
 
 # ============================================================
-# POWERGRID — DEEP STUDY CHAT SYSTEM
+# POWERGRID — CONVERSATIONAL CHAT
 # ============================================================
 
 @app.route("/deep_study_chat")
 def deep_study_chat_page():
     init_user()
-    conversation = session.get("deep_memory", [])
     return render_template(
         "deep_study_chat.html",
         character=session["character"],
-        conversation=conversation,
+        conversation=session.get("deep_memory", []),
     )
 
 @app.route("/deep_study_message", methods=["POST"])
@@ -452,29 +344,24 @@ def deep_study_message():
 
     data = request.get_json(silent=True) or {}
     user_msg = (data.get("message") or "").strip()
-    character = session["character"]
-    grade = session.get("grade_level", "8")
 
-    # Initialize memory if needed
     if "deep_memory" not in session:
         session["deep_memory"] = []
 
-    if user_msg:
-        # Save user message
-        session["deep_memory"].append({"role": "user", "content": user_msg})
+    if not user_msg:
+        return jsonify({"reply": "Try asking your question in a full sentence 😊"})
 
-        # Call deep study helper
-        ai_text = study_helper.deep_study_chat(
-            user_msg,
-            grade_level=grade,
-            character=character,
-        )
+    # Save user message
+    session["deep_memory"].append({"role": "user", "content": user_msg})
 
-        # Save AI reply
-        session["deep_memory"].append({"role": "assistant", "content": ai_text})
-        session.modified = True
-    else:
-        ai_text = "Try asking your question in a full sentence so I can really help."
+    # --- CORRECT POSITIONAL CALL ---
+    grade = session.get("grade_level", "8")
+    character = session["character"]
+
+    ai_text = study_helper.deep_study_chat(user_msg, grade, character)
+
+    session["deep_memory"].append({"role": "assistant", "content": ai_text})
+    session.modified = True
 
     return jsonify({"reply": ai_text})
 
@@ -484,3 +371,4 @@ def deep_study_message():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
