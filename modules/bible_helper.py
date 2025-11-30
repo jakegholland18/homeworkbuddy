@@ -2,7 +2,7 @@
 
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
-from modules.answer_formatter import format_answer
+from modules.answer_formatter import parse_into_sections, format_answer
 
 
 # ------------------------------------------------------------
@@ -20,240 +20,208 @@ def is_christian_request(text: str) -> bool:
 
 
 # ------------------------------------------------------------
-# Universal extraction helper
+# Build 6-section Bible prompt (Main Lesson)
 # ------------------------------------------------------------
-def _extract(raw: str, label: str) -> str:
-    return raw.split(label)[-1].strip() if label in raw else "Not available."
-
-
-# ------------------------------------------------------------
-# MAIN BIBLE LESSON — 6 sections
-# ------------------------------------------------------------
-def bible_lesson(topic: str, grade_level="8", character="everly"):
-    """
-    Explains a Bible topic using the 6-section Homework Buddy system.
-    """
-
-    prompt = f"""
-You are a gentle Christian Bible tutor teaching a grade {grade_level} student.
+def build_bible_lesson_prompt(topic: str, grade: str):
+    return f"""
+You are a gentle Christian Bible tutor for a grade {grade} student.
 
 The student asked:
-"{topic}"
+\"{topic}\"
 
-Answer using SIX warm, child-friendly sections.
+Answer using the **six-section Homework Buddy format**.
 
 SECTION 1 — OVERVIEW
-Explain in calm, short sentences what this topic is about.
+Give a calm 2–3 sentence explanation of what this Bible topic is about.
 
-SECTION 2 — KEY IDEAS
-Explain a few simple ideas Christians believe about this topic.
-Use gentle and very clear sentences.
+SECTION 2 — KEY FACTS
+List 3–5 simple truths Christians believe about this topic.
+Use dash bullets ("- ").
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly why Christians believe this matters,
-how they understand it, and how it connects to everyday life.
-Use Scripture gently only if it fits naturally.
+Explain softly why Christians believe this matters
+and how it fits into everyday life.
+Use Scripture gently only if it naturally fits.
 
 SECTION 4 — AGREEMENT
-Explain what Christians and non-Christians might both notice
-or agree on in this topic.
+List 2–4 things Christians and non-Christians could both notice
+or agree on about this topic.
+Use dash bullets.
 
 SECTION 5 — DIFFERENCE
-Explain kindly how Christian and secular interpretations differ,
-but stay peaceful and respectful.
+List gentle worldview differences between Christians and secular views.
+Use dash bullets.
+Be respectful and peaceful.
 
 SECTION 6 — PRACTICE
-Ask 2–3 small reflection questions.
-Give short example answers.
+Give 2–3 tiny reflection questions with short example answers.
+Each question should begin with "- ".
 
 Tone:
-slow, warm, simple, encouraging, never forceful.
+warm, slow, simple, encouraging, child-friendly.
 """
 
-    prompt = apply_personality(character, prompt)
-    raw = study_buddy_ai(prompt, grade_level, character)
-
-    overview       = _extract(raw, "SECTION 1")
-    key_ideas      = _extract(raw, "SECTION 2")
-    christian_view = _extract(raw, "SECTION 3")
-    agreement      = _extract(raw, "SECTION 4")
-    difference     = _extract(raw, "SECTION 5")
-    practice       = _extract(raw, "SECTION 6")
-
-    return format_answer(
-        overview=overview,
-        key_facts=key_ideas,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
-
 
 # ------------------------------------------------------------
-# EXPLAIN A VERSE — 6 sections
+# Build prompt for explaining a Bible verse
 # ------------------------------------------------------------
-def explain_verse(reference: str, text: str, grade_level="8", character="everly"):
+def build_verse_prompt(reference: str, text: str, grade: str):
+    verse_q = f"What does {reference} mean? The verse says: {text}"
 
-    verse_question = f"What does {reference} mean? The verse says: {text}"
-
-    prompt = f"""
-You are a gentle Bible tutor helping a grade {grade_level} student.
+    return f"""
+You are a gentle Christian Bible tutor teaching a grade {grade} student.
 
 The student asked:
-"{verse_question}"
+\"{verse_q}\"
 
-Answer using SIX warm sections.
+Answer using the **six-section Homework Buddy format**.
 
 SECTION 1 — OVERVIEW
-Explain simply what this verse is about in calm, short sentences.
+Explain what the verse means in simple, warm language.
 
-SECTION 2 — KEY IDEAS
-Explain a few simple things Christians learn from this verse.
+SECTION 2 — KEY FACTS
+List a few simple truths Christians learn from this verse.
+Use dash bullets.
 
 SECTION 3 — CHRISTIAN VIEW
 Explain softly what Christians believe this verse teaches
 and how it encourages them.
 
 SECTION 4 — AGREEMENT
-Explain what anyone might notice or agree on about the verse.
+List things anyone might notice or agree on about the verse.
+Use dash bullets.
 
 SECTION 5 — DIFFERENCE
-Explain kindly how Christian and secular views may understand the verse differently.
+List gentle worldview differences between Christian and secular interpretations.
+Use dash bullets.
 
 SECTION 6 — PRACTICE
-Ask 2–3 small reflection questions with short example answers.
+Give 2–3 tiny reflection questions with short example answers.
+Each question should begin with "- ".
 
-Keep tone warm, calm, simple.
+Tone: calm, warm, simple.
 """
 
-    prompt = apply_personality(character, prompt)
-    raw = study_buddy_ai(prompt, grade_level, character)
-
-    overview       = _extract(raw, "SECTION 1")
-    key_ideas      = _extract(raw, "SECTION 2")
-    christian_view = _extract(raw, "SECTION 3")
-    agreement      = _extract(raw, "SECTION 4")
-    difference     = _extract(raw, "SECTION 5")
-    practice       = _extract(raw, "SECTION 6")
-
-    return format_answer(
-        overview=overview,
-        key_facts=key_ideas,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
-
 
 # ------------------------------------------------------------
-# BIBLE STORY — 6 sections
+# Build prompt for Bible story
 # ------------------------------------------------------------
-def explain_bible_story(story: str, grade_level="8", character="everly"):
-
-    prompt = f"""
-You are a gentle Bible tutor teaching a grade {grade_level} student.
+def build_story_prompt(story: str, grade: str):
+    return f"""
+You are a gentle Christian Bible tutor for a grade {grade} student.
 
 Tell the story of:
-"{story}"
+\"{story}\"
 
-Then explain it using SIX small child-friendly sections.
+Then explain it using the **six-section Homework Buddy format**.
 
 SECTION 1 — OVERVIEW
 Retell the story slowly in simple, warm language.
 
-SECTION 2 — KEY IDEAS
-Explain a few simple truths Christians learn from this story.
+SECTION 2 — KEY FACTS
+List a few simple truths Christians learn from the story.
+Use dash bullets.
 
 SECTION 3 — CHRISTIAN VIEW
 Explain gently why Christians believe this story matters
-and what they think God is teaching through it.
+and what God is teaching through it.
 
 SECTION 4 — AGREEMENT
-Explain what anyone could notice or agree on about the story.
+List things anyone could notice or agree on.
+Use dash bullets.
 
 SECTION 5 — DIFFERENCE
-Explain softly how Christian and secular views may differ
-in meaning or interpretation.
+List soft worldview differences between Christian and secular interpretations.
+Use dash bullets.
 
 SECTION 6 — PRACTICE
-Ask 2–3 reflection questions with very short example answers.
+Give 2–3 small reflection questions with short example answers.
+Each must begin with "- ".
 
 Tone:
 calm, warm, simple, not dramatic.
 """
 
-    prompt = apply_personality(character, prompt)
-    raw = study_buddy_ai(prompt, grade_level, character)
-
-    overview       = _extract(raw, "SECTION 1")
-    key_ideas      = _extract(raw, "SECTION 2")
-    christian_view = _extract(raw, "SECTION 3")
-    agreement      = _extract(raw, "SECTION 4")
-    difference     = _extract(raw, "SECTION 5")
-    practice       = _extract(raw, "SECTION 6")
-
-    return format_answer(
-        overview=overview,
-        key_facts=key_ideas,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
-
 
 # ------------------------------------------------------------
-# GENERAL CHRISTIAN WORLDVIEW QUESTIONS
+# Build prompt for general Christian worldview questions
 # ------------------------------------------------------------
-def christian_worldview(question: str, grade_level="8", character="everly"):
-
-    prompt = f"""
-You are a gentle Christian worldview tutor for a grade {grade_level} student.
+def build_worldview_prompt(question: str, grade: str):
+    return f"""
+You are a gentle Christian worldview tutor for a grade {grade} student.
 
 The student asked:
-"{question}"
+\"{question}\"
 
-Answer using SIX soft, calm sections.
+Answer using the **six-section Homework Buddy format**.
 
 SECTION 1 — OVERVIEW
-Explain the question in simple, everyday language.
+Explain the idea in soft, everyday language.
 
-SECTION 2 — KEY IDEAS
-Explain a few basic ideas Christians think about on this topic.
+SECTION 2 — KEY FACTS
+List a few basic truths Christians think about this topic.
+Use dash bullets.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly what Christians believe and why it matters to them.
+Explain softly why Christians believe this
+and why it matters to them.
 
 SECTION 4 — AGREEMENT
-Explain what Christians and non-Christians may agree on.
+List things Christians and non-Christians may both agree on.
+Use dash bullets.
 
 SECTION 5 — DIFFERENCE
-Explain kindly how Christian and secular worldviews differ.
+List gentle worldview differences.
+Use dash bullets.
 
 SECTION 6 — PRACTICE
-Ask 2–3 reflection questions with short example answers.
+Offer 2–3 reflection questions with example answers.
+Each must begin with "- ".
 
 Tone:
-peaceful, warm, welcoming, not forceful.
+peaceful, warm, kind, encouraging.
 """
 
+
+# ------------------------------------------------------------
+# MAIN PUBLIC FUNCTIONS (all use parser + format_answer)
+# ------------------------------------------------------------
+def bible_lesson(topic: str, grade_level="8", character="everly"):
+    prompt = build_bible_lesson_prompt(topic, grade_level)
     prompt = apply_personality(character, prompt)
     raw = study_buddy_ai(prompt, grade_level, character)
 
-    overview       = _extract(raw, "SECTION 1")
-    key_ideas      = _extract(raw, "SECTION 2")
-    christian_view = _extract(raw, "SECTION 3")
-    agreement      = _extract(raw, "SECTION 4")
-    difference     = _extract(raw, "SECTION 5")
-    practice       = _extract(raw, "SECTION 6")
+    sections = parse_into_sections(raw)
 
-    return format_answer(
-        overview=overview,
-        key_facts=key_ideas,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
+    return format_answer(**sections)
+
+
+def explain_verse(reference: str, text: str, grade_level="8", character="everly"):
+    prompt = build_verse_prompt(reference, text, grade_level)
+    prompt = apply_personality(character, prompt)
+    raw = study_buddy_ai(prompt, grade_level, character)
+
+    sections = parse_into_sections(raw)
+
+    return format_answer(**sections)
+
+
+def explain_bible_story(story: str, grade_level="8", character="everly"):
+    prompt = build_story_prompt(story, grade_level)
+    prompt = apply_personality(character, prompt)
+    raw = study_buddy_ai(prompt, grade_level, character)
+
+    sections = parse_into_sections(raw)
+
+    return format_answer(**sections)
+
+
+def christian_worldview(question: str, grade_level="8", character="everly"):
+    prompt = build_worldview_prompt(question, grade_level)
+    prompt = apply_personality(character, prompt)
+    raw = study_buddy_ai(prompt, grade_level, character)
+
+    sections = parse_into_sections(raw)
+
+    return format_answer(**sections)
+

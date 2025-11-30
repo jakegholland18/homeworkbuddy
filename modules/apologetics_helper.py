@@ -2,85 +2,89 @@
 
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
-from modules.answer_formatter import format_answer
+from modules.answer_formatter import parse_into_sections, format_answer
 
 
 # -----------------------------------------------------------
-# Label extractor (global consistency)
+# Detect if the question directly asks from a Christian angle
 # -----------------------------------------------------------
-def _extract(raw: str, label: str) -> str:
-    return raw.split(label)[-1].strip() if label in raw else "Not available."
+def is_christian_question(text: str) -> bool:
+    keywords = [
+        "christian", "christianity", "jesus", "god", "bible",
+        "biblical", "christian perspective", "from a christian view",
+        "what does the bible say", "how does this relate to god",
+        "christian worldview"
+    ]
+    return any(k.lower() in text.lower() for k in keywords)
 
 
 # -----------------------------------------------------------
-# STRUCTURED APOLOGETICS RESPONSE — 6 SECTIONS
+# Build core apologetics prompt — consistent 6-section format
 # -----------------------------------------------------------
-def apologetics_answer(question: str, grade_level="8", character="everly"):
-    """
-    Creates a gentle apologetics explanation using the same
-    6-section Homework Buddy structure used across all helpers.
-    """
+def build_apologetics_prompt(question: str, grade_level: str, christian: bool):
 
-    prompt = f"""
-You are a warm, gentle Christian apologetics tutor teaching a grade {grade_level} student.
+    if christian:
+        preface = f'The student asked this apologetics question from a Christian perspective:\n"{question}"'
+    else:
+        preface = f'The student asked an apologetics question:\n"{question}"'
 
-The student asked:
-"{question}"
+    return f"""
+{preface}
 
-Answer using SIX soft, calm, child-friendly sections.
+Explain the answer using the **six-section Homework Buddy format**:
 
 SECTION 1 — OVERVIEW
-Explain in a few short sentences what the question is really about.
-Use slow, gentle, everyday language.
+A very short explanation (2–3 gentle sentences) of what the question is really about.
 
-SECTION 2 — KEY IDEAS
-Explain a few simple ideas Christians believe about this topic.
-Use calm sentences without lists or bullet formatting.
+SECTION 2 — KEY FACTS
+List 3–5 simple, important Christian ideas using dash bullets ("- ").
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly why Christians believe what they do,
-why it matters to them,
-and how it helps them live with hope or meaning.
-Use Scripture gently if it fits.
+Gently explain why many Christians believe what they do.
+Keep it soft, short, and child-friendly.
 
 SECTION 4 — AGREEMENT
-Explain what Christians and non-Christians may both agree on.
-Keep sentences simple and warm.
+Use dash bullets to list things Christians and non-Christians may both agree on.
 
 SECTION 5 — DIFFERENCE
-Explain kindly where Christian and secular worldviews
-may understand this topic differently.
-Do not argue. Just explain softly.
+Use dash bullets to gently highlight worldview differences.
+Be respectful and calm.
 
 SECTION 6 — PRACTICE
-Ask 2–3 tiny reflection questions the student can think about.
-Give short example answers to help guide them.
+Give 2–3 tiny reflection questions with sample answers.
+Each question should start with "- ".
 
-Tone rules:
-gentle, slow, warm, respectful, child-friendly.
-Never use debate or harsh language.
+Tone: warm, slow, gentle, never argumentative.
+Keep everything very simple for a grade {grade_level} student.
 """
 
-    # Add character personality
-    prompt = apply_personality(character, prompt)
 
-    # Get structured AI response
-    raw = study_buddy_ai(prompt, grade_level, character)
+# -----------------------------------------------------------
+# PUBLIC FUNCTION — returns structured + formatted answer
+# -----------------------------------------------------------
+def apologetics_answer(question: str, grade_level="8", character="everly"):
 
-    # Extract all sections
-    overview       = _extract(raw, "SECTION 1")
-    key_ideas      = _extract(raw, "SECTION 2")
-    christian_view = _extract(raw, "SECTION 3")
-    agreement      = _extract(raw, "SECTION 4")
-    difference     = _extract(raw, "SECTION 5")
-    practice       = _extract(raw, "SECTION 6")
+    christian = is_christian_question(question)
 
-    # Return the formatted final answer object
+    # Build main prompt in 6-section format
+    base_prompt = build_apologetics_prompt(question, grade_level, christian)
+
+    # Add the character's speaking style
+    enriched = apply_personality(character, base_prompt)
+
+    # Get structured text back (should contain all 6 sections)
+    raw = study_buddy_ai(enriched, grade_level, character)
+
+    # Convert AI text into structured dict
+    sections = parse_into_sections(raw)
+
+    # Format final HTML response
     return format_answer(
-        overview=overview,
-        key_facts=key_ideas,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
+        overview=sections.get("overview", ""),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", ""),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", [])
     )
+

@@ -2,7 +2,7 @@
 
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
-from modules.answer_formatter import format_answer
+from modules.answer_formatter import parse_into_sections, format_answer
 
 
 # -----------------------------------------------------------
@@ -19,42 +19,37 @@ def is_christian_question(text: str) -> bool:
 
 
 # -----------------------------------------------------------
-# Build 6-section math prompt (normal)
+# Build 6-section math prompt (standard)
 # -----------------------------------------------------------
 def build_math_prompt(question: str, grade: str):
     return f"""
 You are a gentle math tutor for a grade {grade} student.
 
 The student asked:
-"{question}"
+\"{question}\"
 
-Answer using SIX warm and simple sections.
+Teach it using the **six-section Homework Buddy format**.
 
 SECTION 1 — OVERVIEW
-Explain the math idea in 3–4 slow, kid-friendly sentences.
+Give 2–3 calm sentences that explain the idea simply.
 
 SECTION 2 — KEY FACTS
-Explain the important steps or truths about the math topic
-using small, calm sentences. No lists or bullets.
+List 3–5 simple facts or steps using dash bullets (“- ”).
+Explain things slowly and clearly.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly how many Christians appreciate the order and logic
-seen in math. If the topic is not naturally Christian, simply say
-that Christians still see value in clear thinking and problem solving.
+Explain softly how some Christians appreciate the order and logic
+in math, as part of seeing creation as structured and consistent.
 
 SECTION 4 — AGREEMENT
-Explain what everyone agrees on about the math
-(the rules, the steps, how numbers work the same for everyone).
+List 2–4 things everyone agrees on about math (rules, steps, logic).
 
 SECTION 5 — DIFFERENCE
-Explain gently whether worldview affects the topic.
-For most math, it does not change the steps.
+List gentle worldview differences, noting math rules stay the same.
 
 SECTION 6 — PRACTICE
-Give 2–3 tiny practice problems with short example answers
-spoken in a calm, simple voice.
-
-Keep tone slow, warm, and child-friendly.
+Give 2–3 tiny practice problems with short example answers.
+Each must begin with “- ”.
 """
 
 
@@ -65,75 +60,56 @@ def build_christian_math_prompt(question: str, grade: str):
     return f"""
 The student asked this math question from a Christian perspective:
 
-"{question}"
+\"{question}\"
 
-Answer using SIX calm sections.
+Use the **six-section Homework Buddy format**.
 
 SECTION 1 — OVERVIEW
-Explain the question in slow and simple words.
+Explain the question in gentle, simple sentences.
 
 SECTION 2 — KEY FACTS
-Explain the important rules, steps, or ideas behind the math.
+List the math steps or rules needed, using dash bullets.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain kindly how Christians may appreciate order, logic,
-consistency, and truth as part of creation.
+Explain kindly how Christians value order, logic, truth, and fairness
+as part of God’s creation.
 
 SECTION 4 — AGREEMENT
-Explain what all worldviews agree on about the math.
+List shared math ideas everyone accepts (rules, steps, solutions).
 
 SECTION 5 — DIFFERENCE
-Explain gently that math rules remain the same regardless of worldview,
-but motivations (such as stewardship, truth, fairness) may differ.
+List gentle differences in motivation (stewardship, truth, honesty),
+while noting math rules never change.
 
 SECTION 6 — PRACTICE
-Give a couple of tiny practice questions and simple answers.
-
-Keep everything soft and warm.
+Write 2–3 practice questions with short sample answers.
+Each starting with “- ”.
 """
 
 
 # -----------------------------------------------------------
-# Section extractor — works with your new answer structure
-# -----------------------------------------------------------
-def _extract(raw: str, label: str) -> str:
-    return raw.split(label)[-1].strip() if label in raw else "No information provided."
-
-
-# -----------------------------------------------------------
-# MAIN PUBLIC FUNCTION — final math explanation
+# MAIN PUBLIC FUNCTION
 # -----------------------------------------------------------
 def explain_math(question: str, grade_level="5", character="everly"):
 
-    # Choose which 6-section structure to use
+    # Pick prompt type
     if is_christian_question(question):
-        prompt = build_christian_math_prompt(question, grade_level)
+        base_prompt = build_christian_math_prompt(question, grade_level)
     else:
-        prompt = build_math_prompt(question, grade_level)
+        base_prompt = build_math_prompt(question, grade_level)
 
-    # Personality wrapper
-    prompt = apply_personality(character, prompt)
+    # Add character voice
+    final_prompt = apply_personality(character, base_prompt)
 
-    # Ask AI
-    raw = study_buddy_ai(prompt, grade_level, character)
+    # Get raw AI output (contains 6 sections)
+    raw = study_buddy_ai(final_prompt, grade_level, character)
 
-    # Extract all six sections
-    overview       = _extract(raw, "SECTION 1")
-    key_facts      = _extract(raw, "SECTION 2")
-    christian_view = _extract(raw, "SECTION 3")
-    agreement      = _extract(raw, "SECTION 4")
-    difference     = _extract(raw, "SECTION 5")
-    practice       = _extract(raw, "SECTION 6")
+    # Convert to structured sections
+    sections = parse_into_sections(raw)
 
-    # Format for the HTML
-    return format_answer(
-        overview=overview,
-        key_facts=key_facts,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
+    # Render consistent HTML output
+    return format_answer(**sections)
+
 
 
 

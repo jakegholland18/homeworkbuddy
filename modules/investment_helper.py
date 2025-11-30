@@ -18,6 +18,37 @@ def is_christian_question(text: str) -> bool:
 
 
 # ------------------------------------------------------------
+# Universal extractor (same as all helpers)
+# ------------------------------------------------------------
+def extract_sections(ai_text: str):
+    def extract(label):
+        if label not in ai_text:
+            return "Not available."
+
+        start = ai_text.find(label) + len(label)
+        end = len(ai_text)
+
+        for nxt in [
+            "SECTION 1", "SECTION 2", "SECTION 3",
+            "SECTION 4", "SECTION 5", "SECTION 6"
+        ]:
+            pos = ai_text.find(nxt, start)
+            if pos != -1 and pos < end:
+                end = pos
+
+        return ai_text[start:end].strip()
+
+    return {
+        "overview": extract("SECTION 1"),
+        "key_facts": extract("SECTION 2"),
+        "christian_view": extract("SECTION 3"),
+        "agreement": extract("SECTION 4"),
+        "difference": extract("SECTION 5"),
+        "practice": extract("SECTION 6"),
+    }
+
+
+# ------------------------------------------------------------
 # Build investing prompt — standard version
 # ------------------------------------------------------------
 def build_investing_prompt(topic: str, grade: str):
@@ -27,38 +58,36 @@ You are a gentle investing tutor for a grade {grade} student.
 The student asked:
 "{topic}"
 
-Answer using SIX warm, child-friendly sections.
+Use SIX warm, child-friendly sections.
 
 SECTION 1 — OVERVIEW
-Explain the investing idea in simple, calm sentences.
+Explain the idea in simple, calm sentences.
 
 SECTION 2 — KEY FACTS
-Explain the important ideas (saving, risk, long-term thinking,
-companies, stocks, value) using slow, soft sentences.
+Explain basic ideas (saving, risk, long-term thinking, value).
+Slow and simple.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly how many Christians think about money:
-stewardship, responsibility, avoiding greed, generosity,
-and wise choices. If the question is not Christian,
-still mention that some Christians see investing as part of wise planning.
+Explain stewardship, avoiding greed, wise choices.
+If not a Christian question, simply mention that some Christians
+see money management as responsibility and generosity.
 
 SECTION 4 — AGREEMENT
-Explain what all worldviews agree on (saving, planning,
-risk-taking carefully, long-term thinking).
+Explain what all people agree on: saving, planning, being careful.
 
 SECTION 5 — DIFFERENCE
-Explain gently where Christian motivation (stewardship, generosity)
-may differ from a “money-first” view.
+Explain gently how Christian motivation may differ
+from a “money-first” view.
 
 SECTION 6 — PRACTICE
-Ask 2–3 tiny reflection questions with simple example answers.
+Ask 2–3 tiny reflection questions with example answers.
 
-Tone must be soft, slow, friendly, and not technical.
+Tone: slow, warm, kid-friendly, not technical.
 """
 
 
 # ------------------------------------------------------------
-# Build Christian-directed investing prompt
+# Build Christian prompt
 # ------------------------------------------------------------
 def build_christian_investing_prompt(topic: str, grade: str):
     return f"""
@@ -66,34 +95,28 @@ The student asked this investing question from a Christian perspective:
 
 "{topic}"
 
-Answer using SIX simple, warm sections.
+Use SIX gentle sections.
 
 SECTION 1 — OVERVIEW
-Explain the idea slowly and clearly.
+Explain the idea slowly.
 
 SECTION 2 — KEY FACTS
-Explain the simple financial ideas needed to understand the topic.
+Explain the basic financial ideas.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly how Christians think about money as stewardship,
-responsibility, and avoiding greed.
+Explain stewardship, responsibility, generosity.
 
 SECTION 4 — AGREEMENT
-Explain what all worldviews agree on (saving, planning, earning).
+Explain what all worldviews agree on.
 
 SECTION 5 — DIFFERENCE
-Explain gently how Christian motivation may differ from secular motivation.
+Explain gently how motivation differs.
 
 SECTION 6 — PRACTICE
-Ask 2–3 reflection questions with calm example answers.
+Ask 2–3 tiny reflection questions.
+
+Tone: calm, warm, non-technical.
 """
-
-
-# ------------------------------------------------------------
-# Extract helper (universal)
-# ------------------------------------------------------------
-def _extract(raw: str, label: str) -> str:
-    return raw.split(label)[-1].strip() if label in raw else "No information provided."
 
 
 # ------------------------------------------------------------
@@ -101,35 +124,17 @@ def _extract(raw: str, label: str) -> str:
 # ------------------------------------------------------------
 def explain_investing(topic: str, grade_level="8", character="everly"):
 
-    # Choose which prompt type
     if is_christian_question(topic):
         prompt = build_christian_investing_prompt(topic, grade_level)
     else:
         prompt = build_investing_prompt(topic, grade_level)
 
-    # Add personality
     prompt = apply_personality(character, prompt)
 
-    # Get AI output
     raw = study_buddy_ai(prompt, grade_level, character)
 
-    # Extract six sections
-    overview       = _extract(raw, "SECTION 1")
-    key_facts      = _extract(raw, "SECTION 2")
-    christian_view = _extract(raw, "SECTION 3")
-    agreement      = _extract(raw, "SECTION 4")
-    difference     = _extract(raw, "SECTION 5")
-    practice       = _extract(raw, "SECTION 6")
-
-    # Format into clean HTML-ready object
-    return format_answer(
-        overview=overview,
-        key_facts=key_facts,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
+    sections = extract_sections(raw)
+    return format_answer(**sections)
 
 
 # ------------------------------------------------------------
@@ -137,78 +142,41 @@ def explain_investing(topic: str, grade_level="8", character="everly"):
 # ------------------------------------------------------------
 def investment_question(question: str, grade_level="8", character="everly"):
 
-    # Always use the same structure
     prompt = build_investing_prompt(question, grade_level)
     prompt = apply_personality(character, prompt)
 
     raw = study_buddy_ai(prompt, grade_level, character)
 
-    overview       = _extract(raw, "SECTION 1")
-    key_facts      = _extract(raw, "SECTION 2")
-    christian_view = _extract(raw, "SECTION 3")
-    agreement      = _extract(raw, "SECTION 4")
-    difference     = _extract(raw, "SECTION 5")
-    practice       = _extract(raw, "SECTION 6")
-
-    return format_answer(
-        overview=overview,
-        key_facts=key_facts,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
+    sections = extract_sections(raw)
+    return format_answer(**sections)
 
 
 # ------------------------------------------------------------
-# INVESTING QUIZ — still six sections
+# INVESTING QUIZ (still six sections)
 # ------------------------------------------------------------
 def investment_quiz(topic: str, grade_level="8", character="everly"):
 
     prompt = f"""
-Create a simple investing quiz for a grade {grade_level} student.
+Create a gentle investing quiz for grade {grade_level}.
 
 Topic: "{topic}"
 
 Use SIX SECTIONS:
 
 SECTION 1 — OVERVIEW
-Explain the topic softly.
-
 SECTION 2 — KEY FACTS
-Explain the important ideas they should remember.
-
 SECTION 3 — CHRISTIAN VIEW
-Explain stewardship gently.
-
 SECTION 4 — AGREEMENT
-Explain what all people agree on.
-
 SECTION 5 — DIFFERENCE
-Explain respectfully how worldviews may differ.
-
 SECTION 6 — PRACTICE
-Create a few quiz questions with short answers.
 
-Tone: calm, slow, and not technical.
+Make it calm, warm, slow-paced.
 """
 
     prompt = apply_personality(character, prompt)
     raw = study_buddy_ai(prompt, grade_level, character)
 
-    overview       = _extract(raw, "SECTION 1")
-    key_facts      = _extract(raw, "SECTION 2")
-    christian_view = _extract(raw, "SECTION 3")
-    agreement      = _extract(raw, "SECTION 4")
-    difference     = _extract(raw, "SECTION 5")
-    practice       = _extract(raw, "SECTION 6")
+    sections = extract_sections(raw)
+    return format_answer(**sections)
 
-    return format_answer(
-        overview=overview,
-        key_facts=key_facts,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
 

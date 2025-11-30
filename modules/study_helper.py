@@ -2,17 +2,41 @@
 
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
-from modules.answer_formatter import parse_into_sections, format_answer
+from modules.answer_formatter import format_answer
+
+
+# -----------------------------------------------------------
+# Replace old parse_into_sections with unified extractor
+# -----------------------------------------------------------
+def extract_sections(ai_text: str):
+    def extract(label):
+        if label not in ai_text:
+            return "Not available."
+
+        start = ai_text.find(label) + len(label)
+        end = len(ai_text)
+
+        for nxt in ["SECTION 1", "SECTION 2", "SECTION 3", "SECTION 4", "SECTION 5", "SECTION 6"]:
+            pos = ai_text.find(nxt, start)
+            if pos != -1 and pos < end:
+                end = pos
+
+        return ai_text[start:end].strip()
+
+    return {
+        "overview": extract("SECTION 1"),
+        "key_facts": extract("SECTION 2"),
+        "christian_view": extract("SECTION 3"),
+        "agreement": extract("SECTION 4"),
+        "difference": extract("SECTION 5"),
+        "practice": extract("SECTION 6"),
+    }
 
 
 # -----------------------------------------------------------
 # Socratic Tutor Layer
 # -----------------------------------------------------------
 def socratic_layer(topic: str, grade_level: str):
-    """
-    Adds a gentle pre-explanation to help students think before giving the final
-    6-section structured answer.
-    """
     return f"""
 The student wants help studying this topic:
 
@@ -37,13 +61,13 @@ def build_quiz_prompt(topic: str, grade_level: str):
     return f"""
 Create a gentle study quiz for the topic "{topic}" using the 6-section Homework Buddy model.
 
-OVERVIEW: Very short introduction to what the quiz is about.
+OVERVIEW: Very short introduction.
 KEY FACTS: The most basic facts a student should know.
-CHRISTIAN VIEW (if relevant): Keep soft and non-confrontational.
-AGREEMENT & DIFFERENCE: Only include if naturally relevant.
-PRACTICE: Include several quiz questions with short example answers.
+CHRISTIAN VIEW (if relevant): Soft and gentle.
+AGREEMENT / DIFFERENCE: Only if naturally helpful.
+PRACTICE: Include several quiz questions with tiny example answers.
 
-Questions should be calm, short, and easy for grade {grade_level}.
+Make everything calming and easy for grade {grade_level}.
 """
 
 
@@ -56,8 +80,8 @@ Create flashcards for the topic "{topic}" using the 6-section Homework Buddy for
 
 Flashcards should be extremely simple:
 - One idea per card
-- Clear, short explanation
-- Friendly tutoring tone
+- Clear short explanations
+- Friendly tutoring voice
 
 In the PRACTICE section, include 3–5 flashcard-style Q&A pairs.
 """
@@ -69,8 +93,7 @@ In the PRACTICE section, include 3–5 flashcard-style Q&A pairs.
 
 def generate_quiz(topic: str, grade_level="8", character=None):
 
-    if character is None:
-        character = "theo"
+    character = character or "theo"
 
     base_prompt = build_quiz_prompt(topic, grade_level)
     full_prompt = socratic_layer(topic, grade_level) + "\n" + base_prompt
@@ -78,15 +101,13 @@ def generate_quiz(topic: str, grade_level="8", character=None):
     enriched = apply_personality(character, full_prompt)
     ai_text = study_buddy_ai(enriched, grade_level, character)
 
-    sections = parse_into_sections(ai_text)
+    sections = extract_sections(ai_text)
     return format_answer(**sections)
-
 
 
 def flashcards(topic: str, grade_level="8", character=None):
 
-    if character is None:
-        character = "theo"
+    character = character or "theo"
 
     base_prompt = build_flashcard_prompt(topic, grade_level)
     full_prompt = socratic_layer(topic, grade_level) + "\n" + base_prompt
@@ -94,6 +115,7 @@ def flashcards(topic: str, grade_level="8", character=None):
     enriched = apply_personality(character, full_prompt)
     ai_text = study_buddy_ai(enriched, grade_level, character)
 
-    sections = parse_into_sections(ai_text)
+    sections = extract_sections(ai_text)
     return format_answer(**sections)
+
 

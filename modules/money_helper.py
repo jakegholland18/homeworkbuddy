@@ -10,250 +10,178 @@ from modules.answer_formatter import format_answer
 # ------------------------------------------------------------
 def is_christian_question(text: str) -> bool:
     keywords = [
-        "christian", "christianity", "bible", "jesus", "god",
-        "biblical", "stewardship", "christian perspective",
-        "christian worldview", "what does the bible say",
-        "how does this relate to god"
+        "christian", "biblical", "god", "jesus", "bible", "faith",
+        "christian perspective", "christian worldview",
+        "what does the bible say", "how does this relate to god"
     ]
     return any(k.lower() in text.lower() for k in keywords)
 
 
 # ------------------------------------------------------------
-# Build 6-section prompt for general money topics
+# Universal extractor (same across all helpers)
+# ------------------------------------------------------------
+def extract_sections(ai_text: str):
+    def extract(label: str):
+        if label not in ai_text:
+            return "Not available."
+
+        start = ai_text.find(label) + len(label)
+        end = len(ai_text)
+
+        # Detect next section label to stop extraction
+        for nxt in [
+            "SECTION 1", "SECTION 2", "SECTION 3",
+            "SECTION 4", "SECTION 5", "SECTION 6"
+        ]:
+            pos = ai_text.find(nxt, start)
+            if pos != -1 and pos < end:
+                end = pos
+
+        return ai_text[start:end].strip()
+
+    return {
+        "overview": extract("SECTION 1"),
+        "key_facts": extract("SECTION 2"),
+        "christian_view": extract("SECTION 3"),
+        "agreement": extract("SECTION 4"),
+        "difference": extract("SECTION 5"),
+        "practice": extract("SECTION 6"),
+    }
+
+
+# ------------------------------------------------------------
+# Base money explanation prompt
 # ------------------------------------------------------------
 def build_money_prompt(topic: str, grade: str):
     return f"""
-You are a gentle money teacher for a grade {grade} student.
+You are a gentle money tutor helping a grade {grade} student.
 
-The student asked about:
+The student asked:
 "{topic}"
 
-Answer using SIX calm and kid-friendly sections.
+Answer using SIX child-friendly sections.
 
 SECTION 1 — OVERVIEW
-Explain the money idea in a few slow and simple sentences.
+Explain the money idea in very simple language.
 
 SECTION 2 — KEY FACTS
-Explain the important everyday ideas like earning, saving,
-budgeting, spending, and choosing between needs and wants.
-Use small calm sentences, not lists.
+Teach basic ideas: saving, spending, earning, planning,
+needs vs wants, value, and simple budgeting.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly how many Christians see money as something to manage
-wisely with responsibility, generosity, and gratitude.
+Explain softly how Christians may think about money:
+stewardship, responsibility, generosity, and avoiding greed.
+If not a Christian topic, state this gently but still mention
+how some Christians see money as something to use wisely.
 
 SECTION 4 — AGREEMENT
-Explain what people of any worldview agree about, such as planning,
-saving, avoiding debt problems, and being responsible.
+Explain what nearly everyone agrees on:
+saving helps the future, planning prevents problems, spending wisely matters.
 
 SECTION 5 — DIFFERENCE
-Explain gently how Christian stewardship adds a different sense of
-purpose or motivation for using money wisely.
+Explain kindly how motivation might differ between Christian and secular views.
 
 SECTION 6 — PRACTICE
-Ask two or three tiny reflection questions and give very short
-example answers.
+Ask 2–3 small reflection questions with simple sample answers.
 
-Keep everything slow, warm, and simple.
+Tone must be soft, slow, and kid-friendly.
 """
 
 
 # ------------------------------------------------------------
-# Build 6-section prompt for Christian-directed questions
+# Christian-specific version
 # ------------------------------------------------------------
 def build_christian_money_prompt(topic: str, grade: str):
     return f"""
-The student asked this money question from a Christian perspective:
+The student asked about money from a Christian perspective:
 
 "{topic}"
 
-Answer using SIX calm, gentle sections.
+Use SIX gentle sections.
 
 SECTION 1 — OVERVIEW
-Explain the question in slow, everyday words.
+Explain the idea simply.
 
 SECTION 2 — KEY FACTS
-Explain the important ideas involved in the topic such as saving,
-spending, planning, and responsibility.
+Teach the basic money concepts.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly how many Christians understand money as stewardship.
-You may mention ideas like honesty, generosity, and wisdom.
+Explain stewardship, generosity, responsibility,
+and the idea of using resources wisely.
 
 SECTION 4 — AGREEMENT
-Explain what all people agree on regarding money regardless
-of worldview.
+Explain what all worldviews share in common.
 
 SECTION 5 — DIFFERENCE
-Explain gently how Christian motivations may differ from a
-purely secular view of money.
+Explain in a kind way how motivation or values may differ.
 
 SECTION 6 — PRACTICE
-Ask 2–3 tiny reflection questions with simple example answers.
+Ask 2–3 tiny reflection questions.
 
-Keep the tone warm, slow, and safe for a young student.
+Tone must be soft, warm, and calm.
 """
 
 
 # ------------------------------------------------------------
-# Extract helper — consistent with all other helpers
-# ------------------------------------------------------------
-def _extract_section(raw: str, label: str) -> str:
-    return raw.split(label)[-1].strip() if label in raw else "No information provided."
-
-
-# ------------------------------------------------------------
-# Main Money Explanation
+# MAIN FUNCTION — explain money
 # ------------------------------------------------------------
 def explain_money(topic: str, grade_level="8", character="everly"):
-    christian = is_christian_question(topic)
 
-    if christian:
+    if is_christian_question(topic):
         prompt = build_christian_money_prompt(topic, grade_level)
     else:
         prompt = build_money_prompt(topic, grade_level)
 
-    # Add character personality
     prompt = apply_personality(character, prompt)
 
-    # Ask AI
     raw = study_buddy_ai(prompt, grade_level, character)
 
-    # Extract six sections
-    overview       = _extract_section(raw, "SECTION 1")
-    key_facts      = _extract_section(raw, "SECTION 2")
-    christian_view = _extract_section(raw, "SECTION 3")
-    agreement      = _extract_section(raw, "SECTION 4")
-    difference     = _extract_section(raw, "SECTION 5")
-    practice       = _extract_section(raw, "SECTION 6")
-
-    # Format for HTML
-    return format_answer(
-        overview=overview,
-        key_facts=key_facts,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
+    sections = extract_sections(raw)
+    return format_answer(**sections)
 
 
 # ------------------------------------------------------------
-# Solve Accounting Problem — 6-section format
+# GENERAL MONEY QUESTION
 # ------------------------------------------------------------
-def solve_accounting_problem(problem: str, grade_level="8", character="everly"):
+def money_question(question: str, grade_level="8", character="everly"):
 
-    prompt = f"""
-You are a gentle accounting tutor for a grade {grade_level} student.
-
-The student asked:
-"{problem}"
-
-Use SIX warm, simple sections.
-
-SECTION 1 — OVERVIEW
-Rephrase the problem in slow, everyday words.
-
-SECTION 2 — KEY FACTS
-Explain the basic accounting ideas the problem uses such as
-assets, expenses, revenues, liabilities, or debits and credits.
-
-SECTION 3 — CHRISTIAN VIEW
-Softly explain how Christians view honesty, stewardship,
-and responsibility in managing money.
-
-SECTION 4 — AGREEMENT
-Explain what all worldviews agree about in accounting such as keeping
-track of money, being responsible, and avoiding mistakes.
-
-SECTION 5 — DIFFERENCE
-Explain gently how Christian stewardship can add deeper meaning
-to responsible financial decision-making.
-
-SECTION 6 — PRACTICE
-Walk through the solution in slow steps and then give 2 tiny
-practice problems with example answers.
-
-Keep everything calm and very simple.
-"""
-
-    # Apply personality
+    prompt = build_money_prompt(question, grade_level)
     prompt = apply_personality(character, prompt)
 
-    # Call AI
     raw = study_buddy_ai(prompt, grade_level, character)
 
-    # Extract
-    overview       = _extract_section(raw, "SECTION 1")
-    key_facts      = _extract_section(raw, "SECTION 2")
-    christian_view = _extract_section(raw, "SECTION 3")
-    agreement      = _extract_section(raw, "SECTION 4")
-    difference     = _extract_section(raw, "SECTION 5")
-    practice       = _extract_section(raw, "SECTION 6")
-
-    return format_answer(
-        overview=overview,
-        key_facts=key_facts,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
+    sections = extract_sections(raw)
+    return format_answer(**sections)
 
 
 # ------------------------------------------------------------
-# Accounting Quiz — 6-section format
+# MONEY QUIZ
 # ------------------------------------------------------------
-def accounting_quiz(topic: str, grade_level="8", character="everly"):
+def money_quiz(topic: str, grade_level="8", character="everly"):
 
     prompt = f"""
-Create a warm, calm money quiz for grade {grade_level}.
+Create a gentle money quiz for grade {grade_level}.
 
-Topic:
-"{topic}"
+Topic: "{topic}"
 
-Use SIX SECTIONS.
+Use SIX SECTIONS:
 
-SECTION 1 — OVERVIEW
-Short gentle explanation of the topic.
+SECTION 1 — OVERVIEW  
+SECTION 2 — KEY FACTS  
+SECTION 3 — CHRISTIAN VIEW  
+SECTION 4 — AGREEMENT  
+SECTION 5 — DIFFERENCE  
+SECTION 6 — PRACTICE  
 
-SECTION 2 — KEY FACTS
-Simple core ideas the student should understand.
-
-SECTION 3 — CHRISTIAN VIEW
-Soft explanation of stewardship and responsibility.
-
-SECTION 4 — AGREEMENT
-What all worldviews agree about money.
-
-SECTION 5 — DIFFERENCE
-How Christian motivations may differ from secular motivations.
-
-SECTION 6 — PRACTICE
-Write a few tiny quiz questions followed by short example answers
-in natural kid-friendly language.
-
-Tone must stay warm, slow, and child-friendly.
+Tone must be slow, kind, and easy for kids.
 """
 
     prompt = apply_personality(character, prompt)
     raw = study_buddy_ai(prompt, grade_level, character)
 
-    overview       = _extract_section(raw, "SECTION 1")
-    key_facts      = _extract_section(raw, "SECTION 2")
-    christian_view = _extract_section(raw, "SECTION 3")
-    agreement      = _extract_section(raw, "SECTION 4")
-    difference     = _extract_section(raw, "SECTION 5")
-    practice       = _extract_section(raw, "SECTION 6")
+    sections = extract_sections(raw)
+    return format_answer(**sections)
 
-    return format_answer(
-        overview=overview,
-        key_facts=key_facts,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
-    )
 
 
 

@@ -2,7 +2,7 @@
 
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
-from modules.answer_formatter import parse_into_sections, format_answer
+from modules.answer_formatter import format_answer
 
 
 # -------------------------------------------------------
@@ -21,7 +21,7 @@ def is_christian_question(text: str) -> bool:
 # -------------------------------------------------------
 def socratic_layer(question: str, grade_level: str):
     return f"""
-A student asked about this reading question/passage:
+A student asked about this reading question or passage:
 
 \"{question}\"
 
@@ -29,7 +29,7 @@ Before giving the full structured answer, guide them Socratically:
 
 1. Restate what they are asking in very simple words.
 2. Give one gentle hint that helps them think.
-3. Ask a small guiding question.
+3. Ask one small guiding question.
 4. Provide one tiny nudge, without giving the full answer.
 
 After these 4 steps, begin the 6-section Homework Buddy format.
@@ -104,6 +104,15 @@ Include a short PRACTICE section.
 
 
 # -------------------------------------------------------
+# Helper for extracting SECTION text
+# -------------------------------------------------------
+def extract_section(raw: str, label: str) -> str:
+    if label not in raw:
+        return "Not available."
+    return raw.split(label)[-1].strip()
+
+
+# -------------------------------------------------------
 # PUBLIC FUNCTIONS — SOCratic + STRUCTURED FORMAT
 # -------------------------------------------------------
 
@@ -125,15 +134,19 @@ Keep everything gentle and clear.
     else:
         base_prompt = build_summary_prompt(text, grade_level)
 
-    # 🎯 Socratic + base prompt
     full_prompt = socratic_layer(text, grade_level) + "\n" + base_prompt
-
     enriched = apply_personality(character, full_prompt)
-    ai_text = study_buddy_ai(enriched, grade_level, character)
 
-    sections = parse_into_sections(ai_text)
-    return format_answer(**sections)
+    raw = study_buddy_ai(enriched, grade_level, character)
 
+    return format_answer(
+        overview=extract_section(raw, "SECTION 1"),
+        key_facts=extract_section(raw, "SECTION 2"),
+        christian_view=extract_section(raw, "SECTION 3"),
+        agreement=extract_section(raw, "SECTION 4"),
+        difference=extract_section(raw, "SECTION 5"),
+        practice=extract_section(raw, "SECTION 6")
+    )
 
 
 def reading_help(question: str, passage: str, grade_level="8", character=None):
@@ -159,11 +172,16 @@ Explain using the 6-section Homework Buddy format.
     full_prompt = socratic_layer(question, grade_level) + "\n" + base_prompt
     enriched = apply_personality(character, full_prompt)
 
-    ai_text = study_buddy_ai(enriched, grade_level, character)
-    sections = parse_into_sections(ai_text)
+    raw = study_buddy_ai(enriched, grade_level, character)
 
-    return format_answer(**sections)
-
+    return format_answer(
+        overview=extract_section(raw, "SECTION 1"),
+        key_facts=extract_section(raw, "SECTION 2"),
+        christian_view=extract_section(raw, "SECTION 3"),
+        agreement=extract_section(raw, "SECTION 4"),
+        difference=extract_section(raw, "SECTION 5"),
+        practice=extract_section(raw, "SECTION 6")
+    )
 
 
 def find_main_idea(passage: str, grade_level="8", character=None):
@@ -186,11 +204,16 @@ Use the 6 structured sections.
     full_prompt = socratic_layer(passage, grade_level) + "\n" + base_prompt
     enriched = apply_personality(character, full_prompt)
 
-    ai_text = study_buddy_ai(enriched, grade_level, character)
-    sections = parse_into_sections(ai_text)
+    raw = study_buddy_ai(enriched, grade_level, character)
 
-    return format_answer(**sections)
-
+    return format_answer(
+        overview=extract_section(raw, "SECTION 1"),
+        key_facts=extract_section(raw, "SECTION 2"),
+        christian_view=extract_section(raw, "SECTION 3"),
+        agreement=extract_section(raw, "SECTION 4"),
+        difference=extract_section(raw, "SECTION 5"),
+        practice=extract_section(raw, "SECTION 6")
+    )
 
 
 def help_with_reading_task(task: str, grade_level="8", character=None):
@@ -212,10 +235,13 @@ Use the 6 Homework Buddy structured sections.
     full_prompt = socratic_layer(task, grade_level) + "\n" + base_prompt
     enriched = apply_personality(character, full_prompt)
 
-    ai_text = study_buddy_ai(enriched, grade_level, character)
-    sections = parse_into_sections(ai_text)
+    raw = study_buddy_ai(enriched, grade_level, character)
 
-    return format_answer(**sections)
-
-
-
+    return format_answer(
+        overview=extract_section(raw, "SECTION 1"),
+        key_facts=extract_section(raw, "SECTION 2"),
+        christian_view=extract_section(raw, "SECTION 3"),
+        agreement=extract_section(raw, "SECTION 4"),
+        difference=extract_section(raw, "SECTION 5"),
+        practice=extract_section(raw, "SECTION 6")
+    )
