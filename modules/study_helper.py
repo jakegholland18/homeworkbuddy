@@ -1,81 +1,100 @@
+# modules/study_helper.py
+
 from modules.shared_ai import study_buddy_ai
-from modules.personality_helper import apply_personality
 
-def deep_study_chat(conversation_history, grade_level="8", character="everly", subject_name=None):
+def deep_study_chat(question, grade_level="8", character="everly"):
     """
-    Deep conversational tutor for ALL planets.
-    conversation_history = list of {"role": "user"/"assistant", "content": "..."}
+    A robust deep conversation handler for PowerGrid.
+
+    It accepts:
+    • A single string (normal subject question)
+    • A list of messages like:
+        [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
+
+    It ALWAYS converts everything into a valid conversation structure
+    and then generates a deep tutor response.
     """
 
-    transcript = ""
-    for turn in conversation_history:
-        speaker = "Student" if turn["role"] == "user" else "Tutor"
-        transcript += f"{speaker}: {turn['content']}\n"
+    # ============================================================
+    # NORMALIZE INPUT → ALWAYS return a list with dict messages
+    # ============================================================
 
-    subject_line = f"Subject/Planet: {subject_name}" if subject_name else "Subject: General"
+    # Case 1: A plain string question
+    if isinstance(question, str):
+        conversation = [{"role": "user", "content": question.strip()}]
+
+    # Case 2: A list (chat history or raw strings)
+    elif isinstance(question, list):
+        conversation = []
+        for turn in question:
+            # Already a dict (valid)
+            if isinstance(turn, dict) and "content" in turn:
+                conversation.append({
+                    "role": turn.get("role", "user"),
+                    "content": str(turn.get("content", "")).strip()
+                })
+            # A raw string inside the list → treat as user message
+            else:
+                conversation.append({
+                    "role": "user",
+                    "content": str(turn).strip()
+                })
+
+    # Case 3: Unknown format → convert to string
+    else:
+        conversation = [{"role": "user", "content": str(question)}]
+
+    # ============================================================
+    # BUILD HUMAN-FRIENDLY DIALOGUE CONTEXT
+    # ============================================================
+
+    dialogue_text = ""
+    for turn in conversation:
+        role = turn.get("role", "user")
+        content = turn.get("content", "")
+
+        speaker = "Student" if role == "user" else "Tutor"
+        dialogue_text += f"{speaker}: {content}\n"
+
+    # ============================================================
+    # THE AI PROMPT (Deep Study Tutor)
+    # ============================================================
 
     prompt = f"""
-You are a Deep Study Tutor inside the Homework Buddy galaxy.
+You are the DEEP STUDY TUTOR of PowerGrid.
 
-{subject_line}
-GRADE LEVEL: {grade_level}
-
-TUTOR STYLE:
-- warm, patient, genuinely kind
-- explains ideas step-by-step in small chunks
-- uses examples and analogies
-- frequently checks for understanding
-- asks gentle follow-up questions
-- reflects Christian virtues (wisdom, integrity, compassion, purpose)
-  but NEVER as a separate 'Christian' section and never preachy.
-
-CONVERSATION SO FAR:
-{transcript}
-
-Now respond as the tutor with the NEXT message only.
-Talk directly to the student.
-Stay conversational, not outline-style. 3–8 sentences is usually enough,
-but go longer if the concept is difficult.
-"""
-
-    prompt = apply_personality(character, prompt)
-    return study_buddy_ai(prompt, grade_level, character)
-
-
-def generate_study_guide(source_text: str, grade_level="8", character="everly"):
-    """
-    PowerGrid-only massive study guide builder from text/topic/file contents.
-    """
-
-    prompt = f"""
-You are the STUDY GUIDE ENGINE on the PowerGrid planet in the Homework Buddy galaxy.
+Your personality:
+• Warm, calm, clear
+• Gentle Christian virtues (wisdom, patience, clarity, moral grounding)
+• Speak with purpose and depth
+• Guide the student step-by-step
+• Never shame or judge — always empower
 
 GRADE LEVEL: {grade_level}
 
-You are given source material and/or a topic:
+Here is the conversation so far:
 
-\"\"\"{source_text}\"\"\"
+{dialogue_text}
 
-Create an EXTREMELY in-depth, student-friendly study guide.
+Now continue as the PowerGrid tutor.
+Go deep.
+Explain with clarity.
+Guide the student's understanding.
+""".strip()
 
-Your study guide should be organized roughly like this (but do NOT label them as sections 1–7 in the answer, just use clear headings):
+    # ============================================================
+    # CALL THE MODEL
+    # ============================================================
 
-- Big Picture Overview
-- Key Vocabulary (with very kid-friendly definitions)
-- Core Ideas explained step-by-step
-- Important diagrams or visual descriptions (describe them in words)
-- Real-life examples and applications
-- Common mistakes / misconceptions and how to avoid them
-- Practice questions (10–20), with answers at the end
-- A short 'Quick Review' summary
+    response = study_buddy_ai(prompt, grade_level, character)
 
-Write in warm, clear language.
-Make it feel like a human tutor sat down and wrote an amazing guide just for this student.
-Do NOT mention these instructions or the name 'PowerGrid' in the output.
-"""
+    # Ensure a clean text return, even if helper returns dicts
+    if isinstance(response, dict):
+        return response.get("raw_text") or response.get("text") or str(response)
 
-    prompt = apply_personality(character, prompt)
-    return study_buddy_ai(prompt, grade_level, character)
+    return response
+
+
 
 
 

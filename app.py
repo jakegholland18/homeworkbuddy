@@ -3,6 +3,7 @@ import os
 import logging
 import traceback
 from datetime import datetime, timedelta
+
 from flask import (
     Flask, render_template, request, redirect, session,
     flash, jsonify, send_file
@@ -27,6 +28,8 @@ app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
 # ============================================================
 # ERROR LOGGING
 # ============================================================
+
+logging.basicConfig(level=logging.INFO)
 
 def log_exception(sender, exception, **extra):
     sender.logger.error("Exception during request: %s", traceback.format_exc())
@@ -70,7 +73,7 @@ subject_map = {
     "coin_quest": money_helper.explain_money,
     "terra_nova": question_helper.answer_question,
     "story_verse": text_helper.explain_text,
-    "power_grid": study_helper.deep_study_chat,  # only for conversation—NOT study guide
+    "power_grid": study_helper.deep_study_chat,  # conversation-style deep study
 }
 
 # ============================================================
@@ -228,7 +231,7 @@ def powergrid_submit():
                 from PyPDF2 import PdfReader
                 pdf = PdfReader(path)
                 text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-            except:
+            except Exception:
                 text = "Could not read PDF content."
 
         else:
@@ -245,12 +248,12 @@ CONTENT SOURCE:
 {text}
 
 STYLE:
-• Very detailed  
-• Step-by-step explanations  
-• Examples  
-• Key terms  
-• Study tips  
-• Summary  
+• Very detailed
+• Step-by-step explanations
+• Examples
+• Key terms
+• Study tips
+• Summary
 • Written for grade {grade}
 
 FORMAT:
@@ -283,6 +286,7 @@ Use clean text (no markdown).
         session["study_pdf"] = pdf_path
 
     except Exception as e:
+        app.logger.error("Error generating PDF: %s", e)
         pdf_url = None
 
     # save conversation memory start
@@ -328,10 +332,18 @@ def subject_answer():
     session["progress"][subject]["questions"] += 1
 
     func = subject_map.get(subject)
+    if func is None:
+        flash("Unknown subject selected.", "error")
+        return redirect("/subjects")
+
+    # Call the subject handler.
+    # deep_study_chat is written to accept either a string or a conversation list.
     result = func(question, grade, character)
+
+    # Some helpers may return dicts; others raw text.
     six_section_answer = result.get("raw_text") if isinstance(result, dict) else result
 
-    # start conversation memory with the 6-section answer
+    # start conversation memory with the answer
     session["conversation"] = [
         {"role": "assistant", "content": six_section_answer}
     ]
@@ -348,7 +360,7 @@ def subject_answer():
         answer=six_section_answer,
         character=character,
         conversation=session["conversation"],
-        pdf_url=None
+        pdf_url=None,
     )
 
 
@@ -361,15 +373,15 @@ def followup_message():
     init_user()
 
     data = request.get_json() or {}
-    subject = data["subject"]
-    grade = data["grade"]
-    character = data["character"]
-    message = data["message"]
+    subject = data.get("subject")
+    grade = data.get("grade")
+    character = data.get("character") or session["character"]
+    message = data.get("message", "")
 
     conversation = session.get("conversation", [])
     conversation.append({"role": "user", "content": message})
 
-    # deep conversational response
+    # deep conversational response (PowerGrid-style)
     reply = study_helper.deep_study_chat(conversation, grade, character)
 
     conversation.append({"role": "assistant", "content": reply})
@@ -393,7 +405,7 @@ def dashboard():
     streak = session["streak"]
 
     xp_to_next = level * 100
-    xp_percent = int((xp / xp_to_next) * 100)
+    xp_percent = int((xp / xp_to_next) * 100) if xp_to_next > 0 else 0
 
     missions = [
         "Visit 2 different planets",
@@ -451,13 +463,18 @@ def parent_dashboard():
 # ============================================================
 
 @app.route("/terms")
-def terms(): return render_template("terms.html")
+def terms():
+    return render_template("terms.html")
+
 
 @app.route("/privacy")
-def privacy(): return render_template("privacy.html")
+def privacy():
+    return render_template("privacy.html")
+
 
 @app.route("/disclaimer")
-def disclaimer(): return render_template("disclaimer.html")
+def disclaimer():
+    return render_template("disclaimer.html")
 
 
 # ============================================================
@@ -466,6 +483,7 @@ def disclaimer(): return render_template("disclaimer.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
