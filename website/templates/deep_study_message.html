@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PowerGrid — Deep Study Tutor</title>
+
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/animations.css">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at top, #0f1a2b, #000814);
+            color: white;
+            font-family: "Poppins", sans-serif;
+            overflow: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            inset: 0;
+            background: url('/static/stars.png');
+            background-size: cover;
+            opacity: 0.35;
+            z-index: -1;
+            animation: drift 50s linear infinite;
+        }
+
+        @keyframes drift {
+            from { transform: translateY(0); }
+            to   { transform: translateY(-2000px); }
+        }
+
+        .chat-layout {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* LEFT CHARACTER PANEL */
+        .character-side {
+            width: 260px;
+            padding: 20px;
+            background: rgba(9, 15, 28, 0.95);
+            box-shadow: 6px 0 18px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+
+        .character-side img {
+            width: 165px;
+            height: auto;
+            margin-top: 20px;
+            filter: drop-shadow(0 0 18px rgba(255,255,255,0.5));
+        }
+
+        .character-name {
+            margin-top: 10px;
+            font-size: 1.4rem;
+            color: #f5d06e;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+        }
+
+        .character-tagline {
+            margin-top: 8px;
+            font-size: 0.95rem;
+            opacity: 0.8;
+        }
+
+        /* MAIN CHAT AREA */
+        .chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .chat-header {
+            padding: 16px 22px;
+            background: rgba(13, 24, 46, 0.96);
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+            font-size: 1.2rem;
+            letter-spacing: 0.03em;
+        }
+
+        .chat-header span {
+            color: #bfe6ff;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .msg {
+            max-width: 80%;
+            margin: 10px 0;
+            padding: 14px 18px;
+            border-radius: 14px;
+            line-height: 1.55;
+            white-space: pre-wrap;
+        }
+
+        .user-msg {
+            background: #1a72ff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-msg {
+            background: rgba(255,255,255,0.10);
+            border-bottom-left-radius: 4px;
+        }
+
+        /* INPUT BAR */
+        .input-bar {
+            display: flex;
+            padding: 14px 18px;
+            background: rgba(13, 24, 46, 0.96);
+            border-top: 1px solid rgba(255,255,255,0.12);
+        }
+
+        #message-input {
+            flex-grow: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.12);
+            color: white;
+            outline: none;
+        }
+
+        #send-btn {
+            margin-left: 12px;
+            padding: 12px 26px;
+            background: #3c8aff;
+            border: none;
+            color: white;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        #send-btn:hover {
+            background: #1a72ff;
+            transform: translateY(-2px);
+        }
+
+        .helper-hint {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-top: 8px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+<div class="stars"></div>
+
+<div class="chat-layout fade-in">
+
+    <!-- LEFT: CHARACTER PANEL -->
+    <div class="character-side">
+        <img src="/static/characters/{{ character }}.png" alt="Tutor Character">
+        <div class="character-name">{{ character|title }}</div>
+        <div class="character-tagline">
+            PowerGrid Deep Study Tutor
+        </div>
+        <div class="helper-hint">
+            Ask follow-up questions, “why” questions, or specific examples.<br>
+            {{ character|title }} will keep going deeper with you.
+        </div>
+    </div>
+
+    <!-- RIGHT: CHAT -->
+    <div class="chat-area">
+        <div class="chat-header">
+            ✨ <span>PowerGrid Deep Study Chat</span>
+        </div>
+
+        <div class="chat-messages" id="chat-box">
+            {% for turn in conversation %}
+                {% if turn.role == "user" %}
+                    <div class="msg user-msg">{{ turn.content }}</div>
+                {% else %}
+                    <div class="msg ai-msg">{{ turn.content }}</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="input-bar">
+            <input id="message-input" type="text" placeholder="Ask a deeper question or say what you’re confused about...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const input = document.getElementById("message-input");
+const sendBtn = document.getElementById("send-btn");
+const chatBox = document.getElementById("chat-box");
+
+function scrollToBottom() {
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+scrollToBottom();
+
+function addMessage(text, role) {
+    const div = document.createElement("div");
+    div.classList.add("msg");
+    div.classList.add(role === "user" ? "user-msg" : "ai-msg");
+    div.textContent = text;
+    chatBox.appendChild(div);
+    scrollToBottom();
+}
+
+async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    addMessage(text, "user");
+    input.value = "";
+
+    try {
+        const res = await fetch("/deep_study_message", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text })
+        });
+
+        const data = await res.json();
+        addMessage(data.reply, "ai");
+    } catch (err) {
+        addMessage("Hmm, something went wrong talking to the server. Try again in a moment.", "ai");
+        console.error(err);
+    }
+}
+
+sendBtn.addEventListener("click", sendMessage);
+input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        sendMessage();
+    }
+});
+</script>
+
+</body>
+</html>

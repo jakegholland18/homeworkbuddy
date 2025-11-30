@@ -251,17 +251,52 @@ def ask_question():
 # ============================================================
 
 @app.route("/subject", methods=["POST"])
-def subject_answer():
+def subject():
     init_user()
 
     grade = request.form.get("grade")
     subject = request.form.get("subject")
-    question = request.form.get("question")
+    question = (request.form.get("question") or "").strip()
     character = session["character"]
 
     # Ensure progress tracking exists for this subject
     session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
     session["progress"][subject]["questions"] += 1
+
+    # ===========================
+    # SPECIAL CASE: POWER GRID
+    # ===========================
+    if subject == "power_grid":
+        # Save grade level for future turns
+        session["grade_level"] = grade or session.get("grade_level", "8")
+
+        # Initialize memory if needed
+        if "deep_memory" not in session:
+            session["deep_memory"] = []
+
+        # First user question
+        if question:
+            session["deep_memory"].append({"role": "user", "content": question})
+
+            # Call deep_study_chat ONCE for the initial reply
+            ai_text = study_helper.deep_study_chat(
+                question,
+                grade_level=session["grade_level"],
+                character=character,
+            )
+            session["deep_memory"].append({"role": "assistant", "content": ai_text})
+
+        # Rewards
+        add_xp(20)
+        session["tokens"] += 2
+        session.modified = True
+
+        # Go to conversational PowerGrid chat page
+        return redirect("/deep_study_chat")
+
+    # ===========================
+    # ALL OTHER SUBJECTS
+    # ===========================
 
     func = subject_map.get(subject)
 
@@ -276,20 +311,13 @@ def subject_answer():
             practice="",
         )
     else:
-        # Build turns for chat-based planets like PowerGrid
-        turns = [{"role": "user", "content": question}]
+        result = func(question, grade, character)
 
-        # UNIVERSAL SAFE CALL:
-        # 1️⃣ Try the new chat format (used by PowerGrid)
-        # 2️⃣ If the subject only accepts raw strings, fallback automatically
-        
-    if subject == "power_grid":
-        # PowerGrid uses chat format
-            answer = func(turns, grade, character)
-    else:
-        # All other subjects expect a plain string
-        answer = func(question, grade, character)
-
+        # Most helpers now return a dict with 'raw_text' plus the 6 sections
+        if isinstance(result, dict):
+            answer = result.get("raw_text") or str(result)
+        else:
+            answer = result
 
     # Rewards
     add_xp(20)
@@ -411,17 +439,19 @@ def disclaimer():
 @app.route("/deep_study_chat")
 def deep_study_chat_page():
     init_user()
+    conversation = session.get("deep_memory", [])
     return render_template(
         "deep_study_chat.html",
         character=session["character"],
-        conversation=session.get("deep_memory", []),
+        conversation=conversation,
     )
 
-@app.route("/deep_study_chat", methods=["POST"])
+@app.route("/deep_study_message", methods=["POST"])
 def deep_study_message():
     init_user()
 
-    user_msg = request.json.get("message", "").strip()
+    data = request.get_json(silent=True) or {}
+    user_msg = (data.get("message") or "").strip()
     character = session["character"]
     grade = session.get("grade_level", "8")
 
@@ -429,20 +459,22 @@ def deep_study_message():
     if "deep_memory" not in session:
         session["deep_memory"] = []
 
-    # Save user message
-    session["deep_memory"].append({"role": "user", "content": user_msg})
+    if user_msg:
+        # Save user message
+        session["deep_memory"].append({"role": "user", "content": user_msg})
 
-    # --- 🔥 CALL YOUR REAL FUNCTION HERE ---
-    ai_text = study_helper.deep_study_chat(
-        user_msg,
-        grade_level=grade,
-        character=character,
-    )
-    # --------------------------------------
+        # Call deep study helper
+        ai_text = study_helper.deep_study_chat(
+            user_msg,
+            grade_level=grade,
+            character=character,
+        )
 
-    # Save AI reply
-    session["deep_memory"].append({"role": "assistant", "content": ai_text})
-    session.modified = True
+        # Save AI reply
+        session["deep_memory"].append({"role": "assistant", "content": ai_text})
+        session.modified = True
+    else:
+        ai_text = "Try asking your question in a full sentence so I can really help."
 
     return jsonify({"reply": ai_text})
 
@@ -452,6 +484,3 @@ def deep_study_message():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-# redeploy fix Sun Nov 30 00:11:00 EST 2025
