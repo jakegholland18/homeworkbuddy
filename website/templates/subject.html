@@ -1,171 +1,150 @@
-{% extends "layout.html" %}
-{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject|title }} — Answer</title>
 
-<style>
-    .answer-wrapper {
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 20px;
-        color: white;
-        text-align: center;
-    }
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/animations.css">
 
-    /* CHARACTER */
-    .character-section {
-        margin-bottom: 25px;
-    }
+    <style>
+        body {
+            background: radial-gradient(circle at top, #0f1a2b, #000814);
+            margin: 0;
+            padding: 0;
+            color: white;
+            font-family: "Poppins", sans-serif;
+            overflow-x: hidden;
+        }
 
-    .character-img {
-        width: 240px;
-        animation: float 4s ease-in-out infinite;
-        filter: drop-shadow(0 0 22px #000);
-    }
+        .stars {
+            position: fixed;
+            inset: 0;
+            background: url('/static/stars.png');
+            background-size: cover;
+            opacity: 0.35;
+            z-index: -1;
+            animation: drift 50s linear infinite;
+        }
 
-    @keyframes float {
-        0% { transform: translateY(0); }
-        50% { transform: translateY(-12px); }
-        100% { transform: translateY(0); }
-    }
+        @keyframes drift {
+            from { transform: translateY(0); }
+            to   { transform: translateY(-2000px); }
+        }
 
-    .character-name {
-        margin-top: 10px;
-        font-size: 1.6rem;
-        font-weight: 600;
-        color: #ffd86b;
-        text-shadow: 0 0 10px #ffb300;
-    }
+        .answer-container {
+            max-width: 940px;
+            margin: 160px auto 80px;
+            background: rgba(18, 30, 50, 0.75);
+            padding: 30px 40px;
+            border-radius: 18px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.45);
+            backdrop-filter: blur(6px);
+        }
 
-    /* CARD */
-    .answer-card {
-        margin-top: 30px;
-        background: rgba(255,255,255,0.12);
-        padding: 30px;
-        border-radius: 18px;
-        backdrop-filter: blur(10px);
-        text-align: left;
-        box-shadow: 0 0 25px rgba(0,0,0,0.5);
-        line-height: 1.65;
-        font-size: 1.15rem;
-    }
+        .answer-title {
+            text-align: center;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            color: #bfe6ff;
+            text-shadow: 0 0 15px rgba(102,209,255,0.7);
+        }
 
-    .section-title {
-        font-size: 1.4rem;
-        color: #bfe6ff;
-        margin-top: 30px;
-        font-weight: 700;
-        text-shadow: 0 0 10px #5ecbff;
-    }
+        .character-wrapper {
+            text-align: center;
+            margin-top: 40px;
+        }
 
-    ul {
-        padding-left: 18px;
-        margin-top: 10px;
-    }
+        .character-img {
+            width: 200px;
+            height: auto;
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.4));
+        }
 
-    li {
-        margin-bottom: 8px;
-    }
+        .character-name {
+            font-size: 1.4rem;
+            margin-top: 10px;
+            color: #f5d06e;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
 
-    /* BUTTON */
-    .btn-back {
-        display: inline-block;
-        margin-top: 35px;
-        padding: 14px 36px;
-        background: #0059ff;
-        color: white;
-        font-size: 1.2rem;
-        border-radius: 12px;
-        text-decoration: none;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-        transition: 0.25s ease;
-    }
+        pre.answer-text {
+            white-space: pre-wrap;
+            font-size: 1.08rem;
+            line-height: 1.55;
+        }
 
-    .btn-back:hover {
-        background: #2f74ff;
-        transform: translateY(-3px);
-    }
-</style>
+        .redo-box {
+            max-width: 760px;
+            margin: 40px auto 30px;
+            background: rgba(240, 240, 255, 0.09);
+            padding: 20px;
+            border-radius: 14px;
+            text-align: center;
+        }
 
+        .ask-btn {
+            display: block;
+            margin: 40px auto;
+            padding: 14px 32px;
+            background: #1a72ff;
+            color: white;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: 0.2s;
+        }
 
-<div class="answer-wrapper fade-in">
+        .ask-btn:hover {
+            transform: translateY(-3px);
+            background: #3c8aff;
+        }
 
-    <!-- CHARACTER -->
-    <div class="character-section">
+        .disclaimer {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="stars"></div>
+
+    {% include 'sidebar.html' %}
+
+    <div class="character-wrapper fade-in">
         <img src="/static/characters/{{ character }}.png" class="character-img">
-        <div class="character-name">{{ character.replace('_',' ').title() }}</div>
+        <div class="character-name">{{ character|title }}</div>
     </div>
 
-    <!-- MAIN ANSWER -->
-    <div class="answer-card">
+    <div class="answer-container fade-in">
+        <h2 class="answer-title">
+            ✨ {{ subject|title }} — Your Answer
+        </h2>
 
-        {% if answer.overview %}
-            <div class="section-title">🌟 Overview</div>
-            <p>{{ answer.overview }}</p>
-        {% endif %}
-
-        {% if answer.key_facts and answer.key_facts|length > 0 %}
-            <div class="section-title">📘 Key Facts</div>
-            <ul>
-                {% for fact in answer.key_facts %}
-                <li>{{ fact }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-
-        {% if answer.christian_view %}
-            <div class="section-title">✨ Christian Viewpoint</div>
-            <p>{{ answer.christian_view }}</p>
-        {% endif %}
-
-        {% if answer.agreement and answer.agreement|length > 0 %}
-            <div class="section-title">🤝 Where Christian & Secular Views Agree</div>
-            <ul>
-                {% for item in answer.agreement %}
-                <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-
-        {% if answer.difference and answer.difference|length > 0 %}
-            <div class="section-title">🔍 Where They Differ</div>
-            <ul>
-                {% for diff in answer.difference %}
-                <li>{{ diff }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-
-        {% if answer.practice and answer.practice|length > 0 %}
-            <div class="section-title">🧠 Now You Try!</div>
-            <ul>
-                {% for q in answer.practice %}
-                <li>{{ q }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-
-        <div class="section-title">➡ Want Help With Another Question?</div>
-        <p>You can go back and explore more planets anytime.</p>
-
+        <pre class="answer-text">{{ answer }}</pre>
     </div>
-<div style="
-    margin-top: 30px;
-    padding: 15px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-    color: #d0e3ff;
-    text-align: center;
-    font-size: 0.9rem;
-    line-height: 1.4;
-">
-    ⚠️ Disclaimer: Homework Buddy uses AI to generate explanations.  
-    While helpful, answers may occasionally contain mistakes.
-</div>
 
-    <a href="/subjects" class="btn-back">Ask Another Question</a>
+    <div class="redo-box">
+        ➡️ Want help with another question?  
+        You can go back and explore more planets anytime.
+    </div>
 
-</div>
+    <a href="/subjects">
+        <button class="ask-btn">Ask Another Question</button>
+    </a>
 
-{% endblock %}
+    <div class="disclaimer">
+        ⚠️ Disclaimer: Homework Buddy uses AI to generate explanations.  
+        While helpful, answers may occasionally contain mistakes.
+    </div>
+</body>
+</html>
+
 
 
 
