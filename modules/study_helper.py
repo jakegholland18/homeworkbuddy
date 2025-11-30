@@ -3,6 +3,7 @@
 from modules.shared_ai import study_buddy_ai
 from modules.personality_helper import apply_personality
 
+
 def deep_study_chat(question, grade_level="8", character="everly"):
     """
     PowerGrid Deep Study Chat:
@@ -107,8 +108,10 @@ OUTPUT:
 • 5x–10x longer than a normal study guide
 • A true master guide
 """
-# DO NOT wrap PowerGrid study guides in personality formatting
-# prompt = apply_personality(character, prompt)
+
+    # ENSURE personality is NOT applied to study guide
+    # This line must stay INSIDE the function
+    # prompt = apply_personality(character, prompt)
 
     response = study_buddy_ai(prompt, grade_level, character)
 
@@ -116,11 +119,3 @@ OUTPUT:
         return response.get("raw_text") or response.get("text") or str(response)
 
     return response
-
-
-
-
-
-
-
-
