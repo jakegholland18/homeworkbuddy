@@ -33,7 +33,7 @@ def deep_study_chat(question, grade_level="8", character="everly"):
         speaker = "Student" if turn["role"] == "user" else "Tutor"
         dialogue_text += f"{speaker}: {turn['content']}\n"
 
-    # Tutor follow-up (NOT study guide, no sections)
+    # Tutor follow-up
     prompt = f"""
 You are a warm, patient, expert tutor.
 
@@ -50,7 +50,6 @@ RULES:
 • No long essays
 • No structured sections
 • No study guide formatting
-• No 6-section format
 • No repeating the master guide
 • If asked for more detail, go deeper in a conversational way
 """
@@ -68,10 +67,8 @@ RULES:
 # -------------------------------------------------------------
 def generate_master_study_guide(text, grade_level="8", character="everly"):
     """
-    OLD STUDY GUIDE (bullet-only).
-    Still used by some subjects, but NOT for PowerGrid anymore.
+    OLD bullet-only master guide.
     """
-
     prompt = f"""
 Create the most complete, extremely in-depth MASTER STUDY GUIDE possible.
 
@@ -79,36 +76,25 @@ CONTENT SOURCE:
 {text}
 
 GOALS:
-• Teach EVERYTHING the AI knows about this topic
-• Cover beginner, intermediate, advanced, and expert levels
-• Break every major idea into bullet points
-• Use sub-bullets for deeper detail
-• Provide examples, analogies, comparisons
-• Include diagrams-in-text when useful (ASCII)
-• Provide formulas and equations when relevant
-• List common mistakes students make
-• Give exam-style memory tips
-• Include mastery-level insights very few people know
+• Teach EVERYTHING the AI knows
+• Beginner → expert levels
+• Bullet points only
+• Sub-bullets for depth
+• Diagrams when useful
+• Examples, analogies, memory tips
+• Common mistakes
+• Formulas where relevant
 
 STYLE:
-• Very clear
+• Clean bullets only
+• No paragraphs
 • Very structured
-• All bullet points (no paragraphs)
-• Indented hierarchy
-• No markdown formatting
 • Friendly tutor tone
-• Written for grade {grade_level} but extremely deep
+• Grade {grade_level}
 
 FORMAT:
-• Clean plain text
-• Lots of sections
-• Lots of bullet points
-• Lots of sub-bullets
-• As long as needed
-
-OUTPUT:
-• 5x–10x longer than a normal study guide
-• A true master guide
+• Plain text
+• Very long
 """
 
     response = study_buddy_ai(prompt, grade_level, character)
@@ -120,13 +106,12 @@ OUTPUT:
 
 
 # -------------------------------------------------------------
-# NEW **ULTRA** PowerGrid Mixed-Format Master Guide (SAFE VERSION)
+# NEW **ULTRA** SAFE PowerGrid Mixed-Format Master Guide
 # -------------------------------------------------------------
 def generate_powergrid_master_guide(text, grade_level="8", character="everly"):
     """
-    ULTRA-DETAILED POWERGRID GUIDE (bullets + paragraphs + diagrams).
-    ENFORCES SAFE LENGTH LIMITS TO PREVENT WORKER TIMEOUT.
-    Ends with a Christian Worldview section.
+    ULTRA-DETAILED POWERGRID GUIDE (mixed format).
+    SAFELY CONSTRAINED to avoid timeouts.
     """
 
     prompt = f"""
@@ -136,45 +121,44 @@ CONTENT:
 {text}
 
 STRICT LENGTH LIMITS:
-• Total output MUST stay within approximately 3,000–5,000 words.
+• Total output MUST stay within ~3,000–5,000 words.
 • Do NOT exceed this limit.
-• Do NOT generate infinite or runaway responses.
-• Stop once all major concepts are clearly explained.
+• Do NOT generate endless or runaway text.
+• Stop once all major ideas are clearly covered.
 
 REQUIREMENTS:
-• Mix paragraphs AND bullet points.
-• Include sub-bullets.
-• Include ASCII diagrams when relevant.
-• Include formulas/equations if relevant.
-• Include examples, analogies, comparisons.
-• Include common mistakes students make.
-• Include memory strategies and exam tricks.
-• Progress from beginner → intermediate → advanced → expert.
-• Rich, smooth, intelligent explanations.
+• Mixed paragraphs AND bullet points
+• Sub-bullets allowed
+• ASCII diagrams if useful
+• Formulas when relevant
+• Examples + analogies
+• Common mistakes
+• Memory & exam strategies
+• Beginner → Expert progression
+• Smooth, warm, intelligent explanation
 
 STRUCTURE:
 1. Overview (1–2 paragraphs)
-2. Key Concepts (bullets + sub-bullets)
-3. Deep Dive Explanation (mixed format)
-4. ASCII Diagrams (if useful)
-5. Examples + Case Studies
+2. Key Concepts (bullets)
+3. Deep Dive (mixed format)
+4. ASCII Diagrams (optional)
+5. Examples / Case Studies
 6. Common Mistakes
 7. Memory + Exam Strategies
-8. Expert-Level Insights
+8. Expert Insights
 9. CHRISTIAN WORLDVIEW PERSPECTIVE
-   • 1–3 thoughtful paragraphs connecting the topic to Christian virtues:
-     truth, integrity, purpose, compassion, stewardship, wisdom.
+   • 1–3 paragraphs on truth, integrity, stewardship, purpose, compassion.
 
 TONE:
-• Warm, clear, inspiring
-• Friendly but highly intelligent
-• Appropriate for grade {grade_level}
+• Inspirational but clear
+• Smart but approachable
+• Fit for grade {grade_level}
 """
 
     response = powergrid_master_ai(prompt, grade_level, character)
 
-    # Normalize response
     if isinstance(response, dict):
         return response.get("raw_text") or response.get("text") or str(response)
 
     return response
+
