@@ -1,5 +1,4 @@
 # modules/shared_ai.py
-
 import os
 from openai import OpenAI
 
@@ -7,7 +6,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 # -------------------------------------------------------
-# CHARACTER VOICES — your 5 characters
+# CHARACTER VOICES
 # -------------------------------------------------------
 def build_character_voice(character: str) -> str:
     voices = {
@@ -21,69 +20,73 @@ def build_character_voice(character: str) -> str:
 
 
 # -------------------------------------------------------
-# 6-SECTION FORMAT — upgraded for grade-level depth
+# GRADE LEVEL DEPTH CONTROL
+# -------------------------------------------------------
+def grade_depth_instruction(grade: str) -> str:
+    """Return depth rules for the AI output based on grade."""
+    g = int(grade)
+
+    if g <= 3:
+        return "Use extremely simple language. Use very short sentences. Explain like the student is very young."
+    if g <= 5:
+        return "Use simple language with clear examples. Do not use advanced vocabulary."
+    if g <= 8:
+        return "Use moderate detail, clear logic, and age-appropriate examples."
+    if g <= 10:
+        return "Use deeper reasoning, more detailed explanations, and clearer examples."
+    if g <= 12:
+        return "Use full high-school level explanations, real-world examples, and deeper analysis."
+    return "Use college-level clarity, detailed reasoning, and strong conceptual analysis."
+
+
+# -------------------------------------------------------
+# SYSTEM PROMPT — STRICT, PARAGRAPH ONLY
 # -------------------------------------------------------
 BASE_SYSTEM_PROMPT = """
 You are HOMEWORK BUDDY — a warm, gentle tutor.
-You MUST always answer using these SIX labeled sections exactly:
+
+You MUST ALWAYS answer using EXACTLY these SIX labeled sections:
 
 SECTION 1 — OVERVIEW
-Introduce the topic clearly.
-- Grades 1–5: 2–3 simple sentences.
-- Grades 6–12: 3–5 sentences with more depth and clarity.
-
 SECTION 2 — KEY FACTS
-Explain the most important ideas.
-- Grades 1–5: short, simple sentences or 3–5 bullets.
-- Grades 6–12: deeper reasoning, examples, and clarity (bullets or paragraphs allowed).
-
 SECTION 3 — CHRISTIAN VIEW
-Gently explain how many Christians understand the topic.
-Adapt depth and vocabulary to the student's grade level.
-
 SECTION 4 — AGREEMENT
-Explain what Christians and secular views both agree on.
-- Grades 1–5: simple, clear statements.
-- Grades 6–12: more thoughtful comparison.
-
 SECTION 5 — DIFFERENCE
-Explain softly how Christian and secular worldviews might differ.
-- Grades 1–5: very gentle, simple differences.
-- Grades 6–12: deeper, respectful comparison.
-
 SECTION 6 — PRACTICE
-Ask 2–3 practice questions with short example answers.
-- Grades 1–5: tiny, concrete questions.
-- Grades 6–12: more reflective questions.
 
-STYLE RULES:
-• Bullet points ARE allowed.
-• You may use paragraphs OR bullets depending on clarity.
-• Increase explanation depth based on grade.
-• Keep tone warm, calm, encouraging.
-• Never overwhelm young students.
-• Always honor the 6-section structure.
+STRICT FORMATTING RULES:
+• NO bullet points at all.
+• NO numbered lists.
+• ALL sections must be written in paragraph sentences only.
+• Each section must be 2–5 sentences depending on complexity.
+• Never skip a section.
+• Never merge sections.
 """
 
 
 # -------------------------------------------------------
-# MAIN AI CALL — used by all subject helpers
+# MAIN AI CALL
 # -------------------------------------------------------
 def study_buddy_ai(prompt: str, grade: str, character: str) -> str:
+
+    depth_rule = grade_depth_instruction(grade)
+    voice = build_character_voice(character)
 
     system_prompt = f"""
 {BASE_SYSTEM_PROMPT}
 
-Character Voice:
-{build_character_voice(character)}
+CHARACTER VOICE:
+{voice}
 
-Student Grade Level: {grade}
+GRADE LEVEL RULE:
+{depth_rule}
 
-FORMATTING RULES:
-• MUST output ALL SIX SECTIONS using EXACT labels.
-• Bullet points allowed.
-• Deeper detail for higher grades.
-• Gentle, warm tone.
+ADDITIONAL RULES:
+• Older students (grades 9–12) MUST receive deeper detail, more reasoning,
+  more real-world application, and stronger conceptual clarity.
+• Younger students receive simpler, slower, gentler explanations.
+• ALL SIX sections MUST contain full paragraph sentences.
+• Absolutely no bullet points or list formatting.
 """
 
     response = client.responses.create(
@@ -92,10 +95,11 @@ FORMATTING RULES:
 SYSTEM:
 {system_prompt}
 
-TASK OR STUDENT PROMPT:
+USER TASK:
 {prompt}
 """
     )
 
     return response.output_text
+
 
