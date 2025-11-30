@@ -89,46 +89,26 @@ Tone must be soft and child-friendly.
 
 
 # ------------------------------------------------------------
-# MAIN WRITING EXPLAINER
+# MAIN WRITING EXPLAINER (USED BY APP)
 # ------------------------------------------------------------
-def explain_writing(topic: str, grade_level="8", character="everly"):
+def help_write(topic: str, grade_level="8", character="everly"):
 
+    # Choose correct prompt
     if is_christian_question(topic):
         prompt = build_christian_writing_prompt(topic, grade_level)
     else:
         prompt = build_writing_prompt(topic, grade_level)
 
     prompt = apply_personality(character, prompt)
+
     raw = study_buddy_ai(prompt, grade_level, character)
 
     sections = parse_into_sections(raw)
 
     return format_answer(
-        overview=sections.get("overview", "").strip(),
+        overview=sections.get("overview", ""),
         key_facts=sections.get("key_facts", []),
-        christian_view=sections.get("christian_view", "").strip(),
-        agreement=sections.get("agreement", []),
-        difference=sections.get("difference", []),
-        practice=sections.get("practice", []),
-        raw_text=raw
-    )
-
-
-# ------------------------------------------------------------
-# GENERAL WRITING QUESTION
-# ------------------------------------------------------------
-def writing_question(question: str, grade_level="8", character="everly"):
-
-    prompt = build_writing_prompt(question, grade_level)
-    prompt = apply_personality(character, prompt)
-    raw = study_buddy_ai(prompt, grade_level, character)
-
-    sections = parse_into_sections(raw)
-
-    return format_answer(
-        overview=sections.get("overview", "").strip(),
-        key_facts=sections.get("key_facts", []),
-        christian_view=sections.get("christian_view", "").strip(),
+        christian_view=sections.get("christian_view", ""),
         agreement=sections.get("agreement", []),
         difference=sections.get("difference", []),
         practice=sections.get("practice", []),
