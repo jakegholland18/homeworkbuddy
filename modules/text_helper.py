@@ -5,243 +5,176 @@ from modules.personality_helper import apply_personality
 from modules.answer_formatter import parse_into_sections, format_answer
 
 
-# -------------------------------------------------------
-# Detect Christian-oriented questions
-# -------------------------------------------------------
+# ------------------------------------------------------------
+# Detect Christian-oriented reading/literature questions
+# ------------------------------------------------------------
 def is_christian_question(text: str) -> bool:
     keywords = [
-        "christian", "christianity", "bible", "god", "jesus",
-        "faith", "biblical", "christian perspective"
+        "christian", "biblical", "god", "jesus", "faith",
+        "christian worldview", "christian perspective",
+        "how does this relate to god",
+        "how does this relate to christianity",
     ]
     return any(k.lower() in text.lower() for k in keywords)
 
 
-# -------------------------------------------------------
-# Socratic Tutor Layer
-# -------------------------------------------------------
-def socratic_layer(question: str, grade_level: str):
+# ------------------------------------------------------------
+# Standard reading / literature prompt
+# ------------------------------------------------------------
+def build_text_prompt(question: str, grade: str):
     return f"""
-A student asked about this reading question or passage:
+You are a gentle reading and literature tutor for a grade {grade} student.
 
-\"{question}\"
+The student asked:
+"{question}"
 
-Before giving the full structured answer, guide them Socratically:
+Answer using all SIX labeled sections. NO bullet points.
 
-1. Restate what they are asking in very simple words.
-2. Give one gentle hint that helps them think.
-3. Ask one small guiding question.
-4. Provide one tiny nudge, without giving the full answer.
+SECTION 1 — OVERVIEW
+Explain the reading or literary idea in simple, calm sentences.
 
-After these 4 steps, begin the 6-section Homework Buddy format.
-Everything must be clear and friendly for grade {grade_level}.
+SECTION 2 — KEY FACTS
+Teach the important ideas: theme, setting, characters,
+conflict, author's purpose, tone, or structure (depending on the topic).
+Write 3–5 short sentences.
+
+SECTION 3 — CHRISTIAN VIEW
+Explain softly how Christians might think about stories:
+truth, moral lessons, character, integrity, and meaning.
+If the story is not Christian, simply state this gently.
+
+SECTION 4 — AGREEMENT
+Explain what almost everyone agrees on in reading:
+how to find meaning, how to identify themes, how to understand characters.
+
+SECTION 5 — DIFFERENCE
+Explain kindly how Christian and secular interpretations
+might emphasize different values or lessons.
+
+SECTION 6 — PRACTICE
+Give 2–3 tiny reading practice questions with short example answers.
+Use simple sentences, no bullets.
+
+Tone must be warm, gentle, and child-friendly.
 """
 
 
-# -------------------------------------------------------
-# Build summary prompt using 6-section format
-# -------------------------------------------------------
-def build_summary_prompt(text: str, grade_level: str):
+# ------------------------------------------------------------
+# Christian-specific version of reading prompt
+# ------------------------------------------------------------
+def build_christian_text_prompt(question: str, grade: str):
     return f"""
-Summarize and explain this reading passage using the 6 sections:
-Overview, Key Facts, Christian View, Agreement, Difference, Practice.
+The student asked a reading/literature question from a Christian perspective:
 
-Passage:
-{text}
+"{question}"
 
-Make OVERVIEW very short.
-Make KEY FACTS simple.
-In PRACTICE, include 2–3 small questions the student can try.
+Use all SIX labeled sections. NO bullet points.
+
+SECTION 1 — OVERVIEW
+Explain the reading idea simply.
+
+SECTION 2 — KEY FACTS
+Teach the key reading skills or concepts gently.
+
+SECTION 3 — CHRISTIAN VIEW
+Explain how Christians may interpret stories through ideas such as:
+virtue, morality, character, redemption, compassion, or truth.
+
+SECTION 4 — AGREEMENT
+Explain what all worldviews agree on when analyzing stories.
+
+SECTION 5 — DIFFERENCE
+Explain kindly how Christian and secular viewpoints may highlight
+different themes or values.
+
+SECTION 6 — PRACTICE
+Give 2–3 tiny practice questions with short example answers.
+
+Tone must stay soft, warm, and appropriate for kids.
 """
 
 
-# -------------------------------------------------------
-# Reading comprehension question prompt
-# -------------------------------------------------------
-def build_comprehension_prompt(question: str, passage: str, grade_level: str):
-    return f"""
-Help the student understand this reading question.
+# ------------------------------------------------------------
+# MAIN TEXT EXPLAINER
+# ------------------------------------------------------------
+def explain_text(topic: str, grade_level="8", character="everly"):
 
-Passage:
-{passage}
-
-Question:
-{question}
-
-Explain the answer using the 6 Homework Buddy sections.
-Keep everything extremely simple and kid-friendly.
-In PRACTICE, include one small comprehension question they can try.
-"""
-
-
-# -------------------------------------------------------
-# Main idea prompt
-# -------------------------------------------------------
-def build_main_idea_prompt(passage: str, grade_level: str):
-    return f"""
-Help the student find the main idea of this passage:
-
-{passage}
-
-Explain it using the 6 sections.
-Keep OVERVIEW and KEY FACTS short and simple.
-In PRACTICE, include 1–2 tiny questions the student can answer.
-"""
-
-
-# -------------------------------------------------------
-# General reading task prompt
-# -------------------------------------------------------
-def build_task_prompt(task: str, grade_level: str):
-    return f"""
-Help the student with this reading task:
-
-{task}
-
-Use the 6-section Homework Buddy structure.
-Keep everything gentle, simple, and easy for a grade {grade_level} student.
-Include a short PRACTICE section.
-"""
-
-
-# -------------------------------------------------------
-# Helper for extracting SECTION text
-# -------------------------------------------------------
-def extract_section(raw: str, label: str) -> str:
-    if label not in raw:
-        return "Not available."
-    return raw.split(label)[-1].strip()
-
-
-# -------------------------------------------------------
-# PUBLIC FUNCTIONS — SOCratic + STRUCTURED FORMAT
-# -------------------------------------------------------
-
-def summarize_text(text: str, grade_level="8", character=None):
-
-    if character is None:
-        character = "theo"
-
-    # Christian worldview
-    if is_christian_question(text):
-        base_prompt = f"""
-The student wants a Christian-friendly explanation of this passage:
-
-{text}
-
-Explain using the 6 structured sections.
-Keep everything gentle and clear.
-"""
+    if is_christian_question(topic):
+        prompt = build_christian_text_prompt(topic, grade_level)
     else:
-        base_prompt = build_summary_prompt(text, grade_level)
+        prompt = build_text_prompt(topic, grade_level)
 
-    full_prompt = socratic_layer(text, grade_level) + "\n" + base_prompt
-    enriched = apply_personality(character, full_prompt)
+    prompt = apply_personality(character, prompt)
+    raw = study_buddy_ai(prompt, grade_level, character)
 
-    raw = study_buddy_ai(enriched, grade_level, character)
+    sections = parse_into_sections(raw)
 
+    # Prepare formatted final output
     return format_answer(
-        overview=extract_section(raw, "SECTION 1"),
-        key_facts=extract_section(raw, "SECTION 2"),
-        christian_view=extract_section(raw, "SECTION 3"),
-        agreement=extract_section(raw, "SECTION 4"),
-        difference=extract_section(raw, "SECTION 5"),
-        practice=extract_section(raw, "SECTION 6")
+        overview=sections.get("overview", "").strip(),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", "").strip(),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
     )
 
 
-def reading_help(question: str, passage: str, grade_level="8", character=None):
+# ------------------------------------------------------------
+# GENERAL READING QUESTION
+# ------------------------------------------------------------
+def reading_question(question: str, grade_level="8", character="everly"):
 
-    if character is None:
-        character = "theo"
+    prompt = build_text_prompt(question, grade_level)
+    prompt = apply_personality(character, prompt)
+    raw = study_buddy_ai(prompt, grade_level, character)
 
-    if is_christian_question(question + " " + passage):
-        base_prompt = f"""
-The student wants reading help with a Christian perspective.
-
-Passage:
-{passage}
-
-Question:
-{question}
-
-Explain using the 6-section Homework Buddy format.
-"""
-    else:
-        base_prompt = build_comprehension_prompt(question, passage, grade_level)
-
-    full_prompt = socratic_layer(question, grade_level) + "\n" + base_prompt
-    enriched = apply_personality(character, full_prompt)
-
-    raw = study_buddy_ai(enriched, grade_level, character)
+    sections = parse_into_sections(raw)
 
     return format_answer(
-        overview=extract_section(raw, "SECTION 1"),
-        key_facts=extract_section(raw, "SECTION 2"),
-        christian_view=extract_section(raw, "SECTION 3"),
-        agreement=extract_section(raw, "SECTION 4"),
-        difference=extract_section(raw, "SECTION 5"),
-        practice=extract_section(raw, "SECTION 6")
+        overview=sections.get("overview", "").strip(),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", "").strip(),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
     )
 
 
-def find_main_idea(passage: str, grade_level="8", character=None):
+# ------------------------------------------------------------
+# TEXT / READING QUIZ
+# ------------------------------------------------------------
+def text_quiz(topic: str, grade_level="8", character="everly"):
 
-    if character is None:
-        character = "theo"
+    prompt = f"""
+Create a gentle reading/literature quiz for a grade {grade_level} student.
 
-    if is_christian_question(passage):
-        base_prompt = f"""
-Help the student find the main idea and include a gentle Christian viewpoint.
+Topic: "{topic}"
 
-Passage:
-{passage}
+Use all SIX labeled sections:
+SECTION 1 — OVERVIEW
+SECTION 2 — KEY FACTS
+SECTION 3 — CHRISTIAN VIEW
+SECTION 4 — AGREEMENT
+SECTION 5 — DIFFERENCE
+SECTION 6 — PRACTICE
 
-Use the 6 structured sections.
+Tone must stay slow, warm, and kid-friendly. NO bullet points.
 """
-    else:
-        base_prompt = build_main_idea_prompt(passage, grade_level)
 
-    full_prompt = socratic_layer(passage, grade_level) + "\n" + base_prompt
-    enriched = apply_personality(character, full_prompt)
+    prompt = apply_personality(character, prompt)
+    raw = study_buddy_ai(prompt, grade_level, character)
 
-    raw = study_buddy_ai(enriched, grade_level, character)
+    sections = parse_into_sections(raw)
 
     return format_answer(
-        overview=extract_section(raw, "SECTION 1"),
-        key_facts=extract_section(raw, "SECTION 2"),
-        christian_view=extract_section(raw, "SECTION 3"),
-        agreement=extract_section(raw, "SECTION 4"),
-        difference=extract_section(raw, "SECTION 5"),
-        practice=extract_section(raw, "SECTION 6")
-    )
-
-
-def help_with_reading_task(task: str, grade_level="8", character=None):
-
-    if character is None:
-        character = "theo"
-
-    if is_christian_question(task):
-        base_prompt = f"""
-The student wants this reading task explained with a Christian-friendly tone:
-
-{task}
-
-Use the 6 Homework Buddy structured sections.
-"""
-    else:
-        base_prompt = build_task_prompt(task, grade_level)
-
-    full_prompt = socratic_layer(task, grade_level) + "\n" + base_prompt
-    enriched = apply_personality(character, full_prompt)
-
-    raw = study_buddy_ai(enriched, grade_level, character)
-
-    return format_answer(
-        overview=extract_section(raw, "SECTION 1"),
-        key_facts=extract_section(raw, "SECTION 2"),
-        christian_view=extract_section(raw, "SECTION 3"),
-        agreement=extract_section(raw, "SECTION 4"),
-        difference=extract_section(raw, "SECTION 5"),
-        practice=extract_section(raw, "SECTION 6")
+        overview=sections.get("overview", "").strip(),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", "").strip(),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
     )

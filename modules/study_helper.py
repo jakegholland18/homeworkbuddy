@@ -6,116 +6,121 @@ from modules.answer_formatter import parse_into_sections, format_answer
 
 
 # -----------------------------------------------------------
-# Replace old parse_into_sections with unified extractor
-# -----------------------------------------------------------
-def extract_sections(ai_text: str):
-    def extract(label):
-        if label not in ai_text:
-            return "Not available."
-
-        start = ai_text.find(label) + len(label)
-        end = len(ai_text)
-
-        for nxt in ["SECTION 1", "SECTION 2", "SECTION 3", "SECTION 4", "SECTION 5", "SECTION 6"]:
-            pos = ai_text.find(nxt, start)
-            if pos != -1 and pos < end:
-                end = pos
-
-        return ai_text[start:end].strip()
-
-    return {
-        "overview": extract("SECTION 1"),
-        "key_facts": extract("SECTION 2"),
-        "christian_view": extract("SECTION 3"),
-        "agreement": extract("SECTION 4"),
-        "difference": extract("SECTION 5"),
-        "practice": extract("SECTION 6"),
-    }
-
-
-# -----------------------------------------------------------
-# Socratic Tutor Layer
+# Socratic Tutor Layer — BEFORE the 6 sections
 # -----------------------------------------------------------
 def socratic_layer(topic: str, grade_level: str):
+    """
+    Gives the student a gentle pre-thinking moment before the full answer.
+    This appears BEFORE the six Homework Buddy sections.
+    """
     return f"""
 The student wants help studying this topic:
 
 \"{topic}\"
 
-Before giving the final 6-section answer:
+Before giving the final six-section Homework Buddy answer:
 
-1. Restate what they are trying to study in very simple words.
-2. Give one small hint to make them think.
-3. Ask one gentle guiding question.
-4. Give one tiny nudge without revealing the whole answer.
+1. Restate the topic in very simple, friendly words.
+2. Give one tiny hint that helps the student begin thinking.
+3. Ask one gentle guiding question (very small).
+4. Give a soft nudge toward understanding, without giving away the full answer.
 
-After this guidance, continue with the full 6-section Homework Buddy format.
-Everything should be warm, simple, and grade {grade_level} friendly.
+Then continue immediately with the six-section structure.
+Keep everything warm, simple, and grade {grade_level} friendly.
 """
 
 
 # -----------------------------------------------------------
-# QUIZ prompt using the new 6-section structure
+# QUIZ prompt (still uses six sections)
 # -----------------------------------------------------------
 def build_quiz_prompt(topic: str, grade_level: str):
     return f"""
-Create a gentle study quiz for the topic "{topic}" using the 6-section Homework Buddy model.
+Create a gentle study quiz for the topic "{topic}" using ALL SIX Homework Buddy sections.
+No bullet points. Use short paragraphs.
 
-OVERVIEW: Very short introduction.
-KEY FACTS: The most basic facts a student should know.
-CHRISTIAN VIEW (if relevant): Soft and gentle.
-AGREEMENT / DIFFERENCE: Only if naturally helpful.
-PRACTICE: Include several quiz questions with tiny example answers.
+SECTION 1 — OVERVIEW
+Introduce what the quiz is about in calm sentences.
 
-Make everything calming and easy for grade {grade_level}.
+SECTION 2 — KEY FACTS
+Explain the most important ideas with 3–5 simple sentences.
+
+SECTION 3 — CHRISTIAN VIEW
+If relevant, gently explain how Christians understand meaning or purpose here.
+
+SECTION 4 — AGREEMENT
+Explain in simple paragraph form what most worldviews agree on.
+
+SECTION 5 — DIFFERENCE
+Explain respectfully how interpretations may differ.
+
+SECTION 6 — PRACTICE
+Write several quiz-style questions with very short example answers.
 """
 
 
 # -----------------------------------------------------------
-# FLASHCARD prompt using the 6-section structure
+# FLASHCARDS prompt (still six sections)
 # -----------------------------------------------------------
 def build_flashcard_prompt(topic: str, grade_level: str):
     return f"""
-Create flashcards for the topic "{topic}" using the 6-section Homework Buddy format.
+Create flashcards for the topic "{topic}" using the six-section Homework Buddy format.
+NO bullet points. Use small, simple paragraphs.
 
-Flashcards should be extremely simple:
-- One idea per card
-- Clear short explanations
-- Friendly tutoring voice
+Flashcards should be extremely simple and kid-friendly.
 
-In the PRACTICE section, include 3–5 flashcard-style Q&A pairs.
+SECTION 6 — PRACTICE should contain 3–5 flashcard-style Q&A pairs.
 """
 
 
 # -----------------------------------------------------------
-# PUBLIC FUNCTIONS — SOCratic + 6-SECTION ANSWER
+# PUBLIC FUNCTION — QUIZ GENERATOR (Socratic + 6 sections)
 # -----------------------------------------------------------
-
 def generate_quiz(topic: str, grade_level="8", character=None):
 
-    character = character or "theo"
+    if character is None:
+        character = "theo"
 
-    base_prompt = build_quiz_prompt(topic, grade_level)
-    full_prompt = socratic_layer(topic, grade_level) + "\n" + base_prompt
+    base = build_quiz_prompt(topic, grade_level)
+    full_prompt = socratic_layer(topic, grade_level) + "\n" + base
 
     enriched = apply_personality(character, full_prompt)
-    ai_text = study_buddy_ai(enriched, grade_level, character)
 
-    sections = extract_sections(ai_text)
-    return format_answer(**sections)
+    raw = study_buddy_ai(enriched, grade_level, character)
+    sections = parse_into_sections(raw)
+
+    return format_answer(
+        overview=sections.get("overview", "").strip(),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", "").strip(),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
+    )
 
 
+# -----------------------------------------------------------
+# PUBLIC FUNCTION — FLASHCARDS (Socratic + 6 sections)
+# -----------------------------------------------------------
 def flashcards(topic: str, grade_level="8", character=None):
 
-    character = character or "theo"
+    if character is None:
+        character = "theo"
 
-    base_prompt = build_flashcard_prompt(topic, grade_level)
-    full_prompt = socratic_layer(topic, grade_level) + "\n" + base_prompt
+    base = build_flashcard_prompt(topic, grade_level)
+    full_prompt = socratic_layer(topic, grade_level) + "\n" + base
 
     enriched = apply_personality(character, full_prompt)
-    ai_text = study_buddy_ai(enriched, grade_level, character)
 
-    sections = extract_sections(ai_text)
-    return format_answer(**sections)
+    raw = study_buddy_ai(enriched, grade_level, character)
+    sections = parse_into_sections(raw)
 
-
+    return format_answer(
+        overview=sections.get("overview", "").strip(),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", "").strip(),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
+    )

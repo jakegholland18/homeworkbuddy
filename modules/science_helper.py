@@ -11,46 +11,16 @@ from modules.answer_formatter import parse_into_sections, format_answer
 def is_christian_question(text: str) -> bool:
     keywords = [
         "christian", "christianity", "god", "jesus", "bible",
-        "biblical", "creation", "faith",
-        "christian perspective", "christian view",
-        "how does this relate to christianity",
+        "biblical", "creation", "faith", "christian perspective",
+        "from a christian view", "how does this relate to christianity",
         "how does this relate to god"
     ]
-    return any(k.lower() in text.lower() for k in keywords)
+    text_low = text.lower()
+    return any(k in text_low for k in keywords)
 
 
 # -------------------------------------------------------
-# SECTION EXTRACTOR — Unified across all helpers
-# -------------------------------------------------------
-def extract_sections(ai_text: str):
-    def extract(label):
-        if label not in ai_text:
-            return "Not available."
-
-        start = ai_text.find(label) + len(label)
-        end = len(ai_text)
-
-        # Stop at next section header
-        for nxt in ["SECTION 1", "SECTION 2", "SECTION 3",
-                    "SECTION 4", "SECTION 5", "SECTION 6"]:
-            pos = ai_text.find(nxt, start)
-            if pos != -1 and pos < end:
-                end = pos
-
-        return ai_text[start:end].strip()
-
-    return {
-        "overview": extract("SECTION 1"),
-        "key_facts": extract("SECTION 2"),
-        "christian_view": extract("SECTION 3"),
-        "agreement": extract("SECTION 4"),
-        "difference": extract("SECTION 5"),
-        "practice": extract("SECTION 6"),
-    }
-
-
-# -------------------------------------------------------
-# Build science prompt (standard)
+# Standard science prompt (NO bullets, 6 sections)
 # -------------------------------------------------------
 def build_science_prompt(topic: str, grade_level: str):
     return f"""
@@ -58,16 +28,31 @@ The student asked a science question:
 
 \"{topic}\"
 
-Explain it using SIX gentle sections:
-Overview, Key Facts, Christian View, Agreement, Difference, Practice.
+Explain it using the SIX-section Homework Buddy format.
+NO bullet points. Only short, gentle paragraphs.
 
-Tone:
-calm, slow, warm, kid-friendly, grade {grade_level}.
+SECTION 1 — OVERVIEW
+Give 2–3 calm sentences introducing the idea.
+
+SECTION 2 — KEY FACTS
+Write a short paragraph explaining the most important scientific ideas.
+
+SECTION 3 — CHRISTIAN VIEW
+Gently explain how many Christians understand the order and design in nature.
+
+SECTION 4 — AGREEMENT
+Explain in a short paragraph what Christians and secular views agree on.
+
+SECTION 5 — DIFFERENCE
+Explain respectfully how interpretations may differ.
+
+SECTION 6 — PRACTICE
+Write 2–3 tiny practice questions with short example answers.
 """
 
 
 # -------------------------------------------------------
-# Build Christian-directed science prompt
+# Christian-specific science prompt
 # -------------------------------------------------------
 def build_christian_science_prompt(topic: str, grade_level: str):
     return f"""
@@ -75,40 +60,56 @@ The student asked this science question from a Christian perspective:
 
 \"{topic}\"
 
-Use SIX warm, gentle sections:
-Overview, Key Facts, Christian View, Agreement, Difference, Practice.
+Explain it using the SIX-section Homework Buddy format.
+NO bullet points. Only short, gentle paragraphs.
 
-Keep Scripture soft and only if natural.
+SECTION 1 — OVERVIEW
+Introduce the idea simply and calmly.
+
+SECTION 2 — KEY FACTS
+Explain the important scientific ideas in a few slow sentences.
+
+SECTION 3 — CHRISTIAN VIEW
+Explain softly how many Christians understand creation, order, and purpose.
+
+SECTION 4 — AGREEMENT
+Explain what most worldviews agree on in this topic.
+
+SECTION 5 — DIFFERENCE
+Explain gently how interpretations may differ.
+
+SECTION 6 — PRACTICE
+Ask 2–3 small practice questions with very short example answers.
 """
 
 
 # -------------------------------------------------------
-# MAIN PUBLIC FUNCTION — FIXED FOR NEW 6-SECTION SYSTEM
+# MAIN PUBLIC FUNCTION — uses universal parser + formatter
 # -------------------------------------------------------
 def explain_science(topic: str, grade_level="8", character="everly"):
 
-    # Choose prompt style
+    # Pick which base prompt to use
     if is_christian_question(topic):
-        prompt = build_christian_science_prompt(topic, grade_level)
+        base_prompt = build_christian_science_prompt(topic, grade_level)
     else:
-        prompt = build_science_prompt(topic, grade_level)
+        base_prompt = build_science_prompt(topic, grade_level)
 
-    # Add personality
-    prompt = apply_personality(character, prompt)
+    # Add character personality
+    enriched_prompt = apply_personality(character, base_prompt)
 
-    # Get AI output (already structured text)
-    ai_text = study_buddy_ai(prompt, grade_level, character)
+    # Get raw output from the AI
+    raw = study_buddy_ai(enriched_prompt, grade_level, character)
 
-    # Extract unified sections
-    sections = extract_sections(ai_text)
+    # Parse into six sections
+    sections = parse_into_sections(raw)
 
-    # Format for HTML template
+    # Return normalized final answer for subject.html
     return format_answer(
         overview=sections.get("overview", ""),
-        key_facts=sections.get("key_facts", ""),
+        key_facts=sections.get("key_facts", []),
         christian_view=sections.get("christian_view", ""),
-        agreement=sections.get("agreement", ""),
-        difference=sections.get("difference", ""),
-        practice=sections.get("practice", "")
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
     )
-

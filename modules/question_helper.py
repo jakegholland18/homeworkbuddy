@@ -6,7 +6,7 @@ from modules.answer_formatter import parse_into_sections, format_answer
 
 
 # -------------------------------------------------------
-# Detect whether the question is Christian-oriented
+# Detect Christian perspective in general questions
 # -------------------------------------------------------
 def is_christian_question(text: str) -> bool:
     keywords = [
@@ -16,70 +16,73 @@ def is_christian_question(text: str) -> bool:
         "from a christian perspective",
         "christian worldview"
     ]
-    return any(k.lower() in text.lower() for k in keywords)
+    text_low = text.lower()
+    return any(k in text_low for k in keywords)
 
 
 # -------------------------------------------------------
-# Six-section extractor (UNIFIED across all helpers)
+# Build general 6-section prompt (NO bullets)
 # -------------------------------------------------------
-def extract_sections(ai_text: str):
-    def extract(label):
-        if label not in ai_text:
-            return "Not available."
-
-        start = ai_text.find(label) + len(label)
-        end = len(ai_text)
-
-        # Stop at next section header
-        for nxt in ["SECTION 1", "SECTION 2", "SECTION 3",
-                    "SECTION 4", "SECTION 5", "SECTION 6"]:
-            pos = ai_text.find(nxt, start)
-            if pos != -1 and pos < end:
-                end = pos
-
-        return ai_text[start:end].strip()
-
-    return {
-        "overview": extract("SECTION 1"),
-        "key_facts": extract("SECTION 2"),
-        "christian_view": extract("SECTION 3"),
-        "agreement": extract("SECTION 4"),
-        "difference": extract("SECTION 5"),
-        "practice": extract("SECTION 6"),
-    }
-
-
-# -------------------------------------------------------
-# Build 6-section prompt (general)
-# -------------------------------------------------------
-def build_general_prompt(question: str, grade: str):
+def build_general_prompt(question: str, grade_level: str):
     return f"""
-The student asked this question:
+The student asked a general question:
 
 \"{question}\"
 
-Answer using SIX gentle sections
-(Overview, Key Facts, Christian View, Agreement, Difference, Practice).
+Please answer using the SIX-section Homework Buddy format.
+NO bullet points anywhere. Only calm, short paragraphs.
 
-Tone:
-warm, simple, kid-friendly, slow, grade {grade} level.
+SECTION 1 — OVERVIEW
+Give a simple explanation of what the question is really about.
+
+SECTION 2 — KEY FACTS
+Explain the most important ideas in 3–5 short, gentle sentences.
+
+SECTION 3 — CHRISTIAN VIEW
+Explain softly how many Christians think about this topic,
+if it naturally applies. Otherwise explain that Christians reflect
+on meaning, purpose, and wisdom in all topics.
+
+SECTION 4 — AGREEMENT
+Explain in one short paragraph what most worldviews agree on.
+
+SECTION 5 — DIFFERENCE
+Explain softly how worldviews might differ in interpretation.
+
+SECTION 6 — PRACTICE
+Ask 2–3 tiny practice questions and provide short example answers.
 """
 
 
 # -------------------------------------------------------
-# Build 6-section prompt (Christian)
+# Build Christian-directed 6-section prompt (NO bullets)
 # -------------------------------------------------------
-def build_christian_prompt(question: str, grade: str):
+def build_christian_prompt(question: str, grade_level: str):
     return f"""
 The student asked this question from a Christian perspective:
 
 \"{question}\"
 
-Answer using SIX gentle sections
-(Overview, Key Facts, Christian View, Agreement, Difference, Practice).
+Please answer using the SIX-section Homework Buddy structure.
+NO bullet points.
 
-Keep tone warm and respectful.
-Use Scripture softly only if helpful.
+SECTION 1 — OVERVIEW
+Explain the question in very simple, calm language.
+
+SECTION 2 — KEY FACTS
+Explain the most important ideas Christians consider.
+
+SECTION 3 — CHRISTIAN VIEW
+Explain softly what Christians believe and why it matters.
+
+SECTION 4 — AGREEMENT
+Explain briefly what Christians and non-Christians may agree on.
+
+SECTION 5 — DIFFERENCE
+Explain gently where worldviews may differ in interpretation.
+
+SECTION 6 — PRACTICE
+Ask 2–3 small reflection questions with short example answers.
 """
 
 
@@ -88,22 +91,28 @@ Use Scripture softly only if helpful.
 # -------------------------------------------------------
 def answer_question(question: str, grade_level="8", character="everly"):
 
+    # Choose which base prompt to use
     if is_christian_question(question):
-        prompt = build_christian_prompt(question, grade_level)
+        base_prompt = build_christian_prompt(question, grade_level)
     else:
-        prompt = build_general_prompt(question, grade_level)
+        base_prompt = build_general_prompt(question, grade_level)
 
-    prompt = apply_personality(character, prompt)
+    # Apply personality voice
+    enriched_prompt = apply_personality(character, base_prompt)
 
-    ai_text = study_buddy_ai(prompt, grade_level, character)
+    # AI OUTPUT (strict 6 sections)
+    raw = study_buddy_ai(enriched_prompt, grade_level, character)
 
-    sections = extract_sections(ai_text)
+    # Parse using universal parser
+    sections = parse_into_sections(raw)
 
+    # Return HTML-ready structure
     return format_answer(
         overview=sections.get("overview", ""),
-        key_facts=sections.get("key_facts", ""),
+        key_facts=sections.get("key_facts", []),
         christian_view=sections.get("christian_view", ""),
-        agreement=sections.get("agreement", ""),
-        difference=sections.get("difference", ""),
-        practice=sections.get("practice", "")
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
     )

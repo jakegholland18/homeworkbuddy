@@ -14,11 +14,13 @@ def is_christian_question(text: str) -> bool:
         "faith", "christian worldview", "from a christian perspective",
         "how does this relate to christianity", "how does this relate to god"
     ]
-    return any(k.lower() in text.lower() for k in keywords)
+    txt = text.lower()
+    return any(k in txt for k in keywords)
 
 
 # ------------------------------------------------------------
-# Build prompt for non-Christian history questions
+# Build prompt for non-Christian history teaching
+# (NO bullets — ONLY paragraphs)
 # ------------------------------------------------------------
 def build_history_prompt(topic: str, grade: str):
     return f"""
@@ -27,32 +29,33 @@ You are a gentle history tutor for a grade {grade} student.
 The student asked about:
 \"{topic}\"
 
-Explain it using the **six-section Homework Buddy format**.
+Use the SIX-section Homework Buddy structure.
+NO bullet points allowed. Only short paragraphs.
 
 SECTION 1 — OVERVIEW
-Give a calm 2–3 sentence explanation of the topic.
+Explain the topic in 2–3 short, calm sentences.
 
 SECTION 2 — KEY FACTS
-List the basic facts: what happened, who was involved,
-why it matters. Use dash bullets ("- ").
+Describe when it happened, who was involved, and why it matters
+using a small paragraph with simple sentences.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly how many Christians look at history:
-choices, character, learning moral lessons.
-If Christianity is not part of the event,
-explain Christians still learn principles from history.
+Explain softly how many Christians look at history by focusing on
+choices, character, cause and effect, and moral lessons.
+If Christianity is not part of the event, say Christians still
+try to learn wisdom and character from history.
 
 SECTION 4 — AGREEMENT
-List 2–4 things people of all worldviews agree on
-(cause/effect, human behavior, evidence). Use dash bullets.
+Explain in a short paragraph what nearly all worldviews agree on
+such as what happened, the causes, and basic lessons about human behavior.
 
 SECTION 5 — DIFFERENCE
-List gentle worldview differences about meaning,
-purpose, or interpretation. Use dash bullets.
+Explain gently how a Christian worldview may interpret meaning or
+purpose differently from a secular view, using simple, respectful language.
 
 SECTION 6 — PRACTICE
-Give 2–3 reflection questions with short example answers.
-Each question must begin with "- ".
+Ask 2–3 tiny reflection questions and include short example answers.
+Write them as tiny sentences, not bullet points.
 """
 
 
@@ -65,78 +68,82 @@ The student asked this history question from a Christian perspective:
 
 \"{topic}\"
 
-Answer using the **six-section Homework Buddy format**.
+Use the SIX-section Homework Buddy structure.
+NO bullet points.
 
 SECTION 1 — OVERVIEW
-Explain the topic slowly and clearly.
+Explain the topic slowly and clearly in 2–3 gentle sentences.
 
 SECTION 2 — KEY FACTS
-List the simple historical facts using dash bullets.
+Describe the basic historical details in a short paragraph.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly how Christians understand this event:
-choices, character, moral lessons, trusting God’s plan.
+Explain softly how Christians understand the event, focusing on
+character, choices, consequences, and seeing history as something
+that can teach wisdom. Keep it age-appropriate.
 
 SECTION 4 — AGREEMENT
-List 2–4 things people of any worldview agree on.
-Use dash bullets.
+Explain what people from any worldview usually agree on about the event.
 
 SECTION 5 — DIFFERENCE
-List gentle differences in how Christian and secular views
-interpret meaning or lessons. Use dash bullets.
+Explain kindly how interpretations of the event’s meaning or
+purpose may differ between Christian and secular perspectives.
 
 SECTION 6 — PRACTICE
-Give 2–3 reflection questions with short example answers.
-Each must begin with "- ".
+Ask 2–3 reflection questions with tiny example answers using short sentences.
 """
 
 
 # ------------------------------------------------------------
-# MAIN HISTORY EXPLAINER
+# MAIN HISTORY EXPLAINER — STANDARDIZED FOR ALL SUBJECTS
 # ------------------------------------------------------------
 def explain_history(topic: str, grade_level="8", character="everly"):
 
     if is_christian_question(topic):
-        prompt = build_christian_history_prompt(topic, grade_level)
+        base_prompt = build_christian_history_prompt(topic, grade_level)
     else:
-        prompt = build_history_prompt(topic, grade_level)
+        base_prompt = build_history_prompt(topic, grade_level)
 
-    prompt = apply_personality(character, prompt)
+    enriched = apply_personality(character, base_prompt)
+    raw = study_buddy_ai(enriched, grade_level, character)
 
-    raw = study_buddy_ai(prompt, grade_level, character)
-
-    overview       = _extract(raw, "SECTION 1")
-    key_facts      = _extract(raw, "SECTION 2")
-    christian_view = _extract(raw, "SECTION 3")
-    agreement      = _extract(raw, "SECTION 4")
-    difference     = _extract(raw, "SECTION 5")
-    practice       = _extract(raw, "SECTION 6")
+    sections = parse_into_sections(raw)
 
     return format_answer(
-        overview=overview,
-        key_facts=key_facts,
-        christian_view=christian_view,
-        agreement=agreement,
-        difference=difference,
-        practice=practice
+        overview=sections.get("overview", ""),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", ""),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
     )
 
+
 # ------------------------------------------------------------
-# GENERAL HISTORY QUESTION
+# SIMPLE HISTORY QUESTION
 # ------------------------------------------------------------
 def answer_history_question(question: str, grade_level="8", character="everly"):
 
     base_prompt = build_history_prompt(question, grade_level)
-    prompt = apply_personality(character, base_prompt)
+    enriched = apply_personality(character, base_prompt)
+    raw = study_buddy_ai(enriched, grade_level, character)
 
-    raw = study_buddy_ai(prompt, grade_level, character)
     sections = parse_into_sections(raw)
 
-    return format_answer(**sections)
+    return format_answer(
+        overview=sections.get("overview", ""),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", ""),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
+    )
 
 
 # ------------------------------------------------------------
-# HISTORY QUIZ
+# HISTORY QUIZ — STILL 6 SECTIONS, NO BULLETS
 # ------------------------------------------------------------
 def generate_history_quiz(topic: str, grade_level="8", character="everly"):
 
@@ -145,31 +152,41 @@ Create a gentle history quiz for a grade {grade_level} student.
 
 Topic: \"{topic}\"
 
-Use the **six-section Homework Buddy format**.
+Use the SIX-section Homework Buddy format.
+NO bullet points.
 
 SECTION 1 — OVERVIEW
-A soft introduction to what the quiz is about.
+Give a soft introduction in a small paragraph.
 
 SECTION 2 — KEY FACTS
-List the main historical points using dash bullets.
+Explain the main ideas students should remember
+in a short, simple paragraph.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain softly what moral lessons Christians draw from history.
+Explain softly how Christians might think about the moral lessons
+in this historical topic.
 
 SECTION 4 — AGREEMENT
-List 2–4 shared ideas all worldviews accept. Use dash bullets.
+Describe in a short paragraph what nearly everyone agrees on.
 
 SECTION 5 — DIFFERENCE
-List respectful worldview differences in interpretation. Use dash bullets.
+Explain kindly how interpretations may differ.
 
 SECTION 6 — PRACTICE
-Write a few quiz-style questions with short example answers.
-Each must start with "- ".
+Write a few tiny quiz questions with short example answers.
+No bullets, only paragraph sentences.
 """
 
-    prompt = apply_personality(character, prompt)
-    raw = study_buddy_ai(prompt, grade_level, character)
-
+    enriched = apply_personality(character, prompt)
+    raw = study_buddy_ai(enriched, grade_level, character)
     sections = parse_into_sections(raw)
 
-    return format_answer(**sections)
+    return format_answer(
+        overview=sections.get("overview", ""),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", ""),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
+    )

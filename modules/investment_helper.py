@@ -14,108 +14,80 @@ def is_christian_question(text: str) -> bool:
         "christian perspective", "christian view",
         "what does the bible say", "how does this relate to god"
     ]
-    return any(k.lower() in text.lower() for k in keywords)
+    txt = text.lower()
+    return any(k in txt for k in keywords)
 
 
 # ------------------------------------------------------------
-# Universal extractor (same as all helpers)
-# ------------------------------------------------------------
-def extract_sections(ai_text: str):
-    def extract(label):
-        if label not in ai_text:
-            return "Not available."
-
-        start = ai_text.find(label) + len(label)
-        end = len(ai_text)
-
-        for nxt in [
-            "SECTION 1", "SECTION 2", "SECTION 3",
-            "SECTION 4", "SECTION 5", "SECTION 6"
-        ]:
-            pos = ai_text.find(nxt, start)
-            if pos != -1 and pos < end:
-                end = pos
-
-        return ai_text[start:end].strip()
-
-    return {
-        "overview": extract("SECTION 1"),
-        "key_facts": extract("SECTION 2"),
-        "christian_view": extract("SECTION 3"),
-        "agreement": extract("SECTION 4"),
-        "difference": extract("SECTION 5"),
-        "practice": extract("SECTION 6"),
-    }
-
-
-# ------------------------------------------------------------
-# Build investing prompt — standard version
+# Standard investing prompt (NO BULLETS)
 # ------------------------------------------------------------
 def build_investing_prompt(topic: str, grade: str):
     return f"""
-You are a gentle investing tutor for a grade {grade} student.
+You are a gentle investing tutor helping a grade {grade} student.
 
 The student asked:
-"{topic}"
+\"{topic}\"
 
-Use SIX warm, child-friendly sections.
+Use the SIX-section Homework Buddy format.
+NO bullet points. ONLY short paragraphs.
 
 SECTION 1 — OVERVIEW
-Explain the idea in simple, calm sentences.
+Explain the investing idea in 2–3 short, simple sentences.
 
 SECTION 2 — KEY FACTS
-Explain basic ideas (saving, risk, long-term thinking, value).
-Slow and simple.
+Describe several important ideas such as saving, risk, long term thinking,
+value, growth, and basic financial responsibility using small paragraph sentences.
+No bullet lists.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain stewardship, avoiding greed, wise choices.
-If not a Christian question, simply mention that some Christians
-see money management as responsibility and generosity.
+Explain softly how many Christians think about money with stewardship,
+responsibility, generosity, avoiding greed, and planning wisely.
 
 SECTION 4 — AGREEMENT
-Explain what all people agree on: saving, planning, being careful.
+Explain in one small paragraph what Christians and secular worldviews
+both agree on, such as the importance of saving, planning, and understanding risk.
 
 SECTION 5 — DIFFERENCE
-Explain gently how Christian motivation may differ
-from a “money-first” view.
+Explain gently how Christian motivation such as stewardship and generosity
+may differ from a money-first or purely secular perspective.
 
 SECTION 6 — PRACTICE
-Ask 2–3 tiny reflection questions with example answers.
-
-Tone: slow, warm, kid-friendly, not technical.
+Give 2–3 tiny practice questions with simple example answers.
+Write them in short paragraph sentences.
 """
 
 
 # ------------------------------------------------------------
-# Build Christian prompt
+# Christian-directed investing prompt (NO BULLETS)
 # ------------------------------------------------------------
 def build_christian_investing_prompt(topic: str, grade: str):
     return f"""
 The student asked this investing question from a Christian perspective:
 
-"{topic}"
+\"{topic}\"
 
-Use SIX gentle sections.
+Use the SIX-section Homework Buddy format.
+NO bullet points.
 
 SECTION 1 — OVERVIEW
-Explain the idea slowly.
+Explain the idea calmly in 2–3 sentences.
 
 SECTION 2 — KEY FACTS
-Explain the basic financial ideas.
+Describe the basic ideas needed to understand this investing topic
+using short, clear sentences.
 
 SECTION 3 — CHRISTIAN VIEW
-Explain stewardship, responsibility, generosity.
+Explain softly how Christians understand stewardship, responsibility,
+avoiding greed, and using resources wisely.
 
 SECTION 4 — AGREEMENT
-Explain what all worldviews agree on.
+Explain one short paragraph of ideas that all worldviews agree on.
 
 SECTION 5 — DIFFERENCE
-Explain gently how motivation differs.
+Explain gently how motivations or values may differ.
 
 SECTION 6 — PRACTICE
-Ask 2–3 tiny reflection questions.
-
-Tone: calm, warm, non-technical.
+Give 2–3 reflection questions with tiny example answers.
 """
 
 
@@ -124,59 +96,100 @@ Tone: calm, warm, non-technical.
 # ------------------------------------------------------------
 def explain_investing(topic: str, grade_level="8", character="everly"):
 
+    # Choose base prompt
     if is_christian_question(topic):
-        prompt = build_christian_investing_prompt(topic, grade_level)
+        base_prompt = build_christian_investing_prompt(topic, grade_level)
     else:
-        prompt = build_investing_prompt(topic, grade_level)
+        base_prompt = build_investing_prompt(topic, grade_level)
 
-    prompt = apply_personality(character, prompt)
+    # Add personality layer
+    enriched = apply_personality(character, base_prompt)
 
-    raw = study_buddy_ai(prompt, grade_level, character)
+    # Get AI response
+    raw = study_buddy_ai(enriched, grade_level, character)
 
-    sections = extract_sections(raw)
-    return format_answer(**sections)
+    # Parse into universal structure
+    sections = parse_into_sections(raw)
+
+    # Return HTML-friendly data
+    return format_answer(
+        overview=sections.get("overview", ""),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", ""),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
+    )
 
 
 # ------------------------------------------------------------
-# GENERAL INVESTING QUESTION
+# GENERAL INVESTING QUESTION (same structure)
 # ------------------------------------------------------------
 def investment_question(question: str, grade_level="8", character="everly"):
 
-    prompt = build_investing_prompt(question, grade_level)
-    prompt = apply_personality(character, prompt)
+    base_prompt = build_investing_prompt(question, grade_level)
+    enriched = apply_personality(character, base_prompt)
+    raw = study_buddy_ai(enriched, grade_level, character)
 
-    raw = study_buddy_ai(prompt, grade_level, character)
+    sections = parse_into_sections(raw)
 
-    sections = extract_sections(raw)
-    return format_answer(**sections)
+    return format_answer(
+        overview=sections.get("overview", ""),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", ""),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
+    )
 
 
 # ------------------------------------------------------------
-# INVESTING QUIZ (still six sections)
+# INVESTING QUIZ — still six sections (NO BULLETS)
 # ------------------------------------------------------------
 def investment_quiz(topic: str, grade_level="8", character="everly"):
 
     prompt = f"""
-Create a gentle investing quiz for grade {grade_level}.
+Create a gentle investing quiz for a grade {grade_level} student.
 
-Topic: "{topic}"
+Topic: \"{topic}\"
 
-Use SIX SECTIONS:
+Use the SIX-section Homework Buddy format.
+NO bullet points.
 
 SECTION 1 — OVERVIEW
-SECTION 2 — KEY FACTS
-SECTION 3 — CHRISTIAN VIEW
-SECTION 4 — AGREEMENT
-SECTION 5 — DIFFERENCE
-SECTION 6 — PRACTICE
+Explain the topic in a small, calm paragraph.
 
-Make it calm, warm, slow-paced.
+SECTION 2 — KEY FACTS
+Describe the most important ideas the student should remember.
+
+SECTION 3 — CHRISTIAN VIEW
+Explain stewardship and wise planning softly and clearly.
+
+SECTION 4 — AGREEMENT
+Explain what all worldviews agree on in one small paragraph.
+
+SECTION 5 — DIFFERENCE
+Explain gently how perspectives differ.
+
+SECTION 6 — PRACTICE
+Write a few tiny quiz questions with short example answers.
 """
 
-    prompt = apply_personality(character, prompt)
-    raw = study_buddy_ai(prompt, grade_level, character)
+    enriched = apply_personality(character, prompt)
+    raw = study_buddy_ai(enriched, grade_level, character)
+    sections = parse_into_sections(raw)
 
-    sections = extract_sections(raw)
-    return format_answer(**sections)
+    return format_answer(
+        overview=sections.get("overview", ""),
+        key_facts=sections.get("key_facts", []),
+        christian_view=sections.get("christian_view", ""),
+        agreement=sections.get("agreement", []),
+        difference=sections.get("difference", []),
+        practice=sections.get("practice", []),
+        raw_text=raw
+    )
+
 
 
