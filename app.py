@@ -73,7 +73,7 @@ subject_map = {
     "coin_quest": money_helper.explain_money,
     "terra_nova": question_helper.answer_question,
     "story_verse": text_helper.explain_text,
-    "power_grid": study_helper.deep_study_chat,   # deep conversation handler for PowerGrid
+    "power_grid": None,   # PowerGrid handled by dedicated route, not subject map
 }
 
 # ============================================================
