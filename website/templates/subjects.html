@@ -32,47 +32,50 @@
         font-size: 3rem;
         font-weight: 700;
         color: #cfe8ff;
-        text-shadow: 0 0 25px rgba(130,180,255,0.7), 
+        text-shadow: 0 0 25px rgba(130,180,255,0.7),
                      0 0 10px rgba(255,255,255,0.3);
         letter-spacing: 1.5px;
+        margin-bottom: 40px;
     }
 
-    /* CONTAINER */
-    .planet-container {
-        margin: 80px auto 60px;
+    /* GRID */
+    .planet-grid {
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 70px;
+        gap: 60px;
         padding-bottom: 60px;
-        max-width: 1300px;
         position: relative;
         z-index: 10;
     }
 
     /* PLANET CARD */
-    .planet-wrapper {
+    .planet-card {
+        width: 220px;
         text-align: center;
-        cursor: pointer;
+        padding: 22px 15px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 22px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 0 25px rgba(0,0,0,0.45);
         transition: 0.35s ease;
-        width: 200px;
+        text-decoration: none;
+        color: white;
     }
 
-    .planet-wrapper:hover {
-        transform: translateY(-12px) scale(1.12);
-        filter: drop-shadow(0 0 25px rgba(255,210,80,0.45));
+    .planet-card:hover {
+        transform: translateY(-10px) scale(1.05);
+        box-shadow: 0 0 25px rgba(0,150,255,0.5);
     }
 
     /* PLANET IMAGE */
-    .planet {
-        width: 180px;
-        height: 180px;
-        background-size: cover;
-        background-position: center;
-        border-radius: 50%;
-        animation: float 4.2s ease-in-out infinite;
-        box-shadow: 0 0 20px rgba(255,255,255,0.06),
-                    0 0 35px rgba(0, 140, 255, 0.25);
+    .planet-img {
+        width: 160px;
+        height: 160px;
+        object-fit: contain;
+        margin-bottom: 12px;
+        filter: drop-shadow(0 0 14px rgba(255,255,255,0.5));
+        animation: float 4s ease-in-out infinite;
     }
 
     @keyframes float {
@@ -81,35 +84,46 @@
         100% { transform: translateY(0); }
     }
 
-    /* LABEL */
-    .planet-label {
-        margin-top: 14px;
-        font-size: 1.6rem;
+    /* TITLES */
+    .planet-title {
+        font-size: 1.5rem;
         font-weight: 700;
         color: #ffd86a;
-        text-shadow:
-            0 0 10px rgba(255,180,70,0.8),
-            2px 2px 0 rgba(0,0,0,0.45);
-        letter-spacing: 1px;
+        text-shadow: 0 0 10px rgba(255,210,80,0.8);
+        margin-bottom: 6px;
     }
 
-    /* MOBILE RESPONSIVE */
+    .planet-subtitle {
+        font-size: 1.05rem;
+        opacity: 0.85;
+        color: #bcd9ff;
+        line-height: 1.35;
+    }
+
+    /* RESPONSIVE */
     @media(max-width: 900px) {
-        .planet {
-            width: 150px;
-            height: 150px;
+        .planet-card {
+            width: 180px;
         }
-        .planet-wrapper {
-            width: 160px;
-        }
-        .planet-label {
-            font-size: 1.3rem;
+        .planet-img {
+            width: 130px;
+            height: 130px;
         }
     }
 
     @media(max-width: 600px) {
         .select-title {
             font-size: 2.3rem;
+        }
+        .planet-card {
+            width: 160px;
+        }
+        .planet-img {
+            width: 110px;
+            height: 110px;
+        }
+        .planet-title {
+            font-size: 1.3rem;
         }
     }
 </style>
@@ -119,26 +133,17 @@
 
 <h1 class="select-title">Choose Your Learning Planet</h1>
 
-<div class="planet-container">
+<div class="planet-grid">
+    {% for subject, img, name, subtitle in planets %}
+    <a href="/choose-grade?subject={{ subject }}" class="planet-card fade-in">
+        
+        <img src="/static/planets/{{ img }}" class="planet-img">
 
-    {% for subject, image, label in planets %}
-        <div class="planet-wrapper" onclick="enterPlanet('{{ subject }}')">
-            <div class="planet" style="background-image:url('/static/planets/{{ image }}');"></div>
-            <div class="planet-label">{{ label }}</div>
-        </div>
+        <div class="planet-title">{{ name }}</div>
+        <div class="planet-subtitle">{{ subtitle }}</div>
+
+    </a>
     {% endfor %}
-
 </div>
-
-<script>
-function enterPlanet(subject) {
-    // Page zoom animation
-    document.body.style.transition = "0.7s ease";
-    document.body.style.transform = "scale(1.05)";
-    setTimeout(() => {
-        window.location.href = "/choose-grade?subject=" + subject;
-    }, 450);
-}
-</script>
 
 {% endblock %}

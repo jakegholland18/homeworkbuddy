@@ -152,17 +152,17 @@ def subjects():
     init_user()
 
     planets = [
-        ("chrono_core", "chrono_core.png", "ChronoCore"),
-        ("num_forge", "num_forge.png", "NumForge"),
-        ("atom_sphere", "atom_sphere.png", "AtomSphere"),
-        ("story_verse", "story_verse.png", "StoryVerse"),
-        ("ink_haven", "ink_haven.png", "InkHaven"),
-        ("faith_realm", "faith_realm.png", "FaithRealm"),
-        ("coin_quest", "coin_quest.png", "CoinQuest"),
-        ("stock_star", "stock_star.png", "StockStar"),
-        ("terra_nova", "terra_nova.png", "TerraNova"),
-        ("power_grid", "power_grid.png", "PowerGrid"),
-        ("truth_forge", "truth_forge.png", "TruthForge")
+    ("chrono_core", "chrono_core.png", "ChronoCore", "History & Social Studies"),
+    ("num_forge", "num_forge.png", "NumForge", "Math Planet"),
+    ("atom_sphere", "atom_sphere.png", "AtomSphere", "Science Planet"),
+    ("story_verse", "story_verse.png", "StoryVerse", "Reading & Literature"),
+    ("ink_haven", "ink_haven.png", "InkHaven", "Writing & Composition"),
+    ("faith_realm", "faith_realm.png", "FaithRealm", "Bible & Christian Studies"),
+    ("coin_quest", "coin_quest.png", "CoinQuest", "Money Skills"),
+    ("stock_star", "stock_star.png", "StockStar", "Investing Basics"),
+    ("terra_nova", "terra_nova.png", "TerraNova", "General Knowledge"),
+    ("power_grid", "power_grid.png", "PowerGrid", "Study & Practice Exams"),
+    ("truth_forge", "truth_forge.png", "TruthForge", "Christian Apologetics")
     ]
 
     return render_template("subjects.html", planets=planets, character=session["character"])
