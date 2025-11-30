@@ -1,147 +1,239 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ subject|title }} — Answer</title>
+{% extends "layout.html" %}
+{% block content %}
 
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/animations.css">
+<style>
+    body {
+        background: radial-gradient(circle at top, #0f1a2b, #000814);
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        color: white;
+        font-family: "Poppins", sans-serif;
+    }
 
-    <style>
-        body {
-            background: radial-gradient(circle at top, #0f1a2b, #000814);
-            margin: 0;
-            padding: 0;
-            color: white;
-            font-family: "Poppins", sans-serif;
-            overflow-x: hidden;
-        }
+    .stars {
+        position: fixed;
+        inset: 0;
+        background: url('/static/stars.png');
+        background-size: cover;
+        opacity: 0.30;
+        z-index: -1;
+        animation: drift 40s linear infinite;
+    }
 
-        .stars {
-            position: fixed;
-            inset: 0;
-            background: url('/static/stars.png');
-            background-size: cover;
-            opacity: 0.35;
-            z-index: -1;
-            animation: drift 50s linear infinite;
-        }
+    @keyframes drift {
+        from { transform: translateY(0); }
+        to { transform: translateY(-900px); }
+    }
 
-        @keyframes drift {
-            from { transform: translateY(0); }
-            to   { transform: translateY(-2000px); }
-        }
+    .character-wrapper {
+        text-align: center;
+        margin-top: 40px;
+    }
 
-        .answer-container {
-            max-width: 940px;
-            margin: 160px auto 80px;
-            background: rgba(18, 30, 50, 0.75);
-            padding: 30px 40px;
-            border-radius: 18px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.45);
-            backdrop-filter: blur(6px);
-        }
+    .character-img {
+        width: 180px;
+        height: auto;
+        filter: drop-shadow(0 0 18px rgba(255,255,255,0.4));
+        animation: float 3.6s ease-in-out infinite;
+    }
 
-        .answer-title {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 25px;
-            color: #bfe6ff;
-            text-shadow: 0 0 15px rgba(102,209,255,0.7);
-        }
+    @keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+        100% { transform: translateY(0); }
+    }
 
-        .character-wrapper {
-            text-align: center;
-            margin-top: 40px;
-        }
+    .character-name {
+        font-size: 1.4rem;
+        margin-top: 10px;
+        color: #ffd86a;
+        font-weight: bold;
+        text-shadow: 0 0 12px rgba(255,215,0,0.6);
+    }
 
-        .character-img {
-            width: 200px;
-            height: auto;
-            filter: drop-shadow(0 0 20px rgba(255,255,255,0.4));
-        }
+    .answer-box {
+        max-width: 900px;
+        margin: 40px auto;
+        background: rgba(18, 30, 50, 0.78);
+        padding: 30px 40px;
+        border-radius: 20px;
+        box-shadow: 0 0 25px rgba(0,0,0,0.45);
+        backdrop-filter: blur(6px);
+    }
 
-        .character-name {
-            font-size: 1.4rem;
-            margin-top: 10px;
-            color: #f5d06e;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
-        }
+    .answer-title {
+        text-align: center;
+        font-size: 2rem;
+        color: #cfe8ff;
+        margin-bottom: 20px;
+        text-shadow: 0 0 15px rgba(200,220,255,0.5);
+    }
 
-        pre.answer-text {
-            white-space: pre-wrap;
-            font-size: 1.08rem;
-            line-height: 1.55;
-        }
+    pre.answer-text {
+        white-space: pre-wrap;
+        font-size: 1.15rem;
+        line-height: 1.55;
+    }
 
-        .redo-box {
-            max-width: 760px;
-            margin: 40px auto 30px;
-            background: rgba(240, 240, 255, 0.09);
-            padding: 20px;
-            border-radius: 14px;
-            text-align: center;
-        }
+    .chat-section {
+        max-width: 900px;
+        margin: 40px auto 80px;
+        padding: 25px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 20px;
+        box-shadow: 0 0 12px rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,255,255,0.12);
+        backdrop-filter: blur(6px);
+    }
 
-        .ask-btn {
-            display: block;
-            margin: 40px auto;
-            padding: 14px 32px;
-            background: #1a72ff;
-            color: white;
-            border: none;
-            border-radius: 14px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 600;
-            transition: 0.2s;
-        }
+    .chat-title {
+        font-size: 1.4rem;
+        margin-bottom: 15px;
+        color: #d8ecff;
+        text-shadow: 0 0 8px rgba(80,180,255,0.5);
+    }
 
-        .ask-btn:hover {
-            transform: translateY(-3px);
-            background: #3c8aff;
-        }
+    .chat-log {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 15px;
+        background: rgba(0,0,0,0.22);
+        border-radius: 15px;
+        margin-bottom: 15px;
+    }
 
-        .disclaimer {
-            text-align: center;
-            margin-top: 18px;
-            font-size: 0.9rem;
-            opacity: 0.7;
-        }
-    </style>
-</head>
+    .chat-msg {
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        font-size: 1rem;
+        line-height: 1.4;
+    }
 
-<body>
-    <div class="stars"></div>
+    .msg-user {
+        background: rgba(255,255,255,0.2);
+        text-align: right;
+    }
 
-    <div class="character-wrapper fade-in">
-        <img src="/static/characters/{{ character }}.png" class="character-img">
-        <div class="character-name">{{ character|title }}</div>
+    .msg-ai {
+        background: rgba(255,255,255,0.13);
+        text-align: left;
+    }
+
+    .chat-input {
+        display: flex;
+        gap: 10px;
+    }
+
+    .chat-input textarea {
+        flex: 1;
+        height: 70px;
+        padding: 12px;
+        font-size: 1rem;
+        border-radius: 10px;
+        border: none;
+        resize: none;
+        outline: none;
+    }
+
+    .chat-input button {
+        width: 130px;
+        background: #1a72ff;
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 1.15rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.25s;
+    }
+
+    .chat-input button:hover {
+        background: #3c8aff;
+        transform: translateY(-3px);
+    }
+</style>
+
+<div class="stars"></div>
+
+<!-- Character -->
+<div class="character-wrapper fade-in">
+    <img src="/static/characters/{{ character }}.png" class="character-img">
+    <div class="character-name">{{ character|title }}</div>
+</div>
+
+<!-- Answer -->
+<div class="answer-box fade-in">
+    <h2 class="answer-title">✨ {{ subject.replace("_"," ") | title }}</h2>
+
+    {% if pdf_url %}
+        <a href="{{ pdf_url }}" download class="btn btn-primary">📘 Download Study Guide PDF</a>
+        <br><br>
+    {% endif %}
+
+    <pre class="answer-text">{{ answer }}</pre>
+</div>
+
+<!-- Conversational Tutor Section -->
+<div class="chat-section fade-in">
+    <h3 class="chat-title">💬 Continue the Conversation</h3>
+
+    <div class="chat-log" id="chat-log">
+        {% if conversation %}
+            {% for msg in conversation %}
+                {% if msg.role == "user" %}
+                    <div class="chat-msg msg-user">{{ msg.content }}</div>
+                {% else %}
+                    <div class="chat-msg msg-ai">{{ msg.content }}</div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
     </div>
 
-    <div class="answer-container fade-in">
-        <h2 class="answer-title">
-            ✨ {{ subject|title }} — Your Answer
-        </h2>
-
-        <pre class="answer-text">{{ answer }}</pre>
+    <div class="chat-input">
+        <textarea id="chat-msg" placeholder="Ask a follow-up question…"></textarea>
+        <button onclick="sendFollowup()">Send</button>
     </div>
+</div>
 
-    <div class="redo-box">
-        ➡️ Want help with another question?  
-        You can go back and explore more planets anytime.
-    </div>
+<script>
+async function sendFollowup() {
+    const msgBox = document.getElementById("chat-msg");
+    const log = document.getElementById("chat-log");
 
-    <a href="/subjects">
-        <button class="ask-btn">Ask Another Question</button>
-    </a>
+    const text = msgBox.value.trim();
+    if (!text) return;
+    msgBox.value = "";
 
-    <div class="disclaimer">
-        ⚠️ Disclaimer: Homework Buddy uses AI to generate explanations.  
-        While helpful, answers may occasionally contain mistakes.
-    </div>
-</body>
-</html>
+    log.innerHTML += `<div class="chat-msg msg-user">${text}</div>`;
+    log.scrollTop = log.scrollHeight;
+
+    const response = await fetch("/followup_message", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            subject: "{{ subject }}",
+            grade: "{{ grade }}",
+            character: "{{ character }}",
+            message: text
+        })
+    });
+
+    const data = await response.json();
+    const reply = data.reply || "I'm not sure — try rephrasing it!";
+
+    log.innerHTML += `<div class="chat-msg msg-ai">${reply}</div>`;
+    log.scrollTop = log.scrollHeight;
+}
+</script>
+
+{% endblock %}
+
+
+
+
+
 
 
 

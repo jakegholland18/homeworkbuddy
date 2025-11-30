@@ -3,20 +3,14 @@ import os
 import logging
 import traceback
 from datetime import datetime, timedelta
-
 from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    session,
-    flash,
-    jsonify
+    Flask, render_template, request, redirect, session,
+    flash, jsonify, send_file
 )
 from flask import got_request_exception
 
 # ============================================================
-# STATIC + TEMPLATE PATHS (RENDER SAFE)
+# STATIC + TEMPLATE PATHS
 # ============================================================
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -40,14 +34,13 @@ def log_exception(sender, exception, **extra):
 got_request_exception.connect(log_exception, app)
 
 # ============================================================
-# PYTHON PATH: /modules
+# LOAD MODULES
 # ============================================================
 
 sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "modules")))
 
-# IMPORT AI HELPERS
 from modules.shared_ai import study_buddy_ai
-from modules.personality_helper import get_all_characters
+from modules.personality_helper import get_all_characters, apply_personality
 from modules.answer_formatter import format_answer
 
 import modules.math_helper as math_helper
@@ -72,16 +65,16 @@ subject_map = {
     "faith_realm": bible_helper.bible_lesson,
     "chrono_core": history_helper.explain_history,
     "ink_haven": writing_helper.help_write,
-    "power_grid": study_helper.deep_study_chat,  # Chat-based
     "truth_forge": apologetics_helper.apologetics_answer,
     "stock_star": investment_helper.explain_investing,
     "coin_quest": money_helper.explain_money,
     "terra_nova": question_helper.answer_question,
     "story_verse": text_helper.explain_text,
+    "power_grid": study_helper.deep_study_chat,  # only for conversation—NOT study guide
 }
 
 # ============================================================
-# INITIALIZE USER SESSION
+# USER SESSION DEFAULTS
 # ============================================================
 
 def init_user():
@@ -95,6 +88,7 @@ def init_user():
         "character": "everly",
         "usage_minutes": 0,
         "progress": {},
+        "conversation": [],
     }
     for k, v in defaults.items():
         if k not in session:
@@ -102,22 +96,19 @@ def init_user():
     update_streak()
 
 # ============================================================
-# DAILY STREAK
+# DAILY STREAK SYSTEM
 # ============================================================
 
 def update_streak():
     today = datetime.today().date()
     last = datetime.strptime(session["last_visit"], "%Y-%m-%d").date()
 
-    if today == last:
-        return
-
-    if today - last == timedelta(days=1):
-        session["streak"] += 1
-    else:
-        session["streak"] = 1
-
-    session["last_visit"] = str(today)
+    if today != last:
+        if today - last == timedelta(days=1):
+            session["streak"] += 1
+        else:
+            session["streak"] = 1
+        session["last_visit"] = str(today)
 
 # ============================================================
 # XP SYSTEM
@@ -133,7 +124,7 @@ def add_xp(amount):
         flash(f"LEVEL UP! You are now Level {session['level']}!", "info")
 
 # ============================================================
-# ROOT → SUBJECTS
+# ROUTES
 # ============================================================
 
 @app.route("/")
@@ -141,8 +132,9 @@ def home():
     init_user()
     return redirect("/subjects")
 
+
 # ============================================================
-# SUBJECT PLANET SELECT
+# SUBJECTS PAGE
 # ============================================================
 
 @app.route("/subjects")
@@ -150,20 +142,21 @@ def subjects():
     init_user()
 
     planets = [
-        ("chrono_core", "chrono_core.png", "ChronoCore", "History & Social Studies"),
-        ("num_forge", "num_forge.png", "NumForge", "Math Planet"),
-        ("atom_sphere", "atom_sphere.png", "AtomSphere", "Science Planet"),
-        ("story_verse", "story_verse.png", "StoryVerse", "Reading & Literature"),
-        ("ink_haven", "ink_haven.png", "InkHaven", "Writing & Composition"),
-        ("faith_realm", "faith_realm.png", "FaithRealm", "Bible & Christian Studies"),
-        ("coin_quest", "coin_quest.png", "CoinQuest", "Money Skills"),
-        ("stock_star", "stock_star.png", "StockStar", "Investing Basics"),
+        ("chrono_core", "chrono_core.png", "ChronoCore", "History"),
+        ("num_forge", "num_forge.png", "NumForge", "Math"),
+        ("atom_sphere", "atom_sphere.png", "AtomSphere", "Science"),
+        ("story_verse", "story_verse.png", "StoryVerse", "Reading"),
+        ("ink_haven", "ink_haven.png", "InkHaven", "Writing"),
+        ("faith_realm", "faith_realm.png", "FaithRealm", "Bible"),
+        ("coin_quest", "coin_quest.png", "CoinQuest", "Money"),
+        ("stock_star", "stock_star.png", "StockStar", "Investing"),
         ("terra_nova", "terra_nova.png", "TerraNova", "General Knowledge"),
-        ("power_grid", "power_grid.png", "PowerGrid", "In Depth Study"),
-        ("truth_forge", "truth_forge.png", "TruthForge", "Christian Apologetics"),
+        ("power_grid", "power_grid.png", "PowerGrid", "Deep Study"),
+        ("truth_forge", "truth_forge.png", "TruthForge", "Apologetics"),
     ]
 
     return render_template("subjects.html", planets=planets, character=session["character"])
+
 
 # ============================================================
 # CHARACTER SELECT
@@ -180,14 +173,16 @@ def select_character():
     session["character"] = request.form.get("character")
     return redirect("/dashboard")
 
+
 # ============================================================
-# CHOOSE GRADE
+# GRADE SELECT
 # ============================================================
 
 @app.route("/choose-grade")
 def choose_grade():
     init_user()
     return render_template("subject_select_form.html", subject=request.args.get("subject"))
+
 
 # ============================================================
 # ASK QUESTION PAGE
@@ -201,11 +196,122 @@ def ask_question():
         subject=request.args.get("subject"),
         grade=request.args.get("grade"),
         character=session["character"],
-        characters=get_all_characters()
+        characters=get_all_characters(),
     )
 
+
 # ============================================================
-# SUBJECT → AI ANSWER (NOT POWERGRID)
+# POWERGRID STUDY GUIDE SUBMISSION
+# ============================================================
+
+@app.route("/powergrid_submit", methods=["POST"])
+def powergrid_submit():
+    init_user()
+
+    grade = request.form.get("grade")
+    topic = request.form.get("topic", "").strip()
+    uploaded = request.files.get("file")
+
+    text = ""
+
+    # extract file text if uploaded
+    if uploaded and uploaded.filename:
+        ext = uploaded.filename.lower()
+        path = os.path.join("/tmp", uploaded.filename)
+        uploaded.save(path)
+
+        if ext.endswith(".txt"):
+            text = open(path, "r").read()
+
+        elif ext.endswith(".pdf"):
+            try:
+                from PyPDF2 import PdfReader
+                pdf = PdfReader(path)
+                text = "\n".join(page.extract_text() or "" for page in pdf.pages)
+            except:
+                text = "Could not read PDF content."
+
+        else:
+            text = f"Study this topic:\n\n{topic}"
+
+    else:
+        text = topic or "No topic provided."
+
+    # build study guide prompt
+    prompt = f"""
+Create a full, extremely in-depth study guide.
+
+CONTENT SOURCE:
+{text}
+
+STYLE:
+• Very detailed  
+• Step-by-step explanations  
+• Examples  
+• Key terms  
+• Study tips  
+• Summary  
+• Written for grade {grade}
+
+FORMAT:
+Use clean text (no markdown).
+"""
+
+    prompt = apply_personality(session["character"], prompt)
+
+    study_guide = study_buddy_ai(prompt, grade, session["character"])
+
+    # generate PDF
+    pdf_path = "/tmp/study_guide.pdf"
+
+    try:
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter
+
+        c = canvas.Canvas(pdf_path, pagesize=letter)
+        width, height = letter
+        y = height - 50
+        for line in study_guide.split("\n"):
+            c.drawString(40, y, line[:110])
+            y -= 15
+            if y < 40:
+                c.showPage()
+                y = height - 50
+        c.save()
+
+        pdf_url = "/download_study_guide"
+        session["study_pdf"] = pdf_path
+
+    except Exception as e:
+        pdf_url = None
+
+    # save conversation memory start
+    session["conversation"] = [
+        {"role": "assistant", "content": study_guide}
+    ]
+
+    return render_template(
+        "subject.html",
+        subject="power_grid",
+        grade=grade,
+        question=topic,
+        answer=study_guide,
+        character=session["character"],
+        conversation=session["conversation"],
+        pdf_url=pdf_url,
+    )
+
+
+@app.route("/download_study_guide")
+def download_study_guide():
+    pdf = session.get("study_pdf")
+    if pdf and os.path.exists(pdf):
+        return send_file(pdf, as_attachment=True)
+    return "PDF not found."
+
+
+# ============================================================
+# MAIN SUBJECT ANSWER
 # ============================================================
 
 @app.route("/subject", methods=["POST"])
@@ -217,38 +323,64 @@ def subject_answer():
     question = request.form.get("question")
     character = session["character"]
 
-    # --- POWERGRID REDIRECT (Chat Mode Only) ---
-    if subject == "power_grid":
-        session["deep_memory"] = []
-        session["grade_level"] = grade
-        return redirect("/deep_study_chat")
-
-    # Normal subjects
+    # progress tracking
     session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
     session["progress"][subject]["questions"] += 1
 
     func = subject_map.get(subject)
-    if func:
-        result = func(question, grade, character)
-        answer = result.get("raw_text") if isinstance(result, dict) else result
-    else:
-        answer = "Unknown subject."
+    result = func(question, grade, character)
+    six_section_answer = result.get("raw_text") if isinstance(result, dict) else result
+
+    # start conversation memory with the 6-section answer
+    session["conversation"] = [
+        {"role": "assistant", "content": six_section_answer}
+    ]
+    session.modified = True
 
     add_xp(20)
     session["tokens"] += 2
-    session.modified = True
 
     return render_template(
         "subject.html",
         subject=subject,
         grade=grade,
         question=question,
-        answer=answer,
+        answer=six_section_answer,
         character=character,
+        conversation=session["conversation"],
+        pdf_url=None
     )
 
+
 # ============================================================
-# STUDENT DASHBOARD
+# FOLLOW-UP MESSAGE (ALL SUBJECTS)
+# ============================================================
+
+@app.route("/followup_message", methods=["POST"])
+def followup_message():
+    init_user()
+
+    data = request.get_json() or {}
+    subject = data["subject"]
+    grade = data["grade"]
+    character = data["character"]
+    message = data["message"]
+
+    conversation = session.get("conversation", [])
+    conversation.append({"role": "user", "content": message})
+
+    # deep conversational response
+    reply = study_helper.deep_study_chat(conversation, grade, character)
+
+    conversation.append({"role": "assistant", "content": reply})
+    session["conversation"] = conversation
+    session.modified = True
+
+    return jsonify({"reply": reply})
+
+
+# ============================================================
+# DASHBOARD
 # ============================================================
 
 @app.route("/dashboard")
@@ -289,6 +421,7 @@ def dashboard():
         locked_characters=locked,
     )
 
+
 # ============================================================
 # PARENT DASHBOARD
 # ============================================================
@@ -312,8 +445,9 @@ def parent_dashboard():
         character=session["character"],
     )
 
+
 # ============================================================
-# LEGAL PAGES
+# LEGAL
 # ============================================================
 
 @app.route("/terms")
@@ -325,45 +459,6 @@ def privacy(): return render_template("privacy.html")
 @app.route("/disclaimer")
 def disclaimer(): return render_template("disclaimer.html")
 
-# ============================================================
-# POWERGRID — CONVERSATIONAL CHAT
-# ============================================================
-
-@app.route("/deep_study_chat")
-def deep_study_chat_page():
-    init_user()
-    return render_template(
-        "deep_study_chat.html",
-        character=session["character"],
-        conversation=session.get("deep_memory", []),
-    )
-
-@app.route("/deep_study_message", methods=["POST"])
-def deep_study_message():
-    init_user()
-
-    data = request.get_json(silent=True) or {}
-    user_msg = (data.get("message") or "").strip()
-
-    if "deep_memory" not in session:
-        session["deep_memory"] = []
-
-    if not user_msg:
-        return jsonify({"reply": "Try asking your question in a full sentence 😊"})
-
-    # Save user message
-    session["deep_memory"].append({"role": "user", "content": user_msg})
-
-    # --- CORRECT POSITIONAL CALL ---
-    grade = session.get("grade_level", "8")
-    character = session["character"]
-
-    ai_text = study_helper.deep_study_chat(user_msg, grade, character)
-
-    session["deep_memory"].append({"role": "assistant", "content": ai_text})
-    session.modified = True
-
-    return jsonify({"reply": ai_text})
 
 # ============================================================
 # RUN SERVER
@@ -371,4 +466,8 @@ def deep_study_message():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+
+
 

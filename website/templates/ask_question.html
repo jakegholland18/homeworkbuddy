@@ -98,7 +98,7 @@
         to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* FORM PANEL (SIMPLE FOR KIDS) */
+    /* FORM PANEL */
     .ask-form {
         background: white;
         color: black;
@@ -106,6 +106,7 @@
         width: 520px;
         border-radius: 18px;
         box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+        margin-bottom: 30px;
     }
 
     textarea {
@@ -138,6 +139,24 @@
     button:hover {
         background: #2a74ff;
         transform: translateY(-3px);
+    }
+
+    /* Upload box (PowerGrid only) */
+    .upload-box {
+        background: #f7f7ff;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 15px;
+        border: 1px solid #d0d4f7;
+        box-shadow: inset 0 0 8px rgba(0,0,0,0.1);
+    }
+
+    .divider {
+        text-align: center;
+        margin: 15px 0;
+        color: #555;
+        font-weight: bold;
+        opacity: 0.7;
     }
 
     @media (max-width: 850px) {
@@ -179,15 +198,58 @@
         </div>
     </div>
 
-    <!-- QUESTION FORM (Simplified) -->
-    <form action="/subject" method="POST" class="ask-form">
-        <input type="hidden" name="subject" value="{{ subject }}">
-        <input type="hidden" name="grade" value="{{ grade }}">
 
-        <textarea name="question" placeholder="Type your question here..." required></textarea>
+    <!-- MAIN FORM AREA -->
+    {% if subject == "power_grid" %}
 
-        <button type="submit">Ask Buddy</button>
-    </form>
+        <!-- ============ MODE 1: ASK A QUESTION ============ -->
+        <form action="/subject" method="POST" class="ask-form">
+            <h3 style="margin-top:0;">🔎 Ask a Deep Question</h3>
+            <p>Get a 6-section in-depth explanation, then chat with your tutor.</p>
+
+            <input type="hidden" name="subject" value="{{ subject }}">
+            <input type="hidden" name="grade" value="{{ grade }}">
+
+            <textarea name="question" placeholder="Ask anything you want to learn deeply..." required></textarea>
+
+            <button type="submit">Ask Buddy</button>
+        </form>
+
+
+        <!-- ============ MODE 2: BUILD A STUDY GUIDE ============ -->
+        <form action="/powergrid_submit" method="POST" enctype="multipart/form-data" class="ask-form">
+
+            <h3 style="margin-top:0;">📚 Build a Custom Study Guide</h3>
+            <p>Upload a file or type a topic. PowerGrid will create a full study guide.</p>
+
+            <input type="hidden" name="grade" value="{{ grade }}">
+
+            <div class="upload-box">
+                <label><strong>Upload a file (PDF, DOCX, TXT, or Image):</strong></label>
+                <input type="file" name="file" accept=".pdf,.txt,.doc,.docx,.png,.jpg,.jpeg">
+            </div>
+
+            <div class="divider">OR</div>
+
+            <textarea name="topic" placeholder="Type a topic you want turned into an advanced study guide..."></textarea>
+
+            <button type="submit">Generate Study Guide</button>
+        </form>
+
+
+    {% else %}
+
+        <!-- NORMAL PLANETS: ONLY ASK MODE -->
+        <form action="/subject" method="POST" class="ask-form">
+            <input type="hidden" name="subject" value="{{ subject }}">
+            <input type="hidden" name="grade" value="{{ grade }}">
+
+            <textarea name="question" placeholder="Type your question here..." required></textarea>
+
+            <button type="submit">Ask Buddy</button>
+        </form>
+
+    {% endif %}
 
 </div>
 
