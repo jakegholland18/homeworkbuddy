@@ -15,6 +15,14 @@ app = Flask(
     static_url_path="/static",
     static_folder=os.path.join(BASE_DIR, "website", "static")
 )
+import logging
+import traceback
+from flask import got_request_exception
+
+def log_exception(sender, exception, **extra):
+    sender.logger.error("Exception during request: %s", traceback.format_exc())
+
+got_request_exception.connect(log_exception, app)
 
 app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
 
