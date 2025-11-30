@@ -413,7 +413,7 @@ def deep_study_chat_page():
         conversation=session.get("deep_memory", []),
     )
 
-@app.route("/deep_study_message", methods=["POST"])
+@app.route("/deep_study_chat", methods=["POST"])
 def deep_study_message():
     init_user()
 
@@ -450,3 +450,4 @@ if __name__ == "__main__":
     app.run(debug=True)
 
 
+# redeploy fix Sun Nov 30 00:11:00 EST 2025
