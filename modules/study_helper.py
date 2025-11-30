@@ -107,8 +107,8 @@ OUTPUT:
 • 5x–10x longer than a normal study guide
 • A true master guide
 """
-
-    prompt = apply_personality(character, prompt)
+# DO NOT wrap PowerGrid study guides in personality formatting
+# prompt = apply_personality(character, prompt)
 
     response = study_buddy_ai(prompt, grade_level, character)
 
