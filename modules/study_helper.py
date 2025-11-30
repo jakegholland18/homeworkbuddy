@@ -55,7 +55,7 @@ RULES:
 • If asked for more detail, go deeper in a conversational way
 """
 
-    reply = study_buddy_ai_raw(prompt, grade_level, character)
+    reply = study_buddy_ai(prompt, grade_level, character)
 
     if isinstance(reply, dict):
         return reply.get("raw_text") or reply.get("text") or str(reply)
@@ -112,7 +112,7 @@ OUTPUT:
     # keep it neutral and purely focused on content.
     # prompt = apply_personality(character, prompt)
 
-    response = study_buddy_ai_raw(prompt, grade_level, character)
+    response = study_buddy_ai(prompt, grade_level, character)
 
     if isinstance(response, dict):
         return response.get("raw_text") or response.get("text") or str(response)
