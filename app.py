@@ -161,7 +161,7 @@ def subjects():
     ("coin_quest", "coin_quest.png", "CoinQuest", "Money Skills"),
     ("stock_star", "stock_star.png", "StockStar", "Investing Basics"),
     ("terra_nova", "terra_nova.png", "TerraNova", "General Knowledge"),
-    ("power_grid", "power_grid.png", "PowerGrid", "Study & Practice Exams"),
+    ("power_grid", "power_grid.png", "PowerGrid", "In Depth Study"),
     ("truth_forge", "truth_forge.png", "TruthForge", "Christian Apologetics")
     ]
 
@@ -238,7 +238,7 @@ def subject_answer():
         "faith_realm": bible_helper.bible_lesson,
         "chrono_core": history_helper.explain_history,
         "ink_haven": writing_helper.help_write,
-        "power_grid": study_helper.generate_quiz,
+        "power_grid": study_helper.deep_study,
         "truth_forge": apologetics_helper.apologetics_answer,
         "stock_star": investment_helper.explain_investing,
         "coin_quest": money_helper.explain_money,

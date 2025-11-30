@@ -5,122 +5,93 @@ from modules.personality_helper import apply_personality
 from modules.answer_formatter import parse_into_sections, format_answer
 
 
-# -----------------------------------------------------------
-# Socratic Tutor Layer — BEFORE the 6 sections
-# -----------------------------------------------------------
-def socratic_layer(topic: str, grade_level: str):
+def deep_study(question: str, grade_level="8", character="everly"):
     """
-    Gives the student a gentle pre-thinking moment before the full answer.
-    This appears BEFORE the six Homework Buddy sections.
+    POWERGRID — Deep Dive Tutor Planet
+    Christian-influenced tone (wisdom, integrity, purpose, discernment)
+    but NO explicit Christian section.
     """
-    return f"""
-The student wants help studying this topic:
 
-\"{topic}\"
+    prompt = f"""
+You are the DEEP STUDY TUTOR on the PowerGrid planet.
+Your tone should reflect gentle Christian virtues such as wisdom, clarity,
+integrity, compassion, purpose, and discernment — but without ever stating it directly.
 
-Before giving the final six-section Homework Buddy answer:
+The student asked:
 
-1. Restate the topic in very simple, friendly words.
-2. Give one tiny hint that helps the student begin thinking.
-3. Ask one gentle guiding question (very small).
-4. Give a soft nudge toward understanding, without giving away the full answer.
+\"\"\"{question}\"\"\"
 
-Then continue immediately with the six-section structure.
-Keep everything warm, simple, and grade {grade_level} friendly.
+Your job is to go VERY in-depth and explore the topic from multiple angles.
+You always speak warmly, patiently, and with moral clarity.
+You never judge, you guide.
+
+GRADE: {grade_level}
+
+You MUST use EXACTLY these SIX labeled sections.
+NO bullet points. NO lists. Full paragraph sentences only.
+
+---
+
+SECTION 1 — OVERVIEW  
+Give a strong, clear, high-level explanation of the topic.  
+Use warmth, clarity, and gentleness.
+
+---
+
+SECTION 2 — CORE BREAKDOWN  
+Explain the essential concepts in depth.  
+Use careful reasoning, wise guidance, and integrity in explanation.
+
+---
+
+SECTION 3 — MULTI-ANGLE ANALYSIS  
+Explore the topic from multiple perspectives such as logical, emotional,
+practical, historical, relational, moral, or real-world relevance.
+Choose the angles that provide the deepest understanding.
+
+---
+
+SECTION 4 — COMMON MISUNDERSTANDINGS  
+Explain what students often misunderstand and why those ideas cause confusion.
+Gently correct them using patience and discernment.
+
+---
+
+SECTION 5 — GUIDED QUESTIONS FOR YOU  
+Ask the student thoughtful, probing questions that help reveal what they want to understand.
+Use curiosity, compassion, and calm wisdom.  
+No lists. Write as flowing sentences.
+
+---
+
+SECTION 6 — NEXT-STEP PATHWAY  
+Explain how the learning could continue depending on the student’s answer.
+Encourage growth, curiosity, and a sense of purpose.
+
+---
+
+Tone rules:
+• Warm, wise, encouraging, steady.  
+• Gentle moral framework, but never preachy.  
+• No explicit Christian section.  
+• All six sections are required.  
 """
 
+    # Apply character personality (Nova, Everly, etc.)
+    prompt = apply_personality(character, prompt)
 
-# -----------------------------------------------------------
-# QUIZ prompt (still uses six sections)
-# -----------------------------------------------------------
-def build_quiz_prompt(topic: str, grade_level: str):
-    return f"""
-Create a gentle study quiz for the topic "{topic}" using ALL SIX Homework Buddy sections.
-No bullet points. Use short paragraphs.
-
-SECTION 1 — OVERVIEW
-Introduce what the quiz is about in calm sentences.
-
-SECTION 2 — KEY FACTS
-Explain the most important ideas with 3–5 simple sentences.
-
-SECTION 3 — CHRISTIAN VIEW
-If relevant, gently explain how Christians understand meaning or purpose here.
-
-SECTION 4 — AGREEMENT
-Explain in simple paragraph form what most worldviews agree on.
-
-SECTION 5 — DIFFERENCE
-Explain respectfully how interpretations may differ.
-
-SECTION 6 — PRACTICE
-Write several quiz-style questions with very short example answers.
-"""
-
-
-# -----------------------------------------------------------
-# FLASHCARDS prompt (still six sections)
-# -----------------------------------------------------------
-def build_flashcard_prompt(topic: str, grade_level: str):
-    return f"""
-Create flashcards for the topic "{topic}" using the six-section Homework Buddy format.
-NO bullet points. Use small, simple paragraphs.
-
-Flashcards should be extremely simple and kid-friendly.
-
-SECTION 6 — PRACTICE should contain 3–5 flashcard-style Q&A pairs.
-"""
-
-
-# -----------------------------------------------------------
-# PUBLIC FUNCTION — QUIZ GENERATOR (Socratic + 6 sections)
-# -----------------------------------------------------------
-def generate_quiz(topic: str, grade_level="8", character=None):
-
-    if character is None:
-        character = "theo"
-
-    base = build_quiz_prompt(topic, grade_level)
-    full_prompt = socratic_layer(topic, grade_level) + "\n" + base
-
-    enriched = apply_personality(character, full_prompt)
-
-    raw = study_buddy_ai(enriched, grade_level, character)
+    # Get AI response
+    raw = study_buddy_ai(prompt, grade_level, character)
     sections = parse_into_sections(raw)
 
+    # Map sections to standard formatter keys
     return format_answer(
-        overview=sections.get("overview", "").strip(),
-        key_facts=sections.get("key_facts", []),
-        christian_view=sections.get("christian_view", "").strip(),
-        agreement=sections.get("agreement", []),
-        difference=sections.get("difference", []),
-        practice=sections.get("practice", []),
+        overview=sections.get("overview", ""),
+        key_facts=sections.get("core_breakdown", sections.get("key_facts", "")),
+        christian_view=sections.get("multi_angle_analysis", ""),  # We repurpose mapping due to formatter
+        agreement=sections.get("common_misunderstandings", ""),
+        difference=sections.get("guided_questions", ""),
+        practice=sections.get("next_step_pathway", ""),
         raw_text=raw
     )
 
-
-# -----------------------------------------------------------
-# PUBLIC FUNCTION — FLASHCARDS (Socratic + 6 sections)
-# -----------------------------------------------------------
-def flashcards(topic: str, grade_level="8", character=None):
-
-    if character is None:
-        character = "theo"
-
-    base = build_flashcard_prompt(topic, grade_level)
-    full_prompt = socratic_layer(topic, grade_level) + "\n" + base
-
-    enriched = apply_personality(character, full_prompt)
-
-    raw = study_buddy_ai(enriched, grade_level, character)
-    sections = parse_into_sections(raw)
-
-    return format_answer(
-        overview=sections.get("overview", "").strip(),
-        key_facts=sections.get("key_facts", []),
-        christian_view=sections.get("christian_view", "").strip(),
-        agreement=sections.get("agreement", []),
-        difference=sections.get("difference", []),
-        practice=sections.get("practice", []),
-        raw_text=raw
-    )
