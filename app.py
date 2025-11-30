@@ -215,12 +215,14 @@ def powergrid_submit():
     topic = request.form.get("topic", "").strip()
     uploaded = request.files.get("file")
 
-    # remember grade for deep study chat too
+    # remember the grade for deeper conversations
     session["grade"] = grade
 
     text = ""
 
-    # extract file text if uploaded
+    # -------------------------------
+    # Extract uploaded text
+    # -------------------------------
     if uploaded and uploaded.filename:
         ext = uploaded.filename.lower()
         path = os.path.join("/tmp", uploaded.filename)
@@ -234,18 +236,16 @@ def powergrid_submit():
                 from PyPDF2 import PdfReader
                 pdf = PdfReader(path)
                 text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-            except Exception:
+            except:
                 text = "Could not read PDF content."
-
         else:
             text = f"Study this topic:\n\n{topic}"
     else:
         text = topic or "No topic provided."
 
-    # ============================================================
-    # ULTRA-DETAILED MASTER STUDY GUIDE PROMPT
-    # ============================================================
-
+    # -------------------------------
+    # Build ULTRA study guide prompt
+    # -------------------------------
     prompt = f"""
 Create the most complete, extremely in-depth MASTER STUDY GUIDE possible.
 
@@ -253,48 +253,46 @@ CONTENT SOURCE:
 {text}
 
 GOALS:
-• Teach the student EVERYTHING the AI knows about this topic
-• Beginner → Intermediate → Advanced → Expert explanations
-• Break every major concept into sub-points and sub-sub-points
-• Expand ideas with detailed reasoning
-• Include examples, analogies, comparisons, diagrams-in-text (ASCII)
-• Include formulas, equations, timelines, processes (if relevant)
-• Include common mistakes students make and how to avoid them
-• Include exam-ready tips and memory tricks
-• Include advanced insights NOT usually taught in school
+• Teach EVERYTHING the AI knows about this topic  
+• Beginner → Intermediate → Advanced → Expert levels  
+• Break every concept into bullet points  
+• Use sub-bullets for deep detail  
+• Give examples, analogies, equations, diagrams-in-text (ASCII)  
+• Include common mistakes  
+• Provide mastery explanations  
+• Provide exam-style memory tips  
+• Extremely detailed, long, advanced  
 
 STYLE:
-• Very clear, very structured
-• Lots of bullet points and sub-bullets
-• Section labels allowed (but NOT limited to 6)
-• No markdown formatting (#, *, **); use plain text
-• Smooth, friendly tutor tone
-• Written for grade {grade}, but provide AS MUCH DEPTH AS POSSIBLE
+• Structured  
+• Bullet points  
+• Sub-bullets  
+• No markdown formatting  
+• Smooth tutor tone  
+• Written for grade {grade} but as deep as possible  
 
 FORMAT:
-• Clean plain text only
-• Use indentation for hierarchy:
-  - Main points
-    - Sub points
-      - Sub-sub points
+• Clean plain text  
+• Lots of sections  
+• Indented hierarchy  
 
-OUTPUT REQUIREMENTS:
-• Extremely long if necessary (5x–10x normal length)
-• Cover every angle of the topic
-• Produce a true MASTER GUIDE that could teach a beginner to mastery.
+OUTPUT:
+• Very long (5x–10x normal)
+• A true master guide
 """
 
-    # Add personality adjustments
     prompt = apply_personality(session["character"], prompt)
 
-    # Generate the study guide
     study_guide = study_buddy_ai(prompt, grade, session["character"])
 
     # ============================================================
-    # PDF GENERATION
+    # PDF GENERATION FIXED
     # ============================================================
 
-    pdf_path = "/tmp/study_guide.pdf"
+    import uuid
+    pdf_path = f"/tmp/study_guide_{uuid.uuid4().hex}.pdf"
+
+    from textwrap import wrap
 
     try:
         from reportlab.pdfgen import canvas
@@ -303,22 +301,29 @@ OUTPUT REQUIREMENTS:
         c = canvas.Canvas(pdf_path, pagesize=letter)
         width, height = letter
         y = height - 50
+
+        # wrap long lines for PDF safety
         for line in study_guide.split("\n"):
-            c.drawString(40, y, line[:110])
-            y -= 15
-            if y < 40:
-                c.showPage()
-                y = height - 50
+            for wrapped in wrap(line, 110):
+                c.drawString(40, y, wrapped)
+                y -= 15
+
+                # new page
+                if y < 40:
+                    c.showPage()
+                    y = height - 50
+
         c.save()
 
         pdf_url = "/download_study_guide"
         session["study_pdf"] = pdf_path
+        session.modified = True
 
     except Exception as e:
-        app.logger.error("PDF generation error: %s", e)
+        app.logger.error(f"PDF generation error: {e}")
         pdf_url = None
 
-    # DO NOT add study guide to chat history
+    # clear chat memory
     session["conversation"] = []
     session.modified = True
 
@@ -332,6 +337,28 @@ OUTPUT REQUIREMENTS:
         conversation=session["conversation"],
         pdf_url=pdf_url,
     )
+
+
+# ============================================================
+# DOWNLOAD ROUTE — REQUIRED
+# ============================================================
+
+@app.route("/download_study_guide")
+def download_study_guide():
+    pdf = session.get("study_pdf")
+
+    if not pdf:
+        return "PDF not found in session."
+
+    if not os.path.exists(pdf):
+        # give Render a moment to finish writing
+        import time
+        time.sleep(0.20)
+        if not os.path.exists(pdf):
+            return "PDF file missing from server."
+
+    return send_file(pdf, as_attachment=True)
+
 
 # ============================================================
 # MAIN SUBJECT ANSWER
