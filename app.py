@@ -238,7 +238,7 @@ def subject_answer():
         "faith_realm": bible_helper.bible_lesson,
         "chrono_core": history_helper.explain_history,
         "ink_haven": writing_helper.help_write,
-        "power_grid": study_helper.deep_study,
+        "power_grid": study_helper.deep_study_chat,
         "truth_forge": apologetics_helper.apologetics_answer,
         "stock_star": investment_helper.explain_investing,
         "coin_quest": money_helper.explain_money,
@@ -368,48 +368,46 @@ def privacy():
 def disclaimer():
     return render_template("disclaimer.html")
 # ============================================================
-# POWERGRID — DEEP STUDY CHAT MODE
+# POWERGRID — DEEP STUDY CHAT SYSTEM
 # ============================================================
-from flask import session
 
-@app.route("/deep-study", methods=["GET", "POST"])
-def deep_study_chat():
-    # Initialize conversation storage in session
-    if "conversation" not in session:
-        session["conversation"] = []
-
-    if request.method == "POST":
-        user_msg = request.form.get("message", "").strip()
-
-        if user_msg:
-            # Save the user's message in conversation
-            session["conversation"].append({
-                "role": "user",
-                "text": user_msg
-            })
-
-            # Run deep study AI
-            ai_answer = deep_study(
-                user_msg,
-                grade_level=session.get("grade_level", "8"),
-                character=session.get("character", "everly")
-            )
-
-            # Append AI response
-            session["conversation"].append({
-                "role": "ai",
-                "text": ai_answer["raw_text"]
-            })
-
-        session.modified = True
-        return redirect("/deep-study")
-
-    # Render chat UI
+@app.route("/deep_study_chat")
+def deep_study_chat_page():
+    init_user()
     return render_template(
         "deep_study_chat.html",
-        conversation=session.get("conversation", []),
-        character=session.get("character", "everly")
+        character=session["character"],
+        conversation=session.get("deep_memory", [])
     )
+
+@app.route("/deep_study_message", methods=["POST"])
+def deep_study_message():
+    init_user()
+
+    user_msg = request.json.get("message", "").strip()
+    character = session["character"]
+    grade = session.get("grade_level", "8")
+
+    # Initialize memory if needed
+    if "deep_memory" not in session:
+        session["deep_memory"] = []
+
+    # Save user message
+    session["deep_memory"].append({"role": "user", "content": user_msg})
+
+    # --- 🔥 CALL YOUR REAL FUNCTION HERE ---
+    ai_text = study_helper.deep_study_chat(
+        user_msg,
+        grade_level=grade,
+        character=character
+    )
+    # --------------------------------------
+
+    # Save AI reply
+    session["deep_memory"].append({"role": "assistant", "content": ai_text})
+    session.modified = True
+
+    return jsonify({"reply": ai_text})
 
 if __name__ == "__main__":
     app.run(debug=True)
