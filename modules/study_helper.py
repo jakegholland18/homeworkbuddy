@@ -1,6 +1,6 @@
 # modules/study_helper.py
 
-from modules.shared_ai import study_buddy_ai
+from modules.shared_ai import study_buddy_ai, powergrid_master_ai
 from modules.personality_helper import apply_personality
 
 
@@ -62,11 +62,13 @@ RULES:
 
     return reply
 
-
+# -------------------------------------------------------------
+# OLD PowerGrid Study Guide Generator (kept for compatibility)
+# -------------------------------------------------------------
 def generate_master_study_guide(text, grade_level="8", character="everly"):
     """
-    Generates the ULTRA MASTER STUDY GUIDE.
-    Used ONLY when submitting through PowerGrid.
+    OLD STUDY GUIDE (bullet-only).
+    Still used by some subjects, but NOT for PowerGrid anymore.
     """
 
     prompt = f"""
@@ -108,11 +110,52 @@ OUTPUT:
 • A true master guide
 """
 
-    # DO NOT apply personality to the master guide;
-    # keep it neutral and purely focused on content.
-    # prompt = apply_personality(character, prompt)
-
     response = study_buddy_ai(prompt, grade_level, character)
+
+    if isinstance(response, dict):
+        return response.get("raw_text") or response.get("text") or str(response)
+
+    return response
+
+# -------------------------------------------------------------
+# NEW **ULTRA** PowerGrid Mixed-Format Master Guide
+# -------------------------------------------------------------
+def generate_powergrid_master_guide(text, grade_level="8", character="everly"):
+    """
+    ULTRA-DETAILED POWERGRID GUIDE (bullets + paragraphs + diagrams).
+    Ends with a Christian Worldview section.
+    """
+
+    prompt = f"""
+Create an ULTRA-DETAILED POWERGRID MASTER STUDY GUIDE.
+
+CONTENT:
+{text}
+
+REQUIREMENTS:
+• Extremely long and deeply detailed.
+• A mix of paragraphs AND bullet points.
+• Include sub-bullets.
+• Include ASCII diagrams when helpful.
+• Include formulas/equations if relevant.
+• Include examples, analogies, comparisons.
+• Include common mistakes students make.
+• Include memory strategies and exam tricks.
+• Progress from beginner → intermediate → advanced → expert.
+• Rich, smooth, intelligent explanations.
+
+FINAL SECTION MUST BE:
+CHRISTIAN WORLDVIEW PERSPECTIVE
+Write 1–3 thoughtful paragraphs connecting the topic to Christian principles
+(such as stewardship, truth, purpose, compassion, integrity, etc.)
+
+TONE:
+• Warm, clear, inspiring
+• Friendly but highly intelligent
+• Appropriately matched to grade {grade_level}
+"""
+
+    response = powergrid_master_ai(prompt, grade_level, character)
 
     if isinstance(response, dict):
         return response.get("raw_text") or response.get("text") or str(response)

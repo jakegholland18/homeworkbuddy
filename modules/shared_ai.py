@@ -34,17 +34,17 @@ def grade_depth_instruction(grade: str) -> str:
     if g <= 5:
         return "Use simple language with clear examples. Keep ideas small and concrete."
     if g <= 8:
-        return "Use moderate detail, logical explanation, and age-appropriate examples."
+        return "Use moderate detail and gentle reasoning."
     if g <= 10:
-        return "Use deeper reasoning, connections, and clearer examples."
+        return "Use deeper reasoning with clear examples and explanations."
     if g <= 12:
-        return "Use high-school level depth, real-world examples, and strong conceptual clarity."
+        return "Use high-school level clarity, logic, and real-world examples."
 
-    return "Use college-level clarity and deep conceptual reasoning."
+    return "Use college-level conceptual precision and depth."
 
 
 # -------------------------------------------------------
-# SYSTEM PROMPT — STRICT FORMAT
+# HOMEWORK BUDDY SYSTEM PROMPT — STRICT SIX SECTIONS
 # -------------------------------------------------------
 BASE_SYSTEM_PROMPT = """
 You are HOMEWORK BUDDY — a warm, gentle tutor.
@@ -73,7 +73,7 @@ STRICT FORMAT RULES:
 
 
 # -------------------------------------------------------
-# MAIN AI CALL
+# MAIN AI CALL (HOMEWORK BUDDY)
 # -------------------------------------------------------
 def study_buddy_ai(prompt: str, grade: str, character: str) -> str:
 
@@ -96,7 +96,7 @@ For ALL SIX sections:
 • No bullets. No lists. No line breaks inside paragraphs.
 """
 
-    client = get_client()  # Lazy-load here — important!
+    client = get_client()
 
     response = client.responses.create(
         model="gpt-4.1-mini",
@@ -105,6 +105,54 @@ SYSTEM:
 {system_prompt}
 
 STUDENT QUESTION:
+{prompt}
+"""
+    )
+
+    return response.output_text
+
+
+# -------------------------------------------------------
+# POWERGRID MASTER GUIDE ENGINE (NO SIX-SECTIONS)
+# -------------------------------------------------------
+def powergrid_master_ai(prompt: str, grade: str, character: str) -> str:
+    """
+    Generates ULTRA-DETAILED PowerGrid mixed-format guides.
+    No section restrictions. Allows bullets + paragraphs + diagrams.
+    """
+
+    depth_rule = grade_depth_instruction(grade)
+    voice = build_character_voice(character)
+
+    system_prompt = f"""
+You are POWERGRID — the ultimate deep-study tutor.
+
+GOALS:
+• Produce extremely detailed, structured educational material
+• Mix paragraphs, bullet points, sub-bullets, diagrams, and examples
+• Go deep from beginner → expert
+• Explain with clarity and intelligence
+• Maintain a warm, encouraging teaching tone
+• Adapt depth to grade level: {grade}
+• Use character voice: {voice}
+
+FINAL REQUIREMENT:
+The LAST SECTION must be titled exactly:
+CHRISTIAN WORLDVIEW PERSPECTIVE
+and must contain 1–3 thoughtful paragraphs relating the topic
+to Christian principles such as purpose, truth, stewardship,
+wisdom, compassion, courage, and integrity.
+"""
+
+    client = get_client()
+
+    response = client.responses.create(
+        model="gpt-4.1",
+        input=f"""
+SYSTEM:
+{system_prompt}
+
+WRITE THE STUDY GUIDE BASED ON THIS CONTENT:
 {prompt}
 """
     )
