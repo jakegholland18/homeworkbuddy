@@ -2,50 +2,50 @@
 
 import json
 from typing import Dict, Any
-
 from modules.shared_ai import get_client, build_character_voice, grade_depth_instruction
 
 
+# ------------------------------------------------------------
+# Difficulty text
+# ------------------------------------------------------------
+
 def _difficulty_for_grade(grade_level: str) -> str:
-    """
-    Map grade to difficulty description.
-    D = auto-match to grade (your choice).
-    """
     try:
         g = int(grade_level)
-    except Exception:
+    except:
         return "medium difficulty"
 
-    if g <= 3:
-        return "very easy, gentle, early elementary difficulty"
-    if g <= 6:
-        return "easy to medium difficulty for upper elementary"
-    if g <= 8:
-        return "medium difficulty for middle school"
-    if g <= 10:
-        return "medium-hard difficulty for early high school"
-    return "advanced difficulty for high school and beyond"
+    if g <= 3: return "very easy early-elementary difficulty"
+    if g <= 6: return "easy to medium upper-elementary difficulty"
+    if g <= 8: return "middle-school difficulty"
+    if g <= 10: return "medium-hard early high-school difficulty"
+    return "advanced high-school difficulty"
 
+
+# ------------------------------------------------------------
+# Subject flavor shaping
+# ------------------------------------------------------------
 
 def _subject_flavor(subject: str) -> str:
-    """
-    Short hint for how to shape the practice based on subject code.
-    """
     mapping = {
-        "num_forge": "math word problems and step-by-step equation solving.",
-        "atom_sphere": "science processes, cause-and-effect, and experiments explained in steps.",
-        "faith_realm": "Bible stories, verses, and application questions in small steps.",
-        "chrono_core": "history timelines, causes and effects, and event comparisons.",
-        "ink_haven": "writing skills like grammar fixes, sentence rewrites, and structure.",
-        "truth_forge": "apologetics questions, reasoning steps, and evidence-based thinking.",
-        "stock_star": "investing scenarios, risk vs reward, and math with percentages.",
-        "coin_quest": "money skills: budgeting, saving, spending, and simple interest.",
-        "terra_nova": "general knowledge, logic puzzles, and concept breakdowns.",
-        "story_verse": "reading comprehension with short passages and questions.",
-        "power_grid": "deeper multi-step reasoning practice based on the topic.",
+        "num_forge": "math skills, word problems, equations, percentages, and reasoning.",
+        "atom_sphere": "science concepts, experiments, cause-and-effect, and reasoning steps.",
+        "faith_realm": "Bible knowledge, stories, verses, and application questions.",
+        "chrono_core": "history timelines, events, causes, effects, and comparisons.",
+        "ink_haven": "grammar, writing clarity, sentence improvement, and editing.",
+        "truth_forge": "apologetics, reasoning, evidence, worldview logic.",
+        "stock_star": "investing scenarios, percentages, returns, and decision-making.",
+        "coin_quest": "money concepts: saving, spending, budgeting, interest, and value.",
+        "terra_nova": "general knowledge, logic puzzles, problem solving.",
+        "story_verse": "reading comprehension, inference, theme, characters.",
+        "power_grid": "deep multi-step reasoning based on the topic.",
     }
-    return mapping.get(subject, "general step-by-step practice questions.")
+    return mapping.get(subject, "general educational reasoning questions.")
 
+
+# ------------------------------------------------------------
+# MAIN PRACTICE GENERATOR
+# ------------------------------------------------------------
 
 def generate_practice_session(
     topic: str,
@@ -53,80 +53,68 @@ def generate_practice_session(
     grade_level: str = "8",
     character: str = "everly",
 ) -> Dict[str, Any]:
-    """
-    Generate a structured, multi-step interactive practice session.
-
-    Returns a dict shaped like:
-    {
-        "steps": [
-            {
-                "prompt": "Tutor message to student (what to ask them to do for this step)",
-                "expected": ["acceptable answer 1", "acceptable answer 2"],
-                "hint": "short hint if they get it wrong"
-            },
-            ...
-        ],
-        "final_message": "Encouraging wrap-up message."
-    }
-    """
 
     difficulty = _difficulty_for_grade(grade_level)
-    subject_hint = _subject_flavor(subject)
+    flavor = _subject_flavor(subject)
     voice = build_character_voice(character)
     depth_rule = grade_depth_instruction(grade_level)
 
     if not topic:
-        topic = "the last thing the student asked about"
+        topic = "the last skill the student reviewed"
 
+    # ------------------------------------------------------------
+    # 🔥 NEW SYSTEM PROMPT — produces 10 mixed-question problems
+    # ------------------------------------------------------------
     system_prompt = f"""
-You are HOMEWORK BUDDY PRACTICE MODE — an interactive tutor.
+You are HOMEWORK BUDDY PRACTICE MODE.
 
 GOAL:
-Create a SHORT, FUN, STEP-BY-STEP practice session that the student
-will complete one message at a time in a chat.
-
-IMPORTANT:
-• The practice is ONLY about this topic: {topic}
-• Subject flavor: {subject_hint}
+Generate a *10-question* interactive practice mission:
+• Some multiple-choice questions
+• Some free-response questions
+• Some word problems (if subject allows)
+• ALL tied to: {topic}
+• Subject flavor: {flavor}
 • Difficulty: {difficulty}
+• Tone & style use the tutor voice: {voice}
 • Grade level rule: {depth_rule}
-• Tutor voice: {voice}
 
-OUTPUT FORMAT (VERY IMPORTANT):
-Return ONLY valid JSON with this exact structure:
+VERY IMPORTANT OUTPUT RULES:
+Return ONLY VALID JSON in this exact format:
 
 {{
   "steps": [
     {{
-      "prompt": "string — what the tutor says to the student for this step",
-      "expected": ["short acceptable answer 1", "answer 2"],
-      "hint": "short helpful hint if the student gets it wrong"
+      "prompt": "string — what the tutor says for this problem",
+      "type": "multiple_choice" OR "free",
+      "choices": ["A. ...", "B. ...", "C. ...", "D. ..."],   (MC only)
+      "expected": ["a"],            (MC: correct letter(s) only)
+      "hint": "short helpful hint if wrong",
+      "explanation": "step-by-step walkthrough for 3rd attempt"
     }}
   ],
   "final_message": "short encouraging completion message"
 }}
 
-RULES:
-• 3 to 5 steps only.
-• Each prompt should be short, fun, and clearly ask the student to do ONE thing.
-• expected answers must be SHORT, lower-case words or phrases, no punctuation.
-• Hints should be friendly and specific, not generic.
-• Make it feel like a mission or challenge, but not cringey.
-• DO NOT include any extra keys besides "steps" and "final_message".
-• DO NOT include any explanation outside the JSON.
-• DO NOT use markdown, bullet markers, or line prefixes.
+STRICT RULES:
+• Exactly 10 questions.
+• NEVER omit "type". NEVER omit "choices" for MC questions.
+• expected must be VERY short (e.g., ["a"] or ["4"]).
+• Hints must be specific, not generic.
+• Explanations must be short & step-by-step.
+• Do NOT include markdown.
+• Do NOT include commentary outside JSON.
 """
 
     user_prompt = """
-Create the JSON practice session now.
-Remember: ONLY return the JSON object, nothing else.
+Generate the full 10-question JSON practice session now.
+REMEMBER: ONLY return the JSON object. No commentary.
 """
 
     client = get_client()
-
     response = client.responses.create(
         model="gpt-4.1-mini",
-        max_output_tokens=800,
+        max_output_tokens=1800,
         input=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -135,69 +123,77 @@ Remember: ONLY return the JSON object, nothing else.
 
     raw = response.output_text.strip()
 
-    # Try to parse JSON from the model
+    # ------------------------------------------------------------
+    # Attempt JSON parse
+    # ------------------------------------------------------------
     try:
-        practice_data = json.loads(raw)
-    except Exception:
-        # Fallback: simple 1-step practice if parsing fails
+        data = json.loads(raw)
+    except:
+        # fallback
         return {
             "steps": [
                 {
-                    "prompt": f"Let's practice {topic}. First, tell me one important thing you remember about it.",
-                    "expected": [""],  # accept anything
-                    "hint": "There isn’t one right answer; just share any key idea you remember.",
-                }
-            ],
-            "final_message": "Nice work! You finished this quick practice mission 🚀",
-        }
-
-    # Basic validation + safety
-    if not isinstance(practice_data, dict):
-        return {
-            "steps": [
-                {
-                    "prompt": f"Let's practice {topic}. First, tell me one important thing you remember about it.",
+                    "prompt": f"Let's practice {topic}. What is one fact you remember?",
+                    "type": "free",
+                    "choices": [],
                     "expected": [""],
-                    "hint": "There isn’t one right answer; just share any key idea you remember.",
+                    "hint": "Anything related to the topic works.",
+                    "explanation": "You can share any detail you remember.",
                 }
             ],
-            "final_message": "Nice work! You finished this quick practice mission 🚀",
+            "final_message": "Great work finishing the warm-up mission! 🚀"
         }
 
-    steps = practice_data.get("steps") or []
-    if not isinstance(steps, list) or len(steps) == 0:
-        practice_data["steps"] = [
+    # ------------------------------------------------------------
+    # Validation / Cleanup
+    # ------------------------------------------------------------
+
+    valid_steps = []
+    for step in data.get("steps", []):
+        prompt = str(step.get("prompt", "")).strip()
+
+        qtype = step.get("type", "free")
+        if qtype not in ["multiple_choice", "free"]:
+            qtype = "free"
+
+        choices = step.get("choices", []) if qtype == "multiple_choice" else []
+        if choices and not isinstance(choices, list):
+            choices = []
+
+        expected_raw = step.get("expected", [])
+        if not isinstance(expected_raw, list):
+            expected_raw = [str(expected_raw)]
+
+        expected = [str(x).lower().strip() for x in expected_raw if str(x).strip()]
+
+        hint = str(step.get("hint", "Try thinking carefully about what the question is asking.")).strip()
+        explanation = str(step.get("explanation", "Let's walk through how to solve it.")).strip()
+
+        valid_steps.append({
+            "prompt": prompt,
+            "type": qtype,
+            "choices": choices,
+            "expected": expected or [""],
+            "hint": hint,
+            "explanation": explanation,
+        })
+
+    # Guarantee at least 1 step
+    if not valid_steps:
+        valid_steps = [
             {
-                "prompt": f"Let's practice {topic}. First, tell me one important thing you remember about it.",
+                "prompt": f"Tell me one thing you know about {topic}.",
+                "type": "free",
+                "choices": [],
                 "expected": [""],
-                "hint": "There isn’t one right answer; just share any key idea you remember.",
+                "hint": "Anything related works!",
+                "explanation": "Just share what you remember.",
             }
         ]
 
-    # Normalize expected lists to always be list of strings
-    normalized_steps = []
-    for step in practice_data["steps"]:
-        prompt = str(step.get("prompt", "")).strip()
-        expected = step.get("expected", [])
-        hint = str(step.get("hint", "")).strip() or "Try thinking about the main idea again."
+    final_message = data.get("final_message", "You completed this practice mission! 🚀")
 
-        if not isinstance(expected, list):
-            expected = [str(expected)]
-
-        expected_clean = [str(a).lower().strip() for a in expected if str(a).strip()]
-
-        normalized_steps.append(
-            {
-                "prompt": prompt or "What is the next thing you would do?",
-                "expected": expected_clean or [""],
-                "hint": hint,
-            }
-        )
-
-    practice_data["steps"] = normalized_steps
-    practice_data["final_message"] = practice_data.get(
-        "final_message",
-        "Great job! You completed this practice mission 🚀",
-    )
-
-    return practice_data
+    return {
+        "steps": valid_steps,
+        "final_message": final_message,
+    }
