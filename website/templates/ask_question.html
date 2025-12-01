@@ -156,7 +156,7 @@
         opacity: 0.7;
     }
 
-    /* ⭐ ADDED: Thinking Box */
+    /* ⭐ FIXED: Thinking Box */
     #thinking-box {
         background: rgba(0,0,0,0.55);
         color: #bfe6ff;
@@ -169,7 +169,10 @@
         transition: 0.35s ease;
         width: fit-content;
     }
-    .thinking-show { opacity: 1; }
+
+    .thinking-show {
+        opacity: 1 !important;
+    }
 
 </style>
 
@@ -200,8 +203,8 @@
         </div>
     </div>
 
-    <!-- ⭐ ADDED: THINKING MESSAGE (hidden until activated) -->
-    <div id="thinking-box">✨ Consulting stardust for answers… ✨</div>
+    <!-- ⭐ THINKING MESSAGE -->
+    <div id="thinking-box">✨ Preparing your cosmic answer… ✨</div>
 
     <!-- MAIN FORM AREA -->
     {% if subject == "power_grid" %}
@@ -255,18 +258,18 @@
 
 </div>
 
-
-<!-- ⭐ ADDED: ENTER-TO-SUBMIT + THINKING SCRIPT -->
+<!-- ⭐ FIXED JS: ENTER-TO-SUBMIT + THINKING -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+
     const box = document.getElementById("thinking-box");
 
     const messages = [
         "✨ Thinking at warp speed...",
-        "🌌 Consulting the Homework Galaxy Council...",
-        "🔭 Scanning star clusters for clues...",
-        "🛸 Crunching cosmic numbers...",
-        "🌠 Gathering interstellar wisdom..."
+        "🌌 Consultings stardust libraries...",
+        "🔭 Looking through cosmic archives...",
+        "🛸 Gathering interstellar wisdom...",
+        "🌠 Asking the Galaxy Council..."
     ];
 
     function showThinking() {
@@ -274,23 +277,26 @@ document.addEventListener("DOMContentLoaded", () => {
         box.classList.add("thinking-show");
     }
 
-    // Attach enter-to-submit to both forms if they exist
+    // For both forms
     ["question-1", "question-2"].forEach(id => {
-        const input = document.getElementById(id);
-        if (!input) return;
+        const field = document.getElementById(id);
+        if (!field) return;
 
-        input.addEventListener("keydown", e => {
+        field.addEventListener("keydown", e => {
             if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 showThinking();
-                input.closest("form").submit();
+                field.closest("form").submit();
             }
         });
 
-        input.closest("form").addEventListener("submit", showThinking);
+        // Buttons also trigger thinking
+        field.closest("form").addEventListener("submit", showThinking);
     });
+
 });
 </script>
 
 {% endblock %}
+
 

@@ -186,8 +186,9 @@
         text-align: center;
         margin-top: 10px;
         color: #9ecaff;
-        font-size: 1rem;
+        font-size: 1.1rem;
         animation: pulse 1.5s infinite;
+        font-style: italic;
     }
 
     @keyframes pulse {
@@ -245,6 +246,15 @@
 </div>
 
 <script>
+// ⭐ Random thinking messages
+const thinkingMessages = [
+    "✨ Calculating cosmic wisdom...",
+    "🌌 Checking the star database...",
+    "🛸 Summoning intergalactic tutors...",
+    "🔭 Scanning the knowledge nebula...",
+    "🌠 Preparing your stellar response..."
+];
+
 // ENTER to send
 document.getElementById("chat-msg").addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -255,7 +265,7 @@ document.getElementById("chat-msg").addEventListener("keydown", (e) => {
 
 // START PRACTICE
 document.getElementById("startPracticeBtn").addEventListener("click", () => {
-    window.location.href = `/practice?topic=${encodeURIComponent("{{ answer }}")}&subject={{ subject }}`;
+    window.location.href = `/practice?topic=${encodeURIComponent(`{{ question }}`)}&subject={{ subject }}`;
 });
 
 // SEND FOLLOWUP
@@ -269,11 +279,15 @@ async function sendFollowup() {
 
     msgBox.value = "";
 
+    // Add user message
     log.innerHTML += `<div class="chat-msg msg-user">${text}</div>`;
     log.scrollTop = log.scrollHeight;
 
+    // ⭐ Show fun thinking message
+    thinking.innerText = thinkingMessages[Math.floor(Math.random() * thinkingMessages.length)];
     thinking.style.display = "block";
 
+    // SEND request to backend
     const response = await fetch("/followup_message", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -285,11 +299,13 @@ async function sendFollowup() {
         })
     });
 
+    // Hide thinking
     thinking.style.display = "none";
 
     const data = await response.json();
     const reply = data.reply || "I'm not sure — try rephrasing it!";
 
+    // Add AI response
     log.innerHTML += `<div class="chat-msg msg-ai">${reply}</div>`;
     log.scrollTop = log.scrollHeight;
 }
