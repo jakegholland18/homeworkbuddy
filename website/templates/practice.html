@@ -41,12 +41,38 @@
             backdrop-filter: blur(6px);
         }
 
+        /* Return button */
+        .return-row {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 10px;
+        }
+        .return-btn {
+            background: transparent;
+            border: none;
+            color: #bfe6ff;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .return-btn:hover {
+            text-decoration: underline;
+        }
+
         .avatar {
             width: 160px;
             height: auto;
             display: block;
             margin: 0 auto 15px;
             transition: transform 0.3s ease;
+        }
+
+        .prompt-title {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
         }
 
         /* ---------- Animations ---------- */
@@ -78,14 +104,45 @@
             background: rgba(255,255,255,0.12);
             padding: 20px;
             border-radius: 15px;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             margin-bottom: 20px;
             transition: background-color 0.3s ease;
         }
 
+        /* Topic chooser */
+        .topic-row {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #topic-input {
+            width: 70%;
+            max-width: 450px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            margin-top: 8px;
+        }
+        #start-topic-btn {
+            margin-top: 10px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            background: #1e88ff;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #start-topic-btn:hover {
+            background: #3ea0ff;
+        }
+
+        /* Input row */
         .input-row {
             display: flex;
             gap: 10px;
+            margin-top: 10px;
         }
 
         #student-answer {
@@ -94,7 +151,7 @@
             border-radius: 12px;
             border: none;
             outline: none;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
         }
 
         .submit-btn {
@@ -112,17 +169,61 @@
             background: #42a1ff;
         }
 
+        /* Multiple choice options */
+        #choices-container {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .choice-btn {
+            text-align: left;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255,255,255,0.9);
+            color: #222;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .choice-btn:hover {
+            background: #e0f0ff;
+        }
+
         .status-message {
             margin-top: 20px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             text-align: center;
             min-height: 30px;
         }
 
-        /* Loading spinner */
+        /* Loading / thinking */
         .thinking {
-            font-size: 1rem;
-            opacity: 0.8;
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+
+        /* Session complete buttons */
+        .session-actions {
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        .session-actions button {
+            margin: 5px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .session-primary {
+            background: #1e88ff;
+            color: white;
+        }
+        .session-secondary {
+            background: rgba(255,255,255,0.9);
+            color: #111;
         }
     </style>
 </head>
@@ -132,104 +233,216 @@
 <div class="stars"></div>
 
 <div class="practice-container">
+    <div class="return-row">
+        <button class="return-btn" onclick="window.history.back()">
+            ⬅️ Return to previous screen
+        </button>
+    </div>
 
     <img id="character-avatar" class="avatar" src="/static/characters/{{ character }}.png">
 
-    <h2 style="text-align:center; margin-bottom:25px;">🚀 Practice Mission</h2>
+    <h2 class="prompt-title">🚀 Practice Mission</h2>
 
-    <div id="practice-prompt" class="prompt-box">
-        Loading your practice mission...
+    <!-- TOPIC SELECTION -->
+    <div id="topic-section" class="topic-row">
+        <div>What topic would you like to practice?</div>
+        <input id="topic-input" type="text"
+               placeholder="e.g. percentages, fractions, decimals, reading, money...">
+        <br>
+        <button id="start-topic-btn">Start Practice</button>
     </div>
 
-    <div class="input-row">
-        <input id="student-answer" type="text" placeholder="Type your answer...">
-        <button class="submit-btn" onclick="sendPracticeAnswer()">Submit</button>
-    </div>
+    <!-- QUESTION / PRACTICE SECTION -->
+    <div id="practice-section" style="display:none;">
+        <div id="practice-prompt" class="prompt-box">
+            Loading your practice mission...
+        </div>
 
-    <div id="status" class="status-message"></div>
+        <!-- Multiple choice options (only visible when needed) -->
+        <div id="choices-container" style="display:none;"></div>
+
+        <!-- Free-response answer row -->
+        <div class="input-row" id="free-response-row">
+            <input id="student-answer" type="text" placeholder="Type your answer...">
+            <button class="submit-btn" onclick="sendPracticeAnswer()">Submit</button>
+        </div>
+
+        <div id="status" class="status-message"></div>
+
+        <!-- Session end actions -->
+        <div id="session-actions" class="session-actions">
+            <button class="session-primary" onclick="restartSameTopic()">🔁 More questions on this topic</button>
+            <button class="session-secondary" onclick="chooseNewTopic()">🔄 Practice a different topic</button>
+        </div>
+    </div>
 
 </div>
 
 <script>
-    window.onload = startPractice;
+let currentType = "free";
+let currentTopic = "";
+let currentSubject = "{{ subject }}";
 
-    function startPractice() {
-        fetch("/start_practice", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                topic: "{{ topic }}",
-                subject: "{{ subject }}"
-            })
+// Start when student chooses topic
+document.getElementById("start-topic-btn").addEventListener("click", startPracticeFromTopic);
+
+function startPracticeFromTopic() {
+    const topicInput = document.getElementById("topic-input");
+    const topic = topicInput.value.trim();
+    if (!topic) return;
+
+    currentTopic = topic;
+
+    document.getElementById("topic-section").style.display = "none";
+    document.getElementById("practice-section").style.display = "block";
+
+    startPractice();
+}
+
+function restartSameTopic() {
+    document.getElementById("session-actions").style.display = "none";
+    startPractice();
+}
+
+function chooseNewTopic() {
+    document.getElementById("practice-section").style.display = "none";
+    document.getElementById("topic-section").style.display = "block";
+    document.getElementById("status").innerHTML = "";
+    document.getElementById("session-actions").style.display = "none";
+    document.getElementById("topic-input").value = "";
+}
+
+// INITIAL CALL TO SERVER FOR FIRST QUESTION
+function startPractice() {
+    const promptBox = document.getElementById("practice-prompt");
+    const status = document.getElementById("status");
+    const choicesDiv = document.getElementById("choices-container");
+    const freeRow = document.getElementById("free-response-row");
+
+    status.innerHTML = "<span class='thinking'>🤖 Preparing your first mission…</span>";
+    choicesDiv.style.display = "none";
+    choicesDiv.innerHTML = "";
+    freeRow.style.display = "flex";
+
+    fetch("/start_practice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            topic: currentTopic,
+            subject: currentSubject
         })
-        .then(res => res.json())
-        .then(data => {
-            document.getElementById("practice-prompt").innerText = data.prompt;
-            document.getElementById("character-avatar").src = "/static/characters/" + data.character + ".png";
-        });
-    }
+    })
+    .then(res => res.json())
+    .then(data => {
+        status.innerHTML = "";
+        promptBox.innerText = data.prompt || "Ready!";
+        document.getElementById("character-avatar").src =
+            "/static/characters/" + (data.character || "{{ character }}") + ".png";
 
-    // ENTER KEY SUBMITS ANSWER
-    document.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") sendPracticeAnswer();
+        setQuestionType(data);
+    });
+}
+
+// Decide whether question is multiple choice or free response
+function setQuestionType(data) {
+    const choicesDiv = document.getElementById("choices-container");
+    const freeRow = document.getElementById("free-response-row");
+    const answerBox = document.getElementById("student-answer");
+
+    currentType = data.type || "free";
+
+    if (currentType === "multiple_choice" && data.choices && data.choices.length) {
+        choicesDiv.innerHTML = "";
+        data.choices.forEach(choice => {
+            const btn = document.createElement("button");
+            btn.className = "choice-btn";
+            btn.textContent = choice;
+            btn.onclick = () => sendPracticeAnswer(choice);
+            choicesDiv.appendChild(btn);
+        });
+        choicesDiv.style.display = "flex";
+        freeRow.style.display = "none";
+    } else {
+        choicesDiv.style.display = "none";
+        freeRow.style.display = "flex";
+        answerBox.value = "";
+        answerBox.focus();
+    }
+}
+
+// ENTER KEY SUBMITS ANSWER (for free-response)
+document.addEventListener("keydown", function (e) {
+    const freeRowVisible = document.getElementById("free-response-row").style.display !== "none";
+    if (e.key === "Enter" && freeRowVisible) {
+        e.preventDefault();
+        sendPracticeAnswer();
+    }
+});
+
+async function sendPracticeAnswer(chosenValue=null) {
+    const answerBox = document.getElementById("student-answer");
+    const promptBox = document.getElementById("practice-prompt");
+    const status = document.getElementById("status");
+    const avatar = document.getElementById("character-avatar");
+    const actions = document.getElementById("session-actions");
+
+    const userAnswer = (chosenValue !== null ? chosenValue : answerBox.value).trim();
+    if (!userAnswer) return;
+
+    status.innerHTML = "<span class='thinking'>🤖 Thinking with you…</span>";
+
+    const res = await fetch("/practice_step", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answer: userAnswer })
     });
 
-    async function sendPracticeAnswer() {
-        const answerBox = document.getElementById("student-answer");
-        const promptBox = document.getElementById("practice-prompt");
-        const status = document.getElementById("status");
-        const avatar = document.getElementById("character-avatar");
+    const data = await res.json();
 
-        const userAnswer = answerBox.value.trim();
-        if (!userAnswer) return;
+    // -------- CORRECT --------
+    if (data.status === "correct") {
+        status.innerHTML = "✅ Correct!";
+        promptBox.innerText = data.next_prompt;
 
-        // Show thinking animation
-        status.innerHTML = "<span class='thinking'>🤖 Thinking…</span>";
+        promptBox.classList.add("correct-flash");
+        setTimeout(() => promptBox.classList.remove("correct-flash"), 700);
 
-        const res = await fetch("/practice_step", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ answer: userAnswer })
-        });
+        setQuestionType(data);
+    }
+    // -------- INCORRECT (with hint) --------
+    else if (data.status === "incorrect") {
+        status.innerHTML = "❌ Try again! Hint: " + (data.hint || "Think about each step carefully.");
 
-        const data = await res.json();
+        answerBox.classList.add("shake");
+        status.classList.add("glow");
 
-        // -------- CORRECT --------
-        if (data.status === "correct") {
-            status.innerHTML = "✅ Correct!";
+        setTimeout(() => answerBox.classList.remove("shake"), 350);
+        setTimeout(() => status.classList.remove("glow"), 900);
+    }
+    // -------- GUIDED / EXPLANATION AFTER 2 FAILS --------
+    else if (data.status === "guided") {
+        status.innerHTML = "🧠 Let's walk through it together:<br>" + (data.explanation || "");
+        if (data.next_prompt) {
             promptBox.innerText = data.next_prompt;
-
-            // Success flash
-            promptBox.classList.add("correct-flash");
-            setTimeout(() => promptBox.classList.remove("correct-flash"), 700);
-
-            answerBox.value = "";
-        }
-
-        // -------- INCORRECT --------
-        else if (data.status === "incorrect") {
-            status.innerHTML = "❌ Try again! Hint: " + data.hint;
-
-            // Shake + glow
-            answerBox.classList.add("shake");
-            status.classList.add("glow");
-
-            setTimeout(() => answerBox.classList.remove("shake"), 350);
-            setTimeout(() => status.classList.remove("glow"), 900);
-        }
-
-        // -------- FINISHED --------
-        else if (data.status === "finished") {
-            status.innerHTML = "🌟 " + data.message;
-            promptBox.innerText = "Mission Complete!";
-        }
-
-        // Update avatar if needed
-        if (data.character) {
-            avatar.src = "/static/characters/" + data.character + ".png";
+            setQuestionType(data);
+        } else {
+            // Session might be over
+            promptBox.innerText = "Mission complete for this question!";
         }
     }
+    // -------- FINISHED SESSION --------
+    else if (data.status === "finished") {
+        status.innerHTML = "🌟 " + (data.message || "Awesome work! You finished this practice mission.");
+        promptBox.innerText = "Mission Complete!";
+        actions.style.display = "block";
+    }
+
+    if (data.character) {
+        avatar.src = "/static/characters/" + data.character + ".png";
+    }
+}
 </script>
 
 </body>
 </html>
+

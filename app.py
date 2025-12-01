@@ -2,6 +2,7 @@ import sys
 import os
 import logging
 import traceback
+import re
 from datetime import datetime, timedelta
 
 from flask import (
@@ -95,6 +96,7 @@ def init_user():
         "deep_study_chat": [],
         "practice": None,
         "practice_step": 0,
+        "practice_attempts": 0,  # ⭐ track attempts per question
     }
     for k, v in defaults.items():
         if k not in session:
@@ -128,6 +130,65 @@ def add_xp(amount):
         session["xp"] -= xp_needed
         session["level"] += 1
         flash(f"LEVEL UP! You are now Level {session['level']}!", "info")
+
+# ============================================================
+# HELPER: FLEXIBLE ANSWER MATCHING FOR PRACTICE
+# ============================================================
+
+def _normalize_numeric_token(text: str) -> str:
+    """
+    Make '4', '4%', '4 percent', '$4', '4 dollars' all reduce to '4'.
+    We are intentionally generous for student inputs.
+    """
+    t = text.lower().strip()
+    # remove common words
+    for word in ["percent", "perc", "per cent", "dollars", "dollar", "usd"]:
+        t = t.replace(word, "")
+    # remove commas
+    t = t.replace(",", "")
+    # remove common symbols
+    for ch in ["%", "$"]:
+        t = t.replace(ch, "")
+    return t.strip()
+
+def _try_float(val: str):
+    try:
+        return float(val)
+    except Exception:
+        return None
+
+def answers_match(user_raw: str, expected_raw: str) -> bool:
+    """
+    Flexible answer comparison:
+    - Exact text match (case-insensitive)
+    - '4' == '4%' == '4 percent'
+    - '5' == '5.0'
+    """
+    if user_raw is None or expected_raw is None:
+        return False
+
+    u_norm = user_raw.strip().lower()
+    e_norm = expected_raw.strip().lower()
+
+    # Exact textual match
+    if u_norm == e_norm and u_norm != "":
+        return True
+
+    # Numeric-form match (ignoring %, $, words like "percent", "dollars")
+    u_num_str = _normalize_numeric_token(user_raw)
+    e_num_str = _normalize_numeric_token(expected_raw)
+
+    if u_num_str and e_num_str and u_num_str == e_num_str:
+        return True
+
+    # Try actual float comparison
+    u_num = _try_float(u_num_str)
+    e_num = _try_float(e_num_str)
+    if u_num is not None and e_num is not None:
+        if abs(u_num - e_num) < 1e-6:
+            return True
+
+    return False
 
 # ============================================================
 # ROUTES
@@ -200,7 +261,6 @@ def ask_question():
 # ============================================================
 # POWERGRID SUBMISSION
 # ============================================================
-# (unchanged – keeping whole block exactly as provided)
 
 @app.route("/powergrid_submit", methods=["POST"])
 def powergrid_submit():
@@ -410,7 +470,7 @@ Rules:
     return jsonify({"reply": reply})
 
 # ============================================================
-# ⭐⭐ PRACTICE MODE — PAGE ROUTE (ADDED HERE — Option A)
+# PRACTICE MODE — PAGE ROUTE
 # ============================================================
 
 @app.route("/practice")
@@ -429,7 +489,7 @@ def practice():
     )
 
 # ============================================================
-# PRACTICE MODE — START
+# PRACTICE MODE — START (TOPIC → FIRST QUESTION)
 # ============================================================
 
 @app.route("/start_practice", methods=["POST"])
@@ -451,15 +511,28 @@ def start_practice():
 
     session["practice"] = practice_data
     session["practice_step"] = 0
+    session["practice_attempts"] = 0
     session.modified = True
 
+    steps = practice_data.get("steps") or []
+    if not steps:
+        return jsonify({
+            "status": "error",
+            "message": "No practice questions were generated. Try a different topic.",
+            "character": character,
+        })
+
+    first = steps[0]
+
     return jsonify({
-        "prompt": practice_data["steps"][0]["prompt"],
+        "prompt": first.get("prompt", "Let's start practicing!"),
+        "type": first.get("type", "free"),        # "multiple_choice" or "free"
+        "choices": first.get("choices", []),      # list of options if MC
         "character": character
     })
 
 # ============================================================
-# PRACTICE MODE — STEP PROCESS
+# PRACTICE MODE — STEP PROCESS (ANSWER CHECK, HINTS, GUIDED)
 # ============================================================
 
 @app.route("/practice_step", methods=["POST"])
@@ -467,18 +540,23 @@ def practice_step():
     init_user()
 
     data = request.get_json() or {}
-    user_answer = (data.get("answer") or "").lower().strip()
+    user_answer_raw = data.get("answer") or ""
+    user_answer_stripped = user_answer_raw.strip()
 
     practice_data = session.get("practice")
     step_index = session.get("practice_step", 0)
+    attempts = session.get("practice_attempts", 0)
     character = session.get("character", "everly")
 
     if not practice_data:
-        return jsonify({"status": "error", "message": "Practice session not found."})
+        return jsonify({
+            "status": "error",
+            "message": "Practice session not found. Try starting a new practice mission.",
+            "character": character
+        })
 
-    steps = practice_data["steps"]
-
-    if step_index >= len(steps):
+    steps = practice_data.get("steps") or []
+    if not steps or step_index >= len(steps):
         return jsonify({
             "status": "finished",
             "message": practice_data.get("final_message", "Mission complete!"),
@@ -486,10 +564,27 @@ def practice_step():
         })
 
     step = steps[step_index]
-    expected = [a.lower().strip() for a in step.get("expected", [])]
+    expected_list = step.get("expected", [])
 
-    if user_answer in expected:
+    # If they somehow sent blank, treat as incorrect but don't bump attempts
+    if not user_answer_stripped:
+        return jsonify({
+            "status": "incorrect",
+            "hint": step.get("hint", "Try giving your best guess, even if you're not sure."),
+            "character": character
+        })
+
+    # Flexible correctness check
+    is_correct = False
+    for exp in expected_list:
+        if answers_match(user_answer_raw, str(exp)):
+            is_correct = True
+            break
+
+    # ================= CORRECT ANSWER =================
+    if is_correct:
         session["practice_step"] = step_index + 1
+        session["practice_attempts"] = 0
         session.modified = True
 
         if session["practice_step"] >= len(steps):
@@ -499,15 +594,55 @@ def practice_step():
                 "character": character
             })
 
+        next_step = steps[session["practice_step"]]
         return jsonify({
             "status": "correct",
-            "next_prompt": steps[session["practice_step"]]["prompt"],
+            "next_prompt": next_step.get("prompt", ""),
+            "type": next_step.get("type", "free"),
+            "choices": next_step.get("choices", []),
             "character": character
         })
 
+    # ================= INCORRECT ANSWER =================
+    attempts += 1
+    session["practice_attempts"] = attempts
+    session.modified = True
+
+    # First two wrong tries → hints only
+    if attempts < 2:
+        return jsonify({
+            "status": "incorrect",
+            "hint": step.get("hint", "Try thinking about it step by step."),
+            "character": character
+        })
+
+    # Third wrong try → guided walkthrough + move to next question
+    session["practice_step"] = step_index + 1
+    session["practice_attempts"] = 0
+    session.modified = True
+
+    explanation = step.get(
+        "explanation",
+        step.get("hint", "Let's walk through how to solve this carefully.")
+    )
+
+    # If that was the last question, end the mission
+    if session["practice_step"] >= len(steps):
+        return jsonify({
+            "status": "finished",
+            "message": practice_data.get("final_message", "Great effort! Mission complete 🚀"),
+            "explanation": explanation,
+            "character": character
+        })
+
+    # Otherwise, send explanation + next question
+    next_step = steps[session["practice_step"]]
     return jsonify({
-        "status": "incorrect",
-        "hint": step.get("hint", "Try thinking about it differently."),
+        "status": "guided",
+        "explanation": explanation,
+        "next_prompt": next_step.get("prompt", ""),
+        "type": next_step.get("type", "free"),
+        "choices": next_step.get("choices", []),
         "character": character
     })
 
@@ -525,7 +660,7 @@ def dashboard():
     streak = session["streak"]
 
     xp_to_next = level * 100
-    xp_percent = int((xp / xp_to_next) * 100)
+    xp_percent = int((xp / xp_to_next) * 100) if xp_to_next > 0 else 0
 
     missions = [
         "Visit 2 different planets",
@@ -598,6 +733,7 @@ def disclaimer():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
