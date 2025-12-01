@@ -25,208 +25,354 @@
             animation: drift 55s linear infinite;
         }
 
-        @keyframes drift { 
+        @keyframes drift {
             from { transform: translateY(0); }
             to { transform: translateY(-1800px); }
         }
 
-        .practice-container {
-            width: 90%;
-            max-width: 900px;
-            margin: 40px auto 60px;
-            background: rgba(255,255,255,0.06);
-            padding: 25px;
+        .practice-wrapper {
+            width: 94%;
+            max-width: 1200px;
+            margin: 40px auto 80px;
+            background: rgba(255,255,255,0.05);
+            padding: 20px 24px 30px;
             border-radius: 20px;
             box-shadow: 0 0 25px rgba(0,0,0,0.6);
             backdrop-filter: blur(6px);
         }
 
         /* Return button */
-        .return-row {
-            margin-bottom: 10px;
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
         }
+
         .return-btn {
-            background: transparent;
+            background: none;
             border: none;
-            color: #9ecaff;
+            color: #bfe6ff;
             font-size: 0.95rem;
             cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .return-btn:hover { text-decoration: underline; }
+        .return-btn:hover {
+            text-decoration: underline;
+        }
 
-        /* Avatar */
+        .question-counter {
+            font-size: 0.95rem;
+            color: #d2e7ff;
+            opacity: 0.9;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 2fr 1.3fr;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 960px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .avatar {
             width: 150px;
             height: auto;
             display: block;
             margin: 0 auto 10px;
-            animation: floating 3s ease-in-out infinite;
-        }
-
-        @keyframes floating {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-6px); }
-            100% { transform: translateY(0); }
         }
 
         .prompt-title {
             text-align: center;
             font-size: 1.6rem;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
         }
+
+        /* ---------- Animations ---------- */
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            50% { transform: translateX(6px); }
+            75% { transform: translateX(-6px); }
+            100% { transform: translateX(0); }
+        }
+        .shake { animation: shake 0.35s ease; }
+
+        @keyframes glowHint {
+            0% { text-shadow: 0 0 4px #ff4d4d; color: #ffb3b3; }
+            100% { text-shadow: 0 0 14px #ff1a1a; color: #ffecec; }
+        }
+        .glow { animation: glowHint 0.9s ease-in-out; }
+
+        @keyframes correctFlash {
+            0% { background-color: rgba(0,255,120,0.15); }
+            100% { background-color: transparent; }
+        }
+        .correct-flash { animation: correctFlash 0.7s ease; }
+
+        /* -------------------------------- */
 
         .prompt-box {
             background: rgba(255,255,255,0.12);
-            padding: 20px;
+            padding: 18px 18px;
             border-radius: 15px;
-            font-size: 1.2rem;
-            margin-bottom: 20px;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
         }
 
-        /* Topic selection */
-        #topic-section { text-align: center; margin-bottom: 25px; }
+        .last-answer {
+            font-size: 0.9rem;
+            color: #d5e4ff;
+            margin: 6px 0 4px;
+            opacity: 0.85;
+        }
+
+        /* Topic chooser */
+        .topic-row {
+            margin-bottom: 18px;
+            text-align: center;
+        }
         #topic-input {
-            padding: 12px;
             width: 70%;
             max-width: 450px;
-            border-radius: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
             border: none;
             outline: none;
+            font-size: 1rem;
             margin-top: 8px;
         }
-
         #start-topic-btn {
             margin-top: 10px;
-            padding: 12px 20px;
-            background: #1e88ff;
+            padding: 10px 18px;
             border-radius: 10px;
             border: none;
+            background: #1e88ff;
             color: white;
             font-weight: 600;
             cursor: pointer;
         }
-
-        /* Multiple choice */
-        #choices-container {
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 10px;
+        #start-topic-btn:hover {
+            background: #3ea0ff;
         }
 
-        .choice-btn {
-            padding: 10px 14px;
-            border-radius: 10px;
-            background: rgba(255,255,255,0.9);
-            color: #111;
-            cursor: pointer;
-            border: none;
-        }
-        .choice-btn:hover { background: #daf0ff; }
-
-        /* Free response input */
+        /* Input row */
         .input-row {
             display: flex;
-            gap: 8px;
-            margin-top: 15px;
+            gap: 10px;
+            margin-top: 10px;
         }
 
         #student-answer {
             flex-grow: 1;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 12px 15px;
+            border-radius: 12px;
             border: none;
             outline: none;
+            font-size: 1.05rem;
         }
 
         .submit-btn {
             background: #1e88ff;
+            padding: 12px 20px;
+            border-radius: 12px;
             border: none;
-            padding: 12px 18px;
-            border-radius: 10px;
             color: white;
             cursor: pointer;
+            font-size: 1.05rem;
+            transition: 0.25s;
+        }
+
+        .submit-btn:hover {
+            background: #42a1ff;
+        }
+
+        /* Multiple choice options */
+        #choices-container {
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .choice-btn {
+            text-align: left;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255,255,255,0.9);
+            color: #222;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .choice-btn:hover {
+            background: #e0f0ff;
         }
 
         .status-message {
-            margin-top: 15px;
+            margin-top: 12px;
+            font-size: 1.05rem;
+            min-height: 26px;
+        }
+
+        .thinking {
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+
+        /* Navigation buttons */
+        .nav-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 18px;
+            gap: 10px;
+        }
+        .nav-group {
+            display: flex;
+            gap: 8px;
+        }
+        .nav-btn {
+            padding: 8px 13px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .nav-btn-primary {
+            background: #1e88ff;
+            color: white;
+        }
+        .nav-btn-secondary {
+            background: rgba(255,255,255,0.9);
+            color: #111;
+        }
+        .nav-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        /* Session complete */
+        .session-actions {
+            margin-top: 16px;
             text-align: center;
-            min-height: 25px;
+            display: none;
+        }
+        .session-actions button {
+            margin: 5px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .session-primary {
+            background: #1e88ff;
+            color: white;
+        }
+        .session-secondary {
+            background: rgba(255,255,255,0.9);
+            color: #111;
         }
 
-        /* Session end */
-        #session-actions { text-align: center; margin-top: 20px; display:none; }
-        #session-actions button {
-            margin: 6px; padding: 10px 18px;
-            border-radius: 10px; border: none; cursor: pointer; font-weight: 600;
-        }
-        .session-primary { background:#1e88ff; color:white; }
-        .session-secondary { background:white; color:#111; }
-
-        /* Help chat */
-        .help-container {
-            margin-top: 40px;
-            padding: 20px;
-            background: rgba(255,255,255,0.09);
-            border-radius: 15px;
-            border: 1px solid rgba(255,255,255,0.15);
+        /* HELP CHAT PANEL */
+        .help-panel {
+            background: rgba(5, 12, 30, 0.85);
+            border-radius: 16px;
+            padding: 14px 16px 16px;
+            border: 1px solid rgba(180,200,255,0.28);
+            box-shadow: 0 0 14px rgba(0,0,0,0.5);
         }
 
         .help-title {
-            font-size: 1.3rem;
-            margin-bottom: 10px;
-            text-align: center;
+            font-size: 1.05rem;
+            margin-bottom: 6px;
         }
 
-        .help-log {
-            max-height: 250px;
-            overflow-y: auto;
-            padding: 12px;
-            background: rgba(0,0,0,0.25);
-            border-radius: 10px;
-            margin-bottom: 10px;
-        }
-
-        .help-msg {
-            padding: 10px;
-            border-radius: 10px;
+        .help-subtitle {
+            font-size: 0.85rem;
+            color: #cddcff;
+            opacity: 0.9;
             margin-bottom: 8px;
         }
 
-        .help-user { background: rgba(255,255,255,0.3); text-align:right; }
-        .help-ai { background: rgba(255,255,255,0.15); text-align:left; }
+        .help-chat-log {
+            max-height: 240px;
+            overflow-y: auto;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+
+        .help-msg {
+            margin-bottom: 6px;
+            padding: 6px 8px;
+            border-radius: 8px;
+        }
+        .help-msg-student {
+            text-align: right;
+            background: rgba(255,255,255,0.15);
+        }
+        .help-msg-tutor {
+            text-align: left;
+            background: rgba(255,255,255,0.08);
+        }
 
         .help-input-row {
             display: flex;
-            gap: 10px;
+            gap: 8px;
+            margin-top: 4px;
         }
-
-        .help-input-row textarea {
-            flex-grow: 1;
-            padding: 10px;
-            height: 60px;
-            border-radius: 8px;
-            resize: none;
-            border: none;
-            outline: none;
-        }
-
-        .help-send-btn {
-            width: 120px;
-            background: #1a72ff;
+        #help-msg-input {
+            flex: 1;
+            padding: 8px 10px;
             border-radius: 10px;
             border: none;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        .help-send-btn {
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: none;
+            background: #28a4ff;
             color: white;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
         }
+        .help-send-btn:hover {
+            background: #4eb6ff;
+        }
 
-        #thinking-help {
+        #help-thinking {
+            font-size: 0.8rem;
+            color: #9ecaff;
+            margin-top: 2px;
+            display: none;
+        }
+
+        /* Legal footer */
+        .legal-footer {
             text-align:center;
-            display:none;
-            margin-top:8px;
+            margin-top:20px;
+            opacity:0.7;
             font-size:0.9rem;
+        }
+        .legal-footer a {
             color:#9ecaff;
+            margin:0 10px;
         }
     </style>
 </head>
@@ -234,89 +380,131 @@
 <body>
 <div class="stars"></div>
 
-<div class="practice-container">
+<div class="practice-wrapper">
 
-    <!-- Return button -->
-    <div class="return-row">
-        <button class="return-btn" onclick="window.location.href='/ask-question?subject={{ subject }}&grade={{ grade }}'">
-            ⬅ Back to Question
+    <div class="top-row">
+        <button class="return-btn" type="button" onclick="goBackToQuestionScreen()">
+            ⬅️ Return to previous screen
         </button>
-    </div>
-
-    <img id="character-avatar" class="avatar" src="/static/characters/{{ character }}.png">
-
-    <h2 class="prompt-title">🚀 Practice Mission</h2>
-
-    <!-- Topic selection -->
-    <div id="topic-section">
-        <div>What topic would you like to practice?</div>
-        <input id="topic-input" placeholder="e.g. fractions, decimals, reading...">
-        <br>
-        <button id="start-topic-btn">Start Practice</button>
-    </div>
-
-    <!-- Mission -->
-    <div id="practice-section" style="display:none;">
-
-        <div id="practice-prompt" class="prompt-box">
-            Loading your first challenge…
-        </div>
-
-        <!-- Choices -->
-        <div id="choices-container"></div>
-
-        <!-- Free response -->
-        <div class="input-row" id="free-response-row">
-            <input id="student-answer" placeholder="Type your answer…">
-            <button class="submit-btn" onclick="sendPracticeAnswer()">Submit</button>
-        </div>
-
-        <div id="status" class="status-message"></div>
-
-        <!-- Ending -->
-        <div id="session-actions">
-            <button class="session-primary" onclick="restartSameTopic()">🔁 More questions on this topic</button>
-            <button class="session-secondary" onclick="chooseNewTopic()">🔄 New topic</button>
+        <div class="question-counter" id="question-counter" style="display:none;">
+            Question <span id="question-index">1</span> of <span id="question-total">10</span>
         </div>
     </div>
 
-    <!-- HELP CHAT -->
-    <div class="help-container">
-        <div class="help-title">💬 Need help? Ask your tutor!</div>
+    <div class="main-layout">
 
-        <div id="help-log" class="help-log"></div>
+        <!-- LEFT: PRACTICE FLOW -->
+        <div>
+            <img id="character-avatar" class="avatar" src="/static/characters/{{ character }}.png">
 
-        <div id="thinking-help">🤖 Thinking...</div>
+            <h2 class="prompt-title">🚀 Practice Mission</h2>
 
-        <div class="help-input-row">
-            <textarea id="help-msg" placeholder="Ask a question about the problem…"></textarea>
-            <button class="help-send-btn" onclick="sendHelp()">Send</button>
+            <!-- TOPIC SELECTION -->
+            <div id="topic-section" class="topic-row">
+                <div>What topic would you like to practice?</div>
+                <input id="topic-input" type="text"
+                       placeholder="e.g. percentages, fractions, reading, decimals, money...">
+                <br>
+                <button id="start-topic-btn">Start Practice</button>
+            </div>
+
+            <!-- QUESTION / PRACTICE SECTION -->
+            <div id="practice-section" style="display:none;">
+                <div id="practice-prompt" class="prompt-box">
+                    Loading your practice mission...
+                </div>
+
+                <div id="last-answer" class="last-answer" style="display:none;"></div>
+
+                <!-- Multiple choice options (only visible when needed) -->
+                <div id="choices-container" style="display:none;"></div>
+
+                <!-- Free-response answer row -->
+                <div class="input-row" id="free-response-row">
+                    <input id="student-answer" type="text" placeholder="Type your answer...">
+                    <button class="submit-btn" onclick="sendPracticeAnswer()">Submit</button>
+                </div>
+
+                <div id="status" class="status-message"></div>
+
+                <!-- Nav + session controls -->
+                <div class="nav-row">
+                    <div class="nav-group">
+                        <button id="prev-btn" class="nav-btn nav-btn-secondary" onclick="goPrevious()" disabled>
+                            ⬅️ Previous
+                        </button>
+                        <button id="next-btn" class="nav-btn nav-btn-secondary" onclick="goNext()" disabled>
+                            Next ➡️
+                        </button>
+                    </div>
+                    <div id="mini-status" style="font-size:0.85rem; color:#d0e4ff;"></div>
+                </div>
+
+                <!-- Session end actions -->
+                <div id="session-actions" class="session-actions">
+                    <button class="session-primary" onclick="restartSameTopic()">🔁 More questions on this topic</button>
+                    <button class="session-secondary" onclick="chooseNewTopic()">🔄 Practice a different topic</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: HELP CHAT -->
+        <div>
+            <div class="help-panel">
+                <div class="help-title">🧠 Need help? Ask your tutor</div>
+                <div class="help-subtitle">
+                    Chat about <span id="help-question-label">this question</span>.  
+                    Each question has its own mini chat.
+                </div>
+
+                <div id="help-chat-log" class="help-chat-log">
+                    <!-- messages injected here -->
+                </div>
+
+                <div class="help-input-row">
+                    <input id="help-msg-input" type="text" placeholder="Ask about this question...">
+                    <button class="help-send-btn" onclick="sendHelpMessage()">Send</button>
+                </div>
+                <div id="help-thinking">🤖 Your tutor is thinking with you…</div>
+            </div>
         </div>
     </div>
 
-    <!-- FOOTER -->
-    <div style="text-align:center; margin-top:35px; opacity:0.7; font-size:0.9rem;">
-        <a href="/terms" style="color:#9ecaff; margin:0 10px;">Terms</a> |
-        <a href="/privacy" style="color:#9ecaff; margin:0 10px;">Privacy Policy</a> |
-        <a href="/disclaimer" style="color:#9ecaff; margin:0 10px;">Disclaimer</a>
+    <!-- LEGAL FOOTER -->
+    <div class="legal-footer">
+        <a href="/terms">Terms</a> |
+        <a href="/privacy">Privacy Policy</a> |
+        <a href="/disclaimer">Disclaimer</a>
         <div style="margin-top:8px; font-size:0.8rem;">
-            Homework Buddy is an educational tool. Always check important facts for accuracy.
+            Homework Buddy is an educational tool.<br>
+            While Homework Buddy is out of this world, please check important information for accuracy.
         </div>
     </div>
-
 </div>
 
-<!-- SCRIPT -->
 <script>
-let currentTopic = "";
 let currentType = "free";
-const subject = "{{ subject }}";
+let currentTopic = "";
+let currentSubject = "{{ subject }}";
+let currentIndex = 0;
+let totalQuestions = 0;
 
-// Start topic
-document.getElementById("start-topic-btn").addEventListener("click", startFromTopic);
+// START: Return button (no form resubmission)
+function goBackToQuestionScreen() {
+    const subject = "{{ subject }}";
+    const grade = "{{ grade }}";
+    window.location.href = "/ask-question?subject="
+        + encodeURIComponent(subject)
+        + "&grade="
+        + encodeURIComponent(grade);
+}
 
-function startFromTopic() {
-    const topic = document.getElementById("topic-input").value.trim();
+// Start when student chooses topic
+document.getElementById("start-topic-btn").addEventListener("click", startPracticeFromTopic);
+
+function startPracticeFromTopic() {
+    const topicInput = document.getElementById("topic-input");
+    const topic = topicInput.value.trim();
     if (!topic) return;
 
     currentTopic = topic;
@@ -338,42 +526,87 @@ function chooseNewTopic() {
     document.getElementById("status").innerHTML = "";
     document.getElementById("session-actions").style.display = "none";
     document.getElementById("topic-input").value = "";
+    document.getElementById("question-counter").style.display = "none";
+    document.getElementById("help-chat-log").innerHTML = "";
 }
 
+// INITIAL CALL TO SERVER FOR FIRST QUESTION
 function startPractice() {
+    const promptBox = document.getElementById("practice-prompt");
     const status = document.getElementById("status");
-    status.innerHTML = "<span class='thinking'>🤖 Preparing mission…</span>";
+    const choicesDiv = document.getElementById("choices-container");
+    const freeRow = document.getElementById("free-response-row");
+    const lastAnswerBox = document.getElementById("last-answer");
+
+    status.innerHTML = "<span class='thinking'>🤖 Preparing your first mission…</span>";
+    choicesDiv.style.display = "none";
+    choicesDiv.innerHTML = "";
+    freeRow.style.display = "flex";
+    lastAnswerBox.style.display = "none";
+    lastAnswerBox.innerText = "";
 
     fetch("/start_practice", {
         method: "POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
             topic: currentTopic,
-            subject: subject 
+            subject: currentSubject
         })
     })
-    .then(r => r.json())
+    .then(res => res.json())
     .then(data => {
-        document.getElementById("practice-prompt").innerText = data.prompt;
+        if (data.status === "error") {
+            status.innerHTML = data.message || "Something went wrong starting practice.";
+            return;
+        }
+
+        status.innerHTML = "";
+        totalQuestions = data.total || 1;
+        currentIndex = data.index || 0;
+
+        document.getElementById("question-counter").style.display = "block";
+        document.getElementById("question-index").innerText = currentIndex + 1;
+        document.getElementById("question-total").innerText = totalQuestions;
+
+        promptBox.innerText = data.prompt || "Ready!";
+        document.getElementById("character-avatar").src =
+            "/static/characters/" + (data.character || "{{ character }}") + ".png";
+
+        updateNavButtons();
         setQuestionType(data);
-        document.getElementById("status").innerHTML = "";
+        renderLastAnswer(data.last_answer || "");
+        renderHelpChat(data.chat || []);
     });
 }
 
+function updateNavButtons() {
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+
+    prevBtn.disabled = currentIndex <= 0;
+    nextBtn.disabled = currentIndex >= totalQuestions - 1;
+
+    document.getElementById("question-index").innerText = currentIndex + 1;
+    document.getElementById("question-total").innerText = totalQuestions;
+}
+
+// Decide whether question is multiple choice or free response
 function setQuestionType(data) {
     const choicesDiv = document.getElementById("choices-container");
     const freeRow = document.getElementById("free-response-row");
-    const box = document.getElementById("student-answer");
+    const answerBox = document.getElementById("student-answer");
 
     currentType = data.type || "free";
 
-    if (currentType === "multiple_choice" && data.choices?.length) {
+    if (currentType === "multiple_choice" && data.choices && data.choices.length) {
         choicesDiv.innerHTML = "";
-        data.choices.forEach(c => {
+        data.choices.forEach((choice, idx) => {
             const btn = document.createElement("button");
             btn.className = "choice-btn";
-            btn.textContent = c;
-            btn.onclick = () => sendPracticeAnswer(c);
+            btn.textContent = choice;
+            const letter = String.fromCharCode(97 + idx); // a, b, c, d
+            btn.dataset.letter = letter;
+            btn.onclick = () => sendPracticeAnswer(letter);
             choicesDiv.appendChild(btn);
         });
         choicesDiv.style.display = "flex";
@@ -381,86 +614,224 @@ function setQuestionType(data) {
     } else {
         choicesDiv.style.display = "none";
         freeRow.style.display = "flex";
-        box.value = "";
+        if (data.last_answer) {
+            answerBox.value = data.last_answer;
+        } else {
+            answerBox.value = "";
+        }
+        answerBox.focus();
     }
 }
 
-// ENTER key input
-document.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && document.getElementById("free-response-row").style.display !== "none") {
+function renderLastAnswer(ans) {
+    const box = document.getElementById("last-answer");
+    if (ans && ans.trim() !== "") {
+        box.style.display = "block";
+        box.innerText = "Your last answer: " + ans;
+    } else {
+        box.style.display = "none";
+        box.innerText = "";
+    }
+}
+
+function renderHelpChat(chatArray) {
+    const log = document.getElementById("help-chat-log");
+    log.innerHTML = "";
+    (chatArray || []).forEach(msg => {
+        const div = document.createElement("div");
+        div.classList.add("help-msg");
+        if (msg.role === "student") {
+            div.classList.add("help-msg-student");
+        } else {
+            div.classList.add("help-msg-tutor");
+        }
+        div.textContent = msg.content;
+        log.appendChild(div);
+    });
+    log.scrollTop = log.scrollHeight;
+}
+
+// ENTER KEY SUBMITS ANSWER (for free-response)
+document.addEventListener("keydown", function (e) {
+    const freeRowVisible = document.getElementById("free-response-row").style.display !== "none";
+    const helpInput = document.getElementById("help-msg-input");
+    if (document.activeElement === helpInput) return;
+
+    if (e.key === "Enter" && freeRowVisible) {
         e.preventDefault();
         sendPracticeAnswer();
     }
 });
 
-async function sendPracticeAnswer(choiceValue=null) {
-    const answer = choiceValue || document.getElementById("student-answer").value.trim();
-    if (!answer) return;
-
+async function sendPracticeAnswer(chosenValue=null) {
+    const answerBox = document.getElementById("student-answer");
+    const promptBox = document.getElementById("practice-prompt");
     const status = document.getElementById("status");
+    const actions = document.getElementById("session-actions");
+    const avatar = document.getElementById("character-avatar");
 
-    status.innerHTML = "<span class='thinking'>🤖 Checking…</span>";
+    const raw = (chosenValue !== null ? chosenValue : answerBox.value);
+    const userAnswer = raw.trim();
+    if (!userAnswer) return;
+
+    status.innerHTML = "<span class='thinking'>🤖 Thinking with you…</span>";
+    document.getElementById("mini-status").innerText = "";
 
     const res = await fetch("/practice_step", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify({ answer })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answer: userAnswer })
     });
 
     const data = await res.json();
-    const promptBox = document.getElementById("practice-prompt");
-    const actions = document.getElementById("session-actions");
 
+    // -------- CORRECT --------
     if (data.status === "correct") {
-        status.innerHTML = "✅ Correct!";
-        promptBox.innerText = data.next_prompt;
+        status.innerHTML = "✅ Nice! That's correct.";
+        promptBox.innerText = data.next_prompt || promptBox.innerText;
+
+        promptBox.classList.add("correct-flash");
+        setTimeout(() => promptBox.classList.remove("correct-flash"), 700);
+
+        renderLastAnswer(userAnswer);
         setQuestionType(data);
+        document.getElementById("mini-status").innerText = "This question is marked correct.";
     }
+    // -------- INCORRECT (with hint) --------
     else if (data.status === "incorrect") {
-        status.innerHTML = "❌ Try again — Hint: " + (data.hint || "");
+        status.innerHTML = "❌ Try again! Hint: " + (data.hint || "Think about each step carefully.");
+
+        answerBox.classList.add("shake");
+        status.classList.add("glow");
+
+        setTimeout(() => answerBox.classList.remove("shake"), 350);
+        setTimeout(() => status.classList.remove("glow"), 900);
     }
+    // -------- GUIDED / EXPLANATION AFTER 2 FAILS --------
     else if (data.status === "guided") {
-        status.innerHTML = "🧠 Let's break it down:<br>" + data.explanation;
-        promptBox.innerText = data.next_prompt;
-        setQuestionType(data);
+        status.innerHTML = "🧠 Let's walk through it together:<br>" + (data.explanation || "");
+        if (data.next_prompt) {
+            promptBox.innerText = data.next_prompt;
+            setQuestionType(data);
+        }
+        renderLastAnswer(userAnswer);
+        document.getElementById("mini-status").innerText = "We walked through this one together.";
     }
+    // -------- FINISHED SESSION --------
     else if (data.status === "finished") {
-        status.innerHTML = "🌟 " + data.message;
+        status.innerHTML = "🌟 " + (data.message || "Awesome work! You finished this practice mission.");
         promptBox.innerText = "Mission Complete!";
         actions.style.display = "block";
+        if (data.explanation) {
+            status.innerHTML += "<br><br><strong>Final Explanation:</strong> " + data.explanation;
+        }
+    }
+
+    if (data.character) {
+        avatar.src = "/static/characters/" + data.character + ".png";
     }
 }
 
-async function sendHelp() {
-    const msgBox = document.getElementById("help-msg");
-    const log = document.getElementById("help-log");
-    const thinking = document.getElementById("thinking-help");
+// Navigation
+function goPrevious() {
+    if (currentIndex <= 0) return;
+    navigateToQuestion(currentIndex - 1);
+}
 
-    const text = msgBox.value.trim();
+function goNext() {
+    if (currentIndex >= totalQuestions - 1) return;
+    navigateToQuestion(currentIndex + 1);
+}
+
+function navigateToQuestion(index) {
+    const status = document.getElementById("status");
+    const promptBox = document.getElementById("practice-prompt");
+
+    status.innerHTML = "<span class='thinking'>🔁 Loading that question…</span>";
+
+    fetch("/navigate_question", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ index: index })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "error") {
+            status.innerHTML = data.message || "Issue loading this question.";
+            return;
+        }
+
+        currentIndex = data.index || 0;
+        totalQuestions = data.total || totalQuestions || 1;
+
+        promptBox.innerText = data.prompt || "";
+        document.getElementById("character-avatar").src =
+            "/static/characters/" + (data.character || "{{ character }}") + ".png";
+
+        updateNavButtons();
+        renderLastAnswer(data.last_answer || "");
+        setQuestionType(data);
+        renderHelpChat(data.chat || []);
+
+        document.getElementById("mini-status").innerText =
+            data.question_status === "correct"
+                ? "This question is marked correct."
+                : (data.question_status === "given_up"
+                    ? "We walked through this one together."
+                    : "");
+        status.innerHTML = "";
+    });
+}
+
+// HELP CHAT
+async function sendHelpMessage() {
+    const input = document.getElementById("help-msg-input");
+    const text = input.value.trim();
     if (!text) return;
 
-    msgBox.value = "";
+    const log = document.getElementById("help-chat-log");
+    const thinking = document.getElementById("help-thinking");
 
-    log.innerHTML += `<div class="help-msg help-user">${text}</div>`;
+    // Add student message locally
+    const studentDiv = document.createElement("div");
+    studentDiv.classList.add("help-msg", "help-msg-student");
+    studentDiv.textContent = text;
+    log.appendChild(studentDiv);
     log.scrollTop = log.scrollHeight;
 
+    input.value = "";
     thinking.style.display = "block";
 
     const res = await fetch("/practice_help_message", {
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ message: text })
     });
 
     thinking.style.display = "none";
 
     const data = await res.json();
-    log.innerHTML += `<div class="help-msg help-ai">${data.reply}</div>`;
+    const reply = data.reply || "I'm here with you! Try rephrasing what you need help with.";
+
+    const tutorDiv = document.createElement("div");
+    tutorDiv.classList.add("help-msg", "help-msg-tutor");
+    tutorDiv.textContent = reply;
+    log.appendChild(tutorDiv);
     log.scrollTop = log.scrollHeight;
 }
+
+// ENTER submits in help chat when focused
+document.getElementById("help-msg-input").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        sendHelpMessage();
+    }
+});
 </script>
 
 </body>
 </html>
+
+
 
 

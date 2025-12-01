@@ -141,7 +141,8 @@ REMEMBER: ONLY return the JSON object. No commentary.
                     "explanation": "You can share any detail you remember.",
                 }
             ],
-            "final_message": "Great work finishing the warm-up mission! 🚀"
+            "final_message": "Great work finishing the warm-up mission! 🚀",
+            "topic": topic,
         }
 
     # ------------------------------------------------------------
@@ -196,4 +197,6 @@ REMEMBER: ONLY return the JSON object. No commentary.
     return {
         "steps": valid_steps,
         "final_message": final_message,
+        "topic": topic,
     }
+

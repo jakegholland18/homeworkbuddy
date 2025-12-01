@@ -95,8 +95,9 @@ def init_user():
         "conversation": [],
         "deep_study_chat": [],
         "practice": None,
-        "practice_step": 0,
-        "practice_attempts": 0,  # ⭐ track attempts per question
+        "practice_step": 0,          # used as current index
+        "practice_attempts": 0,      # legacy; kept but per-question we use practice_progress
+        "practice_progress": [],     # per-question state (attempts, status, last_answer, chat)
     }
     for k, v in defaults.items():
         if k not in session:
@@ -480,12 +481,14 @@ def practice():
     subject = request.args.get("subject", "")
     topic = request.args.get("topic", "")
     character = session.get("character", "everly")
+    grade = session.get("grade", "8")
 
     return render_template(
         "practice.html",
         subject=subject,
         topic=topic,
-        character=character
+        character=character,
+        grade=grade,
     )
 
 # ============================================================
@@ -509,11 +512,6 @@ def start_practice():
         character=character,
     )
 
-    session["practice"] = practice_data
-    session["practice_step"] = 0
-    session["practice_attempts"] = 0
-    session.modified = True
-
     steps = practice_data.get("steps") or []
     if not steps:
         return jsonify({
@@ -522,13 +520,81 @@ def start_practice():
             "character": character,
         })
 
+    # Per-question progress: attempts, status, last_answer, chat
+    progress = []
+    for _ in steps:
+        progress.append({
+            "attempts": 0,
+            "status": "unanswered",
+            "last_answer": "",
+            "chat": [],
+        })
+
+    session["practice"] = practice_data
+    session["practice_progress"] = progress
+    session["practice_step"] = 0  # current index
+    session["practice_attempts"] = 0
+    session.modified = True
+
     first = steps[0]
 
     return jsonify({
+        "status": "ok",
+        "index": 0,
+        "total": len(steps),
         "prompt": first.get("prompt", "Let's start practicing!"),
         "type": first.get("type", "free"),        # "multiple_choice" or "free"
         "choices": first.get("choices", []),      # list of options if MC
-        "character": character
+        "character": character,
+        "last_answer": "",
+        "chat": [],
+    })
+
+# ============================================================
+# PRACTICE MODE — NAVIGATE BETWEEN QUESTIONS
+# ============================================================
+
+@app.route("/navigate_question", methods=["POST"])
+def navigate_question():
+    init_user()
+
+    data = request.get_json() or {}
+    index = int(data.get("index", 0))
+
+    practice_data = session.get("practice")
+    progress = session.get("practice_progress", [])
+    character = session.get("character", "everly")
+
+    if not practice_data:
+        return jsonify({"status": "error", "message": "No active practice mission.", "character": character})
+
+    steps = practice_data.get("steps") or []
+    total = len(steps)
+
+    if index < 0:
+        index = 0
+    if index >= total:
+        index = total - 1
+
+    step = steps[index]
+    state = progress[index] if index < len(progress) else {
+        "attempts": 0, "status": "unanswered", "last_answer": "", "chat": []
+    }
+
+    session["practice_step"] = index
+    session.modified = True
+
+    return jsonify({
+        "status": "ok",
+        "index": index,
+        "total": total,
+        "prompt": step.get("prompt", ""),
+        "type": step.get("type", "free"),
+        "choices": step.get("choices", []),
+        "last_answer": state.get("last_answer", ""),
+        "question_status": state.get("status", "unanswered"),
+        "chat": state.get("chat", []),
+        "character": character,
     })
 
 # ============================================================
@@ -544,8 +610,7 @@ def practice_step():
     user_answer_stripped = user_answer_raw.strip()
 
     practice_data = session.get("practice")
-    step_index = session.get("practice_step", 0)
-    attempts = session.get("practice_attempts", 0)
+    index = session.get("practice_step", 0)
     character = session.get("character", "everly")
 
     if not practice_data:
@@ -556,14 +621,25 @@ def practice_step():
         })
 
     steps = practice_data.get("steps") or []
-    if not steps or step_index >= len(steps):
+    if not steps or index < 0 or index >= len(steps):
         return jsonify({
             "status": "finished",
             "message": practice_data.get("final_message", "Mission complete!"),
             "character": character
         })
 
-    step = steps[step_index]
+    step = steps[index]
+
+    progress = session.get("practice_progress", [])
+    if index >= len(progress):
+        # safety
+        progress.extend(
+            [{"attempts": 0, "status": "unanswered", "last_answer": "", "chat": []}
+             for _ in range(index - len(progress) + 1)]
+        )
+
+    state = progress[index]
+    attempts = state.get("attempts", 0)
     expected_list = step.get("expected", [])
 
     # If they somehow sent blank, treat as incorrect but don't bump attempts
@@ -577,35 +653,48 @@ def practice_step():
     # Flexible correctness check
     is_correct = False
     for exp in expected_list:
+        # MC expected is like ["a"], free-response might be text/number
         if answers_match(user_answer_raw, str(exp)):
             is_correct = True
             break
 
     # ================= CORRECT ANSWER =================
     if is_correct:
-        session["practice_step"] = step_index + 1
-        session["practice_attempts"] = 0
+        attempts += 1
+        state["attempts"] = attempts
+        state["status"] = "correct"
+        state["last_answer"] = user_answer_raw
+        progress[index] = state
+        session["practice_progress"] = progress
         session.modified = True
 
-        if session["practice_step"] >= len(steps):
+        # Are all questions done?
+        all_done = all(
+            s.get("status") in ("correct", "given_up")
+            for s in progress
+        )
+
+        if all_done:
             return jsonify({
                 "status": "finished",
                 "message": practice_data.get("final_message", "Great job! Mission complete 🚀"),
                 "character": character
             })
 
-        next_step = steps[session["practice_step"]]
         return jsonify({
             "status": "correct",
-            "next_prompt": next_step.get("prompt", ""),
-            "type": next_step.get("type", "free"),
-            "choices": next_step.get("choices", []),
+            "next_prompt": step.get("prompt", ""),  # stay on same question text
+            "type": step.get("type", "free"),
+            "choices": step.get("choices", []),
             "character": character
         })
 
     # ================= INCORRECT ANSWER =================
     attempts += 1
-    session["practice_attempts"] = attempts
+    state["attempts"] = attempts
+    state["last_answer"] = user_answer_raw
+    progress[index] = state
+    session["practice_progress"] = progress
     session.modified = True
 
     # First two wrong tries → hints only
@@ -616,9 +705,10 @@ def practice_step():
             "character": character
         })
 
-    # Third wrong try → guided walkthrough + move to next question
-    session["practice_step"] = step_index + 1
-    session["practice_attempts"] = 0
+    # Third (or more) wrong try → guided walkthrough
+    state["status"] = "given_up"
+    progress[index] = state
+    session["practice_progress"] = progress
     session.modified = True
 
     explanation = step.get(
@@ -626,8 +716,13 @@ def practice_step():
         step.get("hint", "Let's walk through how to solve this carefully.")
     )
 
-    # If that was the last question, end the mission
-    if session["practice_step"] >= len(steps):
+    # Are all questions done now?
+    all_done = all(
+        s.get("status") in ("correct", "given_up")
+        for s in progress
+    )
+
+    if all_done:
         return jsonify({
             "status": "finished",
             "message": practice_data.get("final_message", "Great effort! Mission complete 🚀"),
@@ -635,14 +730,13 @@ def practice_step():
             "character": character
         })
 
-    # Otherwise, send explanation + next question
-    next_step = steps[session["practice_step"]]
+    # Otherwise, send explanation and keep them on this question
     return jsonify({
         "status": "guided",
         "explanation": explanation,
-        "next_prompt": next_step.get("prompt", ""),
-        "type": next_step.get("type", "free"),
-        "choices": next_step.get("choices", []),
+        "next_prompt": step.get("prompt", ""),
+        "type": step.get("type", "free"),
+        "choices": step.get("choices", []),
         "character": character
     })
 
@@ -658,72 +752,90 @@ def practice_help_message():
     student_msg = data.get("message", "").strip()
 
     practice_data = session.get("practice")
-    step_index = session.get("practice_step", 0)
-    attempts = session.get("practice_attempts", 0)
+    index = session.get("practice_step", 0)
     character = session.get("character", "everly")
     grade = session.get("grade", "8")
 
     if not practice_data:
-        return jsonify({
-            "reply": "I can't find an active practice mission. Try starting one again!"
-        })
+        return jsonify({"reply": "I can't find an active practice mission. Try starting one again!"})
 
     steps = practice_data.get("steps", [])
-    if step_index >= len(steps):
-        return jsonify({
-            "reply": "You've finished all the questions for this mission! You can start a new practice topic anytime."
-        })
+    if not steps or index < 0 or index >= len(steps):
+        return jsonify({"reply": "You've completed all the questions for this mission! Want to start a new one?"})
 
-    current_step = steps[step_index]
-    prompt = current_step.get("prompt", "")
-    expected = current_step.get("expected", [])
-    hint = current_step.get("hint", "")
+    progress = session.get("practice_progress", [])
+    if index >= len(progress):
+        progress.extend(
+            [{"attempts": 0, "status": "unanswered", "last_answer": "", "chat": []}
+             for _ in range(index - len(progress) + 1)]
+        )
 
-    # Build a rich tutoring prompt with your structure + rules
+    state = progress[index]
+    attempts = state.get("attempts", 0)
+    chat_history = state.get("chat", [])
+
+    step = steps[index]
+    prompt = step.get("prompt", "")
+    expected = step.get("expected", [])
+    explanation = step.get("explanation", "")
+    topic = practice_data.get("topic", "")
+
+    # Add student's message to chat history
+    chat_history.append({"role": "student", "content": student_msg})
+
+    # Build a rich tutoring prompt reflecting your preferences
     ai_prompt = f"""
-You are HOMEWORK BUDDY — a warm, efficient tutor helping a student during practice mode.
+You are HOMEWORK BUDDY — a warm, patient tutor.
+
+The student is asking for help about a practice question.
 
 CONTEXT:
-- Current question: \"\"\"{prompt}\"\"\"
-- Expected correct answers: {expected}
-- Topic: {practice_data.get("topic", "")}
+- Topic: {topic}
 - Grade level: {grade}
-- Character voice / personality: {character}
-- Student practice attempts on this question so far: {attempts}
+- Character voice: {character}
 
-The student just said:
+Current question:
+\"\"\"{prompt}\"\"\"
+
+Expected correct answers (could be letters or short answers):
+{expected}
+
+Official explanation / teacher notes:
+\"\"\"{explanation}\"\"\"
+
+Attempts used so far on this question: {attempts}
+
+CHAT HISTORY for this question:
+{chat_history}
+
+STUDENT JUST SAID:
 \"\"\"{student_msg}\"\"\"
 
-GOALS:
-1. Be kind, calm, and encouraging.
-2. Help them understand the idea, not just memorize an answer.
-3. Respect this rule:
-   - If attempts < 2 AND they are not explicitly asking for the exact answer,
-     DO NOT give the final numeric or exact answer yet.
-     Instead, guide them and tell them they’re doing a good job for trying.
-   - If attempts ≥ 2 OR they clearly ask for the correct answer
-     (for example: "just tell me the answer", "what is the answer", "what is it?"),
-     you MAY reveal the answer near the end, but still explain it clearly.
+RESPONSE RULES (VERY IMPORTANT):
+- Tone: encouraging, calm, never harsh.
+- 1–3 short guiding sentences first.
+- Then up to 8 short bullet points that walk through the idea step-by-step.
+- Keep language efficient and easy to follow.
+- BEFORE 2 graded attempts: do NOT give the full direct answer. Use hints, guiding questions, and partial steps.
+- AFTER 2 graded attempts: you MAY give the direct answer, but still explain why in a clear, kind way.
+- Encourage the student to keep going and remind them you're there to help.
+- If they dispute correctness, compare their reasoning with the expected answer gently and clearly.
 
-RESPONSE STYLE:
-- First: 1–3 short guiding sentences in a friendly conversational tone.
-- Then: a bullet list with up to 8 bullets.
-  The bullets can include:
-  • mini-steps to solve it
-  • key ideas to remember
-  • very short worked example or numbers
-  • quick checks they can do to see if their answer makes sense
-- Be as clear and efficient as possible. No fluff, no long walls of text.
-- Always end with a short encouragement like:
-  "You’ve got this, I’m right here with you." or something similar.
-
-Now, respond to the student following this format and these rules.
+Do NOT use markdown syntax markers like '*' or '-' in your bullets.
+Instead, start each bullet with a simple symbol like '•'.
 """
 
     reply = study_buddy_ai(ai_prompt, grade, character)
     reply_text = reply.get("raw_text") if isinstance(reply, dict) else reply
 
-    return jsonify({"reply": reply_text})
+    # Save tutor reply into per-question chat history
+    chat_history.append({"role": "tutor", "content": reply_text})
+    state["chat"] = chat_history
+    progress[index] = state
+    session["practice_progress"] = progress
+    session.modified = True
+
+    return jsonify({"reply": reply_text, "chat": chat_history})
 
 # ============================================================
 # DASHBOARD
@@ -812,6 +924,7 @@ def disclaimer():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
