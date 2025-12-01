@@ -129,7 +129,6 @@ REMEMBER: ONLY return the JSON object. No commentary.
     try:
         data = json.loads(raw)
     except:
-        # fallback
         return {
             "steps": [
                 {
@@ -146,7 +145,7 @@ REMEMBER: ONLY return the JSON object. No commentary.
         }
 
     # ------------------------------------------------------------
-    # Validation / Cleanup
+    # Validation / Cleanup + MC Auto-Fix
     # ------------------------------------------------------------
 
     valid_steps = []
@@ -165,7 +164,43 @@ REMEMBER: ONLY return the JSON object. No commentary.
         if not isinstance(expected_raw, list):
             expected_raw = [str(expected_raw)]
 
+        # Normalize expected answers
         expected = [str(x).lower().strip() for x in expected_raw if str(x).strip()]
+
+        # ------------------------------------------------------------
+        # 🛠 FIX FOR MULTIPLE-CHOICE WRONG EXPECTED ANSWERS
+        # ------------------------------------------------------------
+        if qtype == "multiple_choice":
+            corrected = []
+
+            # Extract letters from "A. 5,004" etc.
+            choice_letters = []
+            for ch in choices:
+                try:
+                    letter = ch.split(".")[0].strip().lower()
+                except:
+                    letter = ""
+                choice_letters.append(letter)
+
+            # Try matching expected values to choices
+            for exp in expected:
+                # If already valid letter
+                if len(exp) == 1 and exp in choice_letters:
+                    corrected.append(exp)
+                    continue
+
+                # Match numeric/text answer by substring inside choices
+                for idx, choice in enumerate(choices):
+                    if exp and exp in choice.lower():
+                        corrected.append(choice_letters[idx])
+
+            # Fallback to "a" if still empty
+            if not corrected:
+                corrected = ["a"]
+
+            expected = corrected
+
+        # ------------------------------------------------------------
 
         hint = str(step.get("hint", "Try thinking carefully about what the question is asking.")).strip()
         explanation = str(step.get("explanation", "Let's walk through how to solve it.")).strip()
@@ -199,4 +234,3 @@ REMEMBER: ONLY return the JSON object. No commentary.
         "final_message": final_message,
         "topic": topic,
     }
-
