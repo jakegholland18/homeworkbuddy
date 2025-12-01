@@ -42,9 +42,9 @@ got_request_exception.connect(log_exception, app)
 
 sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "modules")))
 
-# IMPORTANT: now includes powergrid_master_ai
 from modules.shared_ai import study_buddy_ai, powergrid_master_ai
-from modules.personality_helper import get_all_characters, apply_personality
+from modules.personality_helper import get_all_characters
+from modules.practice_helper import generate_practice_session
 
 import modules.math_helper as math_helper
 import modules.text_helper as text_helper
@@ -73,7 +73,7 @@ subject_map = {
     "coin_quest": money_helper.explain_money,
     "terra_nova": question_helper.answer_question,
     "story_verse": text_helper.explain_text,
-    "power_grid": None,   # PowerGrid handled by dedicated route, not subject map
+    "power_grid": None,  # PowerGrid handled separately
 }
 
 # ============================================================
@@ -92,7 +92,9 @@ def init_user():
         "usage_minutes": 0,
         "progress": {},
         "conversation": [],
-        "deep_study_chat": [],   # ← Add this explicitly
+        "deep_study_chat": [],
+        "practice": None,
+        "practice_step": 0,
     }
     for k, v in defaults.items():
         if k not in session:
@@ -100,7 +102,7 @@ def init_user():
     update_streak()
 
 # ============================================================
-# DAILY STREAK SYSTEM
+# DAILY STREAK
 # ============================================================
 
 def update_streak():
@@ -135,11 +137,6 @@ def add_xp(amount):
 def home():
     init_user()
     return redirect("/subjects")
-
-
-# ============================================================
-# SUBJECTS PAGE
-# ============================================================
 
 @app.route("/subjects")
 def subjects():
@@ -177,7 +174,6 @@ def select_character():
     session["character"] = request.form.get("character")
     return redirect("/dashboard")
 
-
 # ============================================================
 # GRADE SELECT
 # ============================================================
@@ -187,9 +183,8 @@ def choose_grade():
     init_user()
     return render_template("subject_select_form.html", subject=request.args.get("subject"))
 
-
 # ============================================================
-# ASK QUESTION PAGE
+# ASK QUESTION
 # ============================================================
 
 @app.route("/ask-question")
@@ -203,9 +198,8 @@ def ask_question():
         characters=get_all_characters(),
     )
 
-
 # ============================================================
-# POWERGRID STUDY GUIDE SUBMISSION
+# POWERGRID SUBMISSION
 # ============================================================
 
 @app.route("/powergrid_submit", methods=["POST"])
@@ -218,11 +212,8 @@ def powergrid_submit():
 
     session["grade"] = grade
 
+    # Uploaded file
     text = ""
-
-    # -------------------------------
-    # Extract uploaded text
-    # -------------------------------
     if uploaded and uploaded.filename:
         ext = uploaded.filename.lower()
         path = os.path.join("/tmp", uploaded.filename)
@@ -230,7 +221,6 @@ def powergrid_submit():
 
         if ext.endswith(".txt"):
             text = open(path, "r").read()
-
         elif ext.endswith(".pdf"):
             try:
                 from PyPDF2 import PdfReader
@@ -239,24 +229,18 @@ def powergrid_submit():
             except Exception:
                 text = "Could not read PDF content."
         else:
-            text = f"Study this topic:\n\n{topic}"
+            text = f"Study this:\n\n{topic}"
     else:
         text = topic or "No topic provided."
 
-    # -------------------------------
-    # Generate ULTRA PowerGrid Guide
-    # -------------------------------
+    # Create study guide
     study_guide = study_helper.generate_powergrid_master_guide(
         text, grade, session["character"]
     )
 
-    # ============================================================
-    # PDF GENERATION
-    # ============================================================
-
+    # PDF export
     import uuid
     from textwrap import wrap
-
     pdf_path = f"/tmp/study_guide_{uuid.uuid4().hex}.pdf"
 
     try:
@@ -276,9 +260,8 @@ def powergrid_submit():
                     y = height - 50
 
         c.save()
-
-        pdf_url = "/download_study_guide"
         session["study_pdf"] = pdf_path
+        pdf_url = "/download_study_guide"
 
     except Exception as e:
         app.logger.error(f"PDF generation error: {e}")
@@ -286,7 +269,7 @@ def powergrid_submit():
 
     # Reset chat memory
     session["conversation"] = []
-    session["deep_study_chat"] = []   # ← FIX ADDED
+    session["deep_study_chat"] = []
     session.modified = True
 
     return render_template(
@@ -300,26 +283,18 @@ def powergrid_submit():
         pdf_url=pdf_url,
     )
 
-
 # ============================================================
-# DOWNLOAD ROUTE
+# PDF DOWNLOAD
 # ============================================================
 
 @app.route("/download_study_guide")
 def download_study_guide():
     pdf = session.get("study_pdf")
 
-    if not pdf:
-        return "PDF not found in session."
-
-    if not os.path.exists(pdf):
-        import time
-        time.sleep(0.20)
-        if not os.path.exists(pdf):
-            return "PDF file missing from server."
+    if not pdf or not os.path.exists(pdf):
+        return "PDF not found."
 
     return send_file(pdf, as_attachment=True)
-
 
 # ============================================================
 # MAIN SUBJECT ANSWER
@@ -336,25 +311,24 @@ def subject_answer():
 
     session["grade"] = grade
 
+    # Update progress
     session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
     session["progress"][subject]["questions"] += 1
 
-    func = subject_map.get(subject)
-
+    # PowerGrid redirect
     if subject == "power_grid":
         return redirect(f"/ask-question?subject=power_grid&grade={grade}")
 
+    func = subject_map.get(subject)
     if func is None:
         flash("Unknown subject selected.", "error")
         return redirect("/subjects")
 
+    # Generate subject answer
     result = func(question, grade, character)
+    answer = result.get("raw_text") if isinstance(result, dict) else result
 
-    if isinstance(result, dict):
-        answer = result.get("raw_text") or result.get("text") or str(result)
-    else:
-        answer = result
-
+    # Reset conversation
     session["conversation"] = []
     session.modified = True
 
@@ -372,9 +346,8 @@ def subject_answer():
         pdf_url=None,
     )
 
-
 # ============================================================
-# FOLLOW-UP MESSAGE
+# FOLLOWUP MESSAGE
 # ============================================================
 
 @app.route("/followup_message", methods=["POST"])
@@ -382,7 +355,6 @@ def followup_message():
     init_user()
 
     data = request.get_json() or {}
-    subject = data.get("subject")
     grade = data.get("grade")
     character = data.get("character") or session["character"]
     message = data.get("message", "")
@@ -398,9 +370,8 @@ def followup_message():
 
     return jsonify({"reply": reply})
 
-
 # ============================================================
-# DEEP STUDY MESSAGE (PowerGrid Chat)
+# DEEP STUDY MESSAGE
 # ============================================================
 
 @app.route("/deep_study_message", methods=["POST"])
@@ -416,6 +387,7 @@ def deep_study_message():
     conversation = session.get("deep_study_chat", [])
     conversation.append({"role": "user", "content": message})
 
+    # Build readable convo
     dialogue_text = ""
     for turn in conversation:
         speaker = "Student" if turn["role"] == "user" else "Tutor"
@@ -423,32 +395,22 @@ def deep_study_message():
 
     prompt = f"""
 You are the DEEP STUDY TUTOR.
-
-Tone:
-• Warm, patient, conversational
-• Encouraging but not overwhelming
-• Speak simply but intelligently
+Warm, patient, conversational.
 
 GRADE LEVEL: {grade}
 
 Conversation so far:
 {dialogue_text}
 
-NOW RESPOND AS THE TUTOR.
-
-FOLLOW-UP RULES:
-• Help the student go deeper
-• Provide clarity without overwhelm
-• Short friendly explanations unless depth is requested
-• Never repeat the study guide
-• Never generate a large essay
-• Focus ONLY on the most recent question
+Rules:
+• Only answer last student message
+• No long essays
+• No repeating study guide
+• Encourage deeper thinking
 """
 
     reply = study_buddy_ai(prompt, grade, character)
-
-    if isinstance(reply, dict):
-        reply = reply.get("raw_text") or reply.get("text") or str(reply)
+    reply = reply.get("raw_text") if isinstance(reply, dict) else reply
 
     conversation.append({"role": "assistant", "content": reply})
     session["deep_study_chat"] = conversation
@@ -456,6 +418,88 @@ FOLLOW-UP RULES:
 
     return jsonify({"reply": reply})
 
+# ============================================================
+# PRACTICE MODE — START
+# ============================================================
+
+@app.route("/start_practice", methods=["POST"])
+def start_practice():
+    init_user()
+
+    data = request.get_json() or {}
+    topic = data.get("topic", "").strip()
+    subject = data.get("subject", "")
+    grade = session.get("grade", "8")
+    character = session.get("character", "everly")
+
+    practice_data = generate_practice_session(
+        topic=topic,
+        subject=subject,
+        grade_level=grade,
+        character=character,
+    )
+
+    session["practice"] = practice_data
+    session["practice_step"] = 0
+    session.modified = True
+
+    return jsonify({
+        "prompt": practice_data["steps"][0]["prompt"],
+        "character": character
+    })
+
+# ============================================================
+# PRACTICE MODE — STEP PROCESS
+# ============================================================
+
+@app.route("/practice_step", methods=["POST"])
+def practice_step():
+    init_user()
+
+    data = request.get_json() or {}
+    user_answer = (data.get("answer") or "").lower().strip()
+
+    practice_data = session.get("practice")
+    step_index = session.get("practice_step", 0)
+    character = session.get("character", "everly")
+
+    if not practice_data:
+        return jsonify({"status": "error", "message": "Practice session not found."})
+
+    steps = practice_data["steps"]
+
+    if step_index >= len(steps):
+        return jsonify({
+            "status": "finished",
+            "message": practice_data.get("final_message", "Mission complete!"),
+            "character": character
+        })
+
+    step = steps[step_index]
+    expected = [a.lower().strip() for a in step.get("expected", [])]
+
+    if user_answer in expected:
+        session["practice_step"] = step_index + 1
+        session.modified = True
+
+        if session["practice_step"] >= len(steps):
+            return jsonify({
+                "status": "finished",
+                "message": practice_data.get("final_message", "Great job! Mission complete 🚀"),
+                "character": character
+            })
+
+        return jsonify({
+            "status": "correct",
+            "next_prompt": steps[session["practice_step"]]["prompt"],
+            "character": character
+        })
+
+    return jsonify({
+        "status": "incorrect",
+        "hint": step.get("hint", "Try thinking about it differently."),
+        "character": character
+    })
 
 # ============================================================
 # DASHBOARD
@@ -471,7 +515,7 @@ def dashboard():
     streak = session["streak"]
 
     xp_to_next = level * 100
-    xp_percent = int((xp / xp_to_next) * 100) if xp_to_next > 0 else 0
+    xp_percent = int((xp / xp_to_next) * 100)
 
     missions = [
         "Visit 2 different planets",
@@ -499,7 +543,6 @@ def dashboard():
         locked_characters=locked,
     )
 
-
 # ============================================================
 # PARENT DASHBOARD
 # ============================================================
@@ -523,7 +566,6 @@ def parent_dashboard():
         character=session["character"],
     )
 
-
 # ============================================================
 # LEGAL
 # ============================================================
@@ -532,16 +574,13 @@ def parent_dashboard():
 def terms():
     return render_template("terms.html")
 
-
 @app.route("/privacy")
 def privacy():
     return render_template("privacy.html")
 
-
 @app.route("/disclaimer")
 def disclaimer():
     return render_template("disclaimer.html")
-
 
 # ============================================================
 # RUN SERVER
