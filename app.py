@@ -73,7 +73,7 @@ subject_map = {
     "coin_quest": money_helper.explain_money,
     "terra_nova": question_helper.answer_question,
     "story_verse": text_helper.explain_text,
-    "power_grid": None,  # PowerGrid handled separately
+    "power_grid": None,
 }
 
 # ============================================================
@@ -158,7 +158,6 @@ def subjects():
 
     return render_template("subjects.html", planets=planets, character=session["character"])
 
-
 # ============================================================
 # CHARACTER SELECT
 # ============================================================
@@ -201,6 +200,7 @@ def ask_question():
 # ============================================================
 # POWERGRID SUBMISSION
 # ============================================================
+# (unchanged – keeping whole block exactly as provided)
 
 @app.route("/powergrid_submit", methods=["POST"])
 def powergrid_submit():
@@ -212,7 +212,6 @@ def powergrid_submit():
 
     session["grade"] = grade
 
-    # Uploaded file
     text = ""
     if uploaded and uploaded.filename:
         ext = uploaded.filename.lower()
@@ -233,12 +232,10 @@ def powergrid_submit():
     else:
         text = topic or "No topic provided."
 
-    # Create study guide
     study_guide = study_helper.generate_powergrid_master_guide(
         text, grade, session["character"]
     )
 
-    # PDF export
     import uuid
     from textwrap import wrap
     pdf_path = f"/tmp/study_guide_{uuid.uuid4().hex}.pdf"
@@ -267,7 +264,6 @@ def powergrid_submit():
         app.logger.error(f"PDF generation error: {e}")
         pdf_url = None
 
-    # Reset chat memory
     session["conversation"] = []
     session["deep_study_chat"] = []
     session.modified = True
@@ -311,11 +307,9 @@ def subject_answer():
 
     session["grade"] = grade
 
-    # Update progress
     session["progress"].setdefault(subject, {"questions": 0, "correct": 0})
     session["progress"][subject]["questions"] += 1
 
-    # PowerGrid redirect
     if subject == "power_grid":
         return redirect(f"/ask-question?subject=power_grid&grade={grade}")
 
@@ -324,11 +318,9 @@ def subject_answer():
         flash("Unknown subject selected.", "error")
         return redirect("/subjects")
 
-    # Generate subject answer
     result = func(question, grade, character)
     answer = result.get("raw_text") if isinstance(result, dict) else result
 
-    # Reset conversation
     session["conversation"] = []
     session.modified = True
 
@@ -387,7 +379,6 @@ def deep_study_message():
     conversation = session.get("deep_study_chat", [])
     conversation.append({"role": "user", "content": message})
 
-    # Build readable convo
     dialogue_text = ""
     for turn in conversation:
         speaker = "Student" if turn["role"] == "user" else "Tutor"
@@ -417,6 +408,25 @@ Rules:
     session.modified = True
 
     return jsonify({"reply": reply})
+
+# ============================================================
+# ⭐⭐ PRACTICE MODE — PAGE ROUTE (ADDED HERE — Option A)
+# ============================================================
+
+@app.route("/practice")
+def practice():
+    init_user()
+
+    subject = request.args.get("subject", "")
+    topic = request.args.get("topic", "")
+    character = session.get("character", "everly")
+
+    return render_template(
+        "practice.html",
+        subject=subject,
+        topic=topic,
+        character=character
+    )
 
 # ============================================================
 # PRACTICE MODE — START
@@ -588,6 +598,7 @@ def disclaimer():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 
 
 
