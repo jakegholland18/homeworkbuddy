@@ -1,0 +1,76 @@
+<nav class="navbar">
+    <div class="nav-left">
+        <a href="/" class="nav-logo">CozmicLearning</a>
+    </div>
+
+    <div class="nav-right">
+
+        {% if session.teacher_id %}
+            <!-- TEACHER OR OWNER -->
+            <a href="/teacher/dashboard">Teacher Dashboard</a>
+            <a href="/teacher/logout">Logout</a>
+
+            {% if session.is_owner %}
+                <a href="/parent_dashboard">Parent View</a>
+                <a href="/dashboard">Student View</a>
+            {% endif %}
+
+        {% elif session.student_id %}
+            <!-- STUDENT -->
+            <a href="/dashboard">Dashboard</a>
+            <a href="/subjects">Planets</a>
+            <a href="/parent_login">Parent Access</a>
+            <a href="/student/logout">Logout</a>
+
+        {% elif session.parent_id %}
+            <!-- PARENT -->
+            <a href="/parent_dashboard">Reports</a>
+            <a href="/parent/logout">Logout</a>
+
+            {% if session.is_owner %}
+                <a href="/teacher/dashboard">Teacher View</a>
+                <a href="/dashboard">Student View</a>
+            {% endif %}
+
+        {% else %}
+            <!-- PUBLIC VISITOR -->
+            <a href="/choose-auth">Login</a>
+            <a href="/choose-auth">Sign Up</a>
+
+            {% if session.is_owner %}
+                <!-- Owner still sees admin link even logged out -->
+                <a href="/teacher/login">Admin Login</a>
+            {% endif %}
+        {% endif %}
+    </div>
+</nav>
+
+<style>
+.navbar {
+    padding: 14px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(10, 10, 30, 0.7);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.nav-logo {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #73a3ff;
+    text-decoration: none;
+}
+
+.nav-right a {
+    margin-left: 18px;
+    color: #d6e3ff;
+    text-decoration: none;
+    font-size: 0.95rem;
+}
+
+.nav-right a:hover {
+    color: white;
+}
+</style>
