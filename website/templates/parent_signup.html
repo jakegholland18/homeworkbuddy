@@ -42,6 +42,7 @@
 <div class="content-box">
 
     <h2 class="page-title">Create Parent Account</h2>
+    <p style="text-align:center; color:#cfe8ff; margin:-10px 0 20px 0; opacity:0.9;">Link to your student for progress, practice, and reports.</p>
 
     <form method="POST">
 
@@ -57,12 +58,16 @@
             <span class="toggle-password" onclick="togglePassword()">👁</span>
         </div>
 
-        <button class="btn-blue" type="submit">Create Parent Account</button>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <button class="btn-blue" type="submit">Create Parent Account</button>
+            <a class="btn btn-light" href="/choose_login_role" style="padding:10px 14px; border-radius:10px;">Switch Role</a>
+        </div>
 
     </form>
 
-    <p style="text-align:center; margin-top:20px;">
-        Already have an account? <a href="/parent/login">Log in</a>
+    <p style="text-align:center; margin-top:20px; color:#cfe8ff;">
+        Already have an account? <a href="/parent/login">Log in</a><br>
+        <span style="display:inline-block; margin-top:6px; color:#bcd9ff;">• Use the same email your student entered. • Password tip: 8+ chars, one number.</span>
     </p>
 
 </div>

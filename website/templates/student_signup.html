@@ -152,6 +152,7 @@
 <div class="content-box">
 
     <h2 class="page-title">🌟 Join CozmicLearning</h2>
+    <p style="text-align:center; color:#cfe8ff; margin:-10px 0 20px 0; opacity:0.9;">Create your account to start missions and earn XP.</p>
 
     <form method="POST">
 
@@ -183,12 +184,17 @@
             <input type="text" name="class_code" placeholder="Ask your teacher for the code">
         </div>
 
-        <button class="btn-blue" type="submit">Create Account</button>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <button class="btn-blue" type="submit">Create Account</button>
+            <a class="btn btn-light" href="/choose_login_role" style="padding:10px 14px; border-radius:10px;">Switch Role</a>
+        </div>
 
     </form>
 
     <p class="auth-link">
         Already have an account? <a href="/student/login">Log in here</a>
+        <br>
+        <span style="display:inline-block; margin-top:6px; color:#bcd9ff;">• Password tip: 8+ chars, one number. • Your parent email grants dashboard access.</span>
     </p>
 
 </div>

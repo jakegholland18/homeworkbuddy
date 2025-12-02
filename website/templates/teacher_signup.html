@@ -135,6 +135,7 @@
 <div class="auth-container">
     <h1>Teacher Sign Up</h1>
     <div class="subtitle">Create your CozmicLearning teacher portal account.</div>
+    <div class="subtitle" style="margin-top:-12px;">• Verified email required. • Owner accounts see all classes.</div>
 
     <div class="flash-messages">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -160,6 +161,9 @@
         </div>
 
         <button class="btn-primary" type="submit">Create Teacher Account</button>
+        <div style="text-align:center; margin-top:10px;">
+            <a class="btn btn-light" href="/choose_login_role" style="padding:8px 14px; border-radius:10px; display:inline-block;">Switch Role</a>
+        </div>
     </form>
 
     <div class="footer-link">

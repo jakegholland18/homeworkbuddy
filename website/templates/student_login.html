@@ -152,6 +152,7 @@
 <div class="content-box">
 
     <h2 class="page-title">🚀 Student Login</h2>
+    <p style="text-align:center; color:#cfe8ff; margin:-10px 0 20px 0; opacity:0.9;">Welcome back! Sign in to continue your missions.</p>
 
     <form method="POST">
 
@@ -168,11 +169,16 @@
             </div>
         </div>
 
-        <button class="btn-blue" type="submit">Login</button>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <button class="btn-blue" type="submit">Login</button>
+            <a class="btn btn-light" href="/choose_login_role" style="padding:10px 14px; border-radius:10px;">Switch Role</a>
+        </div>
     </form>
 
     <p class="auth-link">
         Need an account? <a href="/student/signup">Sign up here</a>
+        <br>
+        <span style="display:inline-block; margin-top:6px; color:#bcd9ff;">• Use your school email if assigned by a teacher.</span>
     </p>
 
 </div>
