@@ -1,6 +1,10 @@
 <nav class="navbar">
     <div class="nav-left">
-        <a href="/" class="nav-logo">CozmicLearning</a>
+        <a href="/" class="nav-logo">
+            <span class="logo-text">
+                Co<span class="logo-z-wrapper"><span class="logo-z">Z</span><span class="rocket-top">🚀</span><span class="rocket-bottom">🚀</span></span>micLearning
+            </span>
+        </a>
     </div>
 
     <div class="nav-right">
@@ -51,16 +55,133 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(10, 10, 30, 0.7);
+    background: rgba(10, 10, 30, 0.85);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+    z-index: 1000;
 }
 
 .nav-logo {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #73a3ff;
+    font-size: 1.5rem;
+    font-weight: 800;
     text-decoration: none;
+    display: inline-block;
+    position: relative;
+}
+
+.logo-text {
+    background: linear-gradient(135deg, #5c6bff 0%, #00f2ff 50%, #84ff00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: logoGradientShift 5s ease-in-out infinite;
+    letter-spacing: 0.02em;
+}
+
+@keyframes logoGradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Z with Rockets Styling */
+.logo-z-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 0 2px;
+}
+
+.logo-z {
+    font-size: 1.7rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ff6b6b, #ffa500, #ffeb3b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: zGlow 3s ease-in-out infinite;
+    text-shadow: 0 0 20px rgba(255, 107, 107, 0.6);
+    position: relative;
+    display: inline-block;
+    transform: scale(1.15);
+}
+
+@keyframes zGlow {
+    0%, 100% { 
+        background-position: 0% 50%;
+        filter: brightness(1);
+    }
+    50% { 
+        background-position: 100% 50%;
+        filter: brightness(1.3);
+    }
+}
+
+/* Rocket Emojis */
+.rocket-top {
+    position: absolute;
+    top: -8px;
+    right: -15px;
+    font-size: 0.9rem;
+    transform: rotate(-45deg);
+    animation: rocketFloat 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.6));
+}
+
+.rocket-bottom {
+    position: absolute;
+    bottom: -8px;
+    left: -15px;
+    font-size: 0.9rem;
+    transform: rotate(135deg);
+    animation: rocketFloat 2s ease-in-out infinite 1s;
+    filter: drop-shadow(0 0 8px rgba(255, 107, 107, 0.6));
+}
+
+@keyframes rocketFloat {
+    0%, 100% { 
+        transform: rotate(-45deg) translateY(0);
+        opacity: 1;
+    }
+    50% { 
+        transform: rotate(-45deg) translateY(-5px);
+        opacity: 0.8;
+    }
+}
+
+.rocket-bottom {
+    animation-name: rocketFloatBottom;
+}
+
+@keyframes rocketFloatBottom {
+    0%, 100% { 
+        transform: rotate(135deg) translateY(0);
+        opacity: 1;
+    }
+    50% { 
+        transform: rotate(135deg) translateY(5px);
+        opacity: 0.8;
+    }
+}
+
+/* Logo Hover Effect */
+.nav-logo:hover .logo-text {
+    animation: logoGradientShift 1s ease-in-out infinite;
+}
+
+.nav-logo:hover .logo-z {
+    animation: zPulse 0.6s ease-in-out infinite;
+}
+
+@keyframes zPulse {
+    0%, 100% { transform: scale(1.15); }
+    50% { transform: scale(1.25); }
+}
+
+.nav-logo:hover .rocket-top,
+.nav-logo:hover .rocket-bottom {
+    animation-duration: 0.8s;
 }
 
 .nav-right a {
@@ -68,9 +189,27 @@
     color: #d6e3ff;
     text-decoration: none;
     font-size: 0.95rem;
+    transition: all 0.3s ease;
 }
 
 .nav-right a:hover {
-    color: white;
+    color: #00f2ff;
+    text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .nav-logo {
+        font-size: 1.2rem;
+    }
+    
+    .logo-z {
+        font-size: 1.4rem;
+    }
+    
+    .rocket-top,
+    .rocket-bottom {
+        font-size: 0.7rem;
+    }
 }
 </style>
