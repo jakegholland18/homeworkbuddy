@@ -711,8 +711,40 @@ def admin_switch(mode):
 
 
 # ============================================================
+# ADMIN – VIEW STUDENTS
+# ============================================================
+
+@app.route("/admin/students")
+def admin_students():
+    if not session.get("is_admin"):
+        flash("Admin access required.", "error")
+        return redirect("/choose_login_role")
+
+    all_students = Student.query.all()
+    return render_template(
+        "admin_dashboard.html",
+        students=all_students,
+        view_mode="admin",
+    )
+
+
+# ============================================================
 # TEACHER – CLASSES + STUDENTS
 # ============================================================
+
+@app.route("/teacher/classes")
+def teacher_classes():
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect("/teacher/login")
+
+    classes = teacher.classes or []
+    return render_template(
+        "teacher_dashboard.html",
+        teacher=teacher,
+        classes=classes,
+        is_owner=is_owner(teacher),
+    )
 
 @app.route("/teacher/add_class", methods=["POST"])
 def add_class():
@@ -781,7 +813,7 @@ def teacher_assignments():
         )
 
     return render_template(
-        "assignment_overview.html",
+        "teacher_assignments.html",
         teacher=teacher,
         classes=classes,
         assignment_map=assignment_map,
