@@ -88,9 +88,38 @@
         </a>
 
         {% if assignment.preview_json %}
-        <a class="btn-blue btn-wide" href="/teacher/assignments/{{ assignment.id }}/publish">
-            ✅ Approve & Publish Mission
-        </a>
+            <h3>📋 AI-Generated Mission Preview</h3>
+            <p style="opacity: 0.9; margin-bottom: 15px;">This is what your students will see:</p>
+            
+            {% set mission = assignment.preview_json | fromjson %}
+            
+            {% if mission.steps %}
+                {% for step in mission.steps %}
+                <div class="q-box">
+                    <p><strong>Question {{ loop.index }}:</strong></p>
+                    <p style="margin: 10px 0;">{{ step.prompt }}</p>
+                    
+                    {% if step.choices %}
+                        <p style="margin: 8px 0; opacity: 0.85;"><em>Multiple Choice:</em></p>
+                        {% for choice in step.choices %}
+                            <p style="margin: 4px 0; padding-left: 15px;">• {{ choice }}</p>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if step.hint %}
+                        <p style="margin-top: 8px; opacity: 0.8;"><strong>Hint:</strong> {{ step.hint }}</p>
+                    {% endif %}
+                    
+                    {% if step.explanation %}
+                        <p style="margin-top: 8px; opacity: 0.8;"><strong>Explanation:</strong> {{ step.explanation }}</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <a class="btn-blue btn-wide" href="/teacher/assignments/{{ assignment.id }}/publish">
+                ✅ Approve & Publish Mission
+            </a>
         {% endif %}
 
         <h3>Manual Questions (Optional)</h3>
@@ -101,7 +130,7 @@
         </a>
 
         {% if assignment.questions %}
-        <h3>Questions Preview</h3>
+        <h3>Manual Questions Preview</h3>
         {% for q in assignment.questions %}
         <div class="q-box">
             <p><strong>Q{{ loop.index }}:</strong> {{ q.question_text }}</p>
@@ -116,7 +145,7 @@
             <p><strong>Correct:</strong> {{ q.correct_answer }}</p>
             <p><strong>Explanation:</strong> {{ q.explanation }}</p>
             
-            <a href="/teacher/questions/{{ q.id }}/edit" style="color: #5c6bff; text-decoration: none;">Edit</a>
+            <a href="/teacher/questions/{{ q.id }}/edit" style="color: #5c6bff; text-decoration: none;">✏️ Edit</a>
         </div>
         {% endfor %}
         {% endif %}

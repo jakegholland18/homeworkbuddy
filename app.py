@@ -164,6 +164,22 @@ def log_exception(sender, exception, **extra):
 got_request_exception.connect(log_exception, app)
 
 # ============================================================
+# JINJA2 FILTERS
+# ============================================================
+
+import json
+
+@app.template_filter('fromjson')
+def fromjson_filter(value):
+    """Parse JSON string to Python object"""
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except Exception:
+            return {}
+    return value
+
+# ============================================================
 # MODULE IMPORTS (AI + SUBJECT HELPERS + PRACTICE)
 # ============================================================
 
