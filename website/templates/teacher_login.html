@@ -116,7 +116,10 @@
 
         <label for="password">Password</label>
         <input id="password" name="password" type="password" placeholder="Password" required>
-
+        <div class="password-wrapper">
+    <input type="password" name="password" id="password" required>
+    <span class="toggle-password" onclick="togglePassword('password')">👁</span>
+</div>
         <button class="btn-primary" type="submit">Log In</button>
     </form>
 

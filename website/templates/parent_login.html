@@ -5,22 +5,32 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body class="fade-in">
+
 <div class="content-box">
+
     <h2 class="page-title">Parent Login</h2>
 
     <form method="POST">
+
         <label>Email</label>
         <input type="email" name="email" required>
 
         <label>Password</label>
         <input type="password" name="password" required>
+        <div class="password-wrapper">
+    <input type="password" name="password" id="password" required>
+    <span class="toggle-password" onclick="togglePassword('password')">👁</span>
+</div>
+        <button class="btn-blue" type="submit">Log In</button>
 
-        <button class="btn-blue" type="submit">Login</button>
     </form>
 
     <p style="text-align:center; margin-top:20px;">
-        New parent? <a href="/parent/signup">Sign up</a>
+        Need an account? <a href="/parent/signup">Create Parent Account</a>
     </p>
+
 </div>
+
 </body>
 </html>
+

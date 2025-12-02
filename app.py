@@ -365,96 +365,175 @@ def choose_login_role():
     init_user()
     return render_template("choose_login_role.html")
 
+# ============================================================
+# UNIVERSAL LOGOUT ROUTE
+# ============================================================
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("You have been logged out.", "info")
+    return redirect("/choose_login_role")
+
 
 # ============================================================
-# STUDENT + PARENT AUTH (SESSION-ONLY FOR NOW)
+# STUDENT + PARENT AUTH (REAL DB VERSION)
 # ============================================================
 
+from werkzeug.security import generate_password_hash, check_password_hash
+from models import Student, Parent
+
+# -------------------------------
+# STUDENT SIGNUP (DB + parent auto-link)
+# -------------------------------
 @app.route("/student/signup", methods=["GET", "POST"])
 def student_signup():
     init_user()
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip()
-        grade = request.form.get("grade", "").strip()
 
-        if not name or not grade:
-            flash("Please enter your name and grade to start.", "error")
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        parent_email = request.form.get("parent_email", "").strip().lower()
+
+        # Validate
+        if not name or not email or not password or not parent_email:
+            flash("All fields are required, including parent email.", "error")
             return redirect("/student/signup")
 
+        # Check if student already exists
+        existing_student = Student.query.filter_by(student_email=email).first()
+        if existing_student:
+            flash("A student with that email already exists.", "error")
+            return redirect("/student/login")
+
+        # 1. Find or create parent
+        parent = Parent.query.filter_by(email=parent_email).first()
+
+        if not parent:
+            parent = Parent(
+                name="Parent of " + name,
+                email=parent_email,
+                password_hash=generate_password_hash(password)  # TEMP, parent can change later
+            )
+            db.session.add(parent)
+            db.session.commit()
+
+        # 2. Create the student and link to parent
+        new_student = Student(
+            student_name=name,
+            student_email=email,
+            parent_id=parent.id
+        )
+
+        db.session.add(new_student)
+        db.session.commit()
+
+        # 3. Log student in
+        session["student_id"] = new_student.id
+        session["user_role"] = "student"
         session["student_name"] = name
         session["student_email"] = email
-        session["grade"] = grade
-        session["user_role"] = "student"
-        flash("Welcome to CozmicLearning!", "info")
+
+        flash("Welcome to CozmicLearning, " + name + "!", "info")
         return redirect("/dashboard")
 
     return render_template("student_signup.html")
 
 
+# -------------------------------
+# STUDENT LOGIN (DB VERSION)
+# -------------------------------
 @app.route("/student/login", methods=["GET", "POST"])
 def student_login():
     init_user()
-    # For now, login is just "remember who you are" without DB.
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip()
-        grade = request.form.get("grade", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
 
-        if not name:
-            flash("Please enter your name.", "error")
+        student = Student.query.filter_by(student_email=email).first()
+
+        if not student:
+            flash("No student found with that email.", "error")
             return redirect("/student/login")
 
-        session["student_name"] = name
-        session["student_email"] = email
-        if grade:
-            session["grade"] = grade
+        # No stored password for students yet; can add later
+        session["student_id"] = student.id
         session["user_role"] = "student"
-        flash("Logged in as student.", "info")
+        session["student_name"] = student.student_name
+        session["student_email"] = student.student_email
+
+        flash("Welcome back, " + student.student_name + "!", "info")
         return redirect("/dashboard")
 
     return render_template("student_login.html")
 
 
+# -------------------------------
+# PARENT SIGNUP (DB VERSION)
+# -------------------------------
 @app.route("/parent/signup", methods=["GET", "POST"])
 def parent_signup():
     init_user()
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
 
-        if not name or not email:
-            flash("Please enter your name and email.", "error")
+        if not name or not email or not password:
+            flash("All fields are required.", "error")
             return redirect("/parent/signup")
 
-        session["parent_name"] = name
-        session["parent_email"] = email
+        existing_parent = Parent.query.filter_by(email=email).first()
+        if existing_parent:
+            flash("Parent with that email already exists. Please login.", "error")
+            return redirect("/parent/login")
+
+        new_parent = Parent(
+            name=name,
+            email=email,
+            password_hash=generate_password_hash(password)
+        )
+
+        db.session.add(new_parent)
+        db.session.commit()
+
+        session["parent_id"] = new_parent.id
         session["user_role"] = "parent"
-        flash("Parent account created for CozmicLearning.", "info")
+
+        flash("Parent account created!", "info")
         return redirect("/parent_dashboard")
 
     return render_template("parent_signup.html")
 
 
+# -------------------------------
+# PARENT LOGIN (DB VERSION)
+# -------------------------------
 @app.route("/parent/login", methods=["GET", "POST"])
 def parent_login():
     init_user()
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
 
-        if not email:
-            flash("Please enter your email.", "error")
+        parent = Parent.query.filter_by(email=email).first()
+
+        if not parent:
+            flash("No parent found with that email.", "error")
             return redirect("/parent/login")
 
-        session["parent_name"] = name or session.get("parent_name")
-        session["parent_email"] = email
+        if not check_password_hash(parent.password_hash, password):
+            flash("Incorrect password.", "error")
+            return redirect("/parent/login")
+
+        session["parent_id"] = parent.id
         session["user_role"] = "parent"
-        flash("Logged in as parent.", "info")
+
+        flash("Logged in!", "info")
         return redirect("/parent_dashboard")
 
     return render_template("parent_login.html")
-
 
 # ============================================================
 # CHARACTER SELECT

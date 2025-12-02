@@ -4,6 +4,24 @@ from datetime import datetime
 db = SQLAlchemy()
 
 # ============================================================
+# PARENT ACCOUNTS
+# ============================================================
+
+class Parent(db.Model):
+    __tablename__ = "parents"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120))
+    email = db.Column(db.String(120), unique=True)
+    password_hash = db.Column(db.String(255))
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # One parent can have multiple students (children)
+    students = db.relationship("Student", backref="parent_ref", lazy=True)
+
+
+# ============================================================
 # TEACHER ACCOUNTS
 # ============================================================
 
@@ -38,14 +56,17 @@ class Class(db.Model):
 
 
 # ============================================================
-# STUDENTS
+# STUDENTS (UPDATED WITH parent_id)
 # ============================================================
 
 class Student(db.Model):
     __tablename__ = "students"
 
     id = db.Column(db.Integer, primary_key=True)
+
     class_id = db.Column(db.Integer, db.ForeignKey("classes.id"))
+    parent_id = db.Column(db.Integer, db.ForeignKey("parents.id"))   # NEW FIELD
+
     student_name = db.Column(db.String(120))
     student_email = db.Column(db.String(120))
 
@@ -133,4 +154,5 @@ class AssignedQuestion(db.Model):
     difficulty_level = db.Column(db.String(20))  # easy / med / hard
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 

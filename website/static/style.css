@@ -668,6 +668,34 @@ body::after {
         gap: 32px;
     }
 }
+/* =======================================================
+   MODALS / ADMIN LOGIN
+======================================================= */
+
+.admin-password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.admin-password-wrapper input {
+    width: 100%;
+    padding-right: 40px; /* room for eye icon */
+}
+
+.admin-toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    opacity: 0.7;
+    font-size: 1.1rem;
+    user-select: none;
+}
+
+.admin-toggle-password:hover {
+    opacity: 1;
+}
 
 
 

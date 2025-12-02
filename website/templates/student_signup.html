@@ -5,29 +5,41 @@
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body class="fade-in">
+
 <div class="content-box">
 
     <h2 class="page-title">Create Student Account</h2>
 
     <form method="POST">
+
         <label>Full Name</label>
         <input type="text" name="name" required>
 
-        <label>Email</label>
+        <label>Student Email</label>
         <input type="email" name="email" required>
 
         <label>Password</label>
         <input type="password" name="password" required>
+        <div class="password-wrapper">
+    <input type="password" name="password" id="password" required>
+    <span class="toggle-password" onclick="togglePassword('password')">👁</span>
+</div>
+        <label>Parent Email</label>
+        <input type="email" name="parent_email" placeholder="Parent Email (Required)" required>
 
         <label>Class Code (optional)</label>
         <input type="text" name="class_code">
 
         <button class="btn-blue" type="submit">Create Account</button>
+
     </form>
 
     <p style="text-align:center; margin-top:20px;">
         Already have an account? <a href="/student/login">Log in</a>
     </p>
+
 </div>
+
 </body>
 </html>
+

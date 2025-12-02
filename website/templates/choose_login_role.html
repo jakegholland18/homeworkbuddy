@@ -214,17 +214,26 @@
 <div id="adminModal" class="admin-modal">
     <div class="admin-modal-content">
         <h2>Admin Login</h2>
+
         <form method="POST" action="/admin/login">
-            <input 
-                type="password" 
-                name="password" 
-                placeholder="Enter Admin Password"
-                required
-                class="admin-input"
-            >
+
+            <div class="admin-password-wrapper">
+                <input 
+                    type="password" 
+                    name="password" 
+                    id="admin_password"
+                    placeholder="Enter Admin Password"
+                    required
+                    class="admin-input"
+                >
+                <span class="admin-toggle-password" onclick="togglePassword('admin_password')">👁</span>
+            </div>
+
             <button type="submit" class="admin-btn">Login</button>
         </form>
+
         <button class="admin-close" onclick="closeAdmin()">Close</button>
+
     </div>
 </div>
 

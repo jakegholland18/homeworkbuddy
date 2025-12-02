@@ -1,50 +1,71 @@
-<div class="sidebar">
-    <h2 class="sidebar-title">🌌 CozmicLearning</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CozmicLearning</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
 
-    <!-- UNIVERSAL PAGES -->
-    <a href="/">🏠 Home</a>
+<body>
 
-    <!-- STUDENT LOGIN -->
-    {% if session.get('student_id') %}
-        <a href="/dashboard">📊 Student Dashboard</a>
-        <a href="/subjects">🪐 Explore Subjects</a>
-        <a href="/choose-character">🎨 Choose Mentor</a>
-        <a href="/parent_dashboard">👨‍👩‍👦 Parent View</a>
-    {% endif %}
+    <!-- ========== SIDEBAR ========== -->
+    <div class="sidebar">
+        <h2 class="sidebar-title">🌌 CozmicLearning</h2>
 
-    <!-- PARENT LOGIN -->
-    {% if session.get('parent_logged_in') %}
-        <a href="/parent_dashboard">📘 Parent Dashboard</a>
-        <a href="/parent/messages">💬 Message Teacher</a>
-        <a href="/parent/subjects">📚 Subjects</a>
-        <a href="/parent/progress">📈 Progress Reports</a>
-    {% endif %}
+        <a href="/">🏠 Home</a>
 
-    <!-- TEACHER LOGIN -->
-    {% if session.get('teacher_id') %}
-        <a href="/teacher/dashboard">📘 Teacher Dashboard</a>
-        <a href="/teacher/classes">🏫 My Classes</a>
-        <a href="/teacher/assignments">📝 Assign Practice</a>
-        <a href="/teacher/reports">📈 Analytics</a>
-        <a href="/teacher/messages">💬 Message Parents</a>
-    {% endif %}
+        {% if session.get('student_id') %}
+            <a href="/dashboard">📊 Student Dashboard</a>
+            <a href="/subjects">🪐 Explore Subjects</a>
+            <a href="/choose-character">🎨 Choose Mentor</a>
+        {% endif %}
 
-    <!-- ========================= -->
-    <!--      ADMIN OVERRIDE       -->
-    <!-- ========================= -->
-    {% if session.get('is_admin') %}
-        <hr style="border-color: rgba(255,255,255,0.25); width: 100%;">
+        {% if session.get('parent_logged_in') %}
+            <a href="/parent_dashboard">📘 Parent Dashboard</a>
+            <a href="/parent/messages">💬 Message Teacher</a>
+            <a href="/parent/subjects">📚 Subjects</a>
+            <a href="/parent/progress">📈 Progress Reports</a>
+        {% endif %}
 
-        <a href="/admin/dashboard">👑 Admin Dashboard</a>
-        <a href="/admin/teachers">📘 All Teachers</a>
-        <a href="/admin/students">👨‍🎓 All Students</a>
-        <a href="/admin/classes">🏫 All Classes</a>
-        <a href="/admin/reports">📈 Full Analytics</a>
-    {% else %}
-        <!-- Show admin login link ONLY if not already admin -->
-        <a href="/admin/login" style="opacity:0.7;">🔐 Admin Login</a>
-    {% endif %}
-</div>
+        {% if session.get('teacher_id') %}
+            <a href="/teacher/dashboard">📘 Teacher Dashboard</a>
+            <a href="/teacher/classes">🏫 My Classes</a>
+            <a href="/teacher/assignments">📝 Assign Practice</a>
+            <a href="/teacher/reports">📈 Analytics</a>
+            <a href="/teacher/messages">💬 Message Parents</a>
+        {% endif %}
+
+        {% if session.get('is_admin') %}
+            <hr style="border-color: rgba(255,255,255,0.25); width: 100%;">
+            <a href="/admin/dashboard">👑 Admin Dashboard</a>
+            <a href="/admin/teachers">📘 All Teachers</a>
+            <a href="/admin/students">👨‍🎓 All Students</a>
+            <a href="/admin/classes">🏫 All Classes</a>
+            <a href="/admin/reports">📈 Full Analytics</a>
+        {% else %}
+            <a href="/admin/login" style="opacity:0.7;">🔐 Admin Login</a>
+        {% endif %}
+    </div>
+
+
+    <!-- ========== PAGE CONTENT ========== -->
+    <div class="main-content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+
+    <!-- ========== GLOBAL PASSWORD TOGGLE SCRIPT ========== -->
+    <script>
+    function togglePassword(id) {
+        const field = document.getElementById(id);
+        field.type = field.type === "password" ? "text" : "password";
+    }
+    </script>
+
+</body>
+</html>
+
 
 
 
