@@ -996,12 +996,12 @@ def assignment_take(practice_id):
 
     return redirect(f"/assignment/{practice_id}/step")
 
-
 @app.route("/assignment/<int:practice_id>/step", methods=["GET", "POST"])
 def assignment_step(practice_id):
     init_user()
 
     assignment = AssignedPractice.query.get_or_404(practice_id)
+
     practice = session.get("practice")
     step_index = session.get("practice_step", 0)
 
@@ -1010,17 +1010,25 @@ def assignment_step(practice_id):
 
     steps = practice["steps"]
     total_steps = len(steps)
-
-    if step_index < 0:
-        step_index = 0
-    if step_index >= total_steps:
-        step_index = total_steps - 1
-
     step = steps[step_index]
 
+    # ----------------------------------------------------
+    # NEW: Calculate progress bar % (1–100)
+    # ----------------------------------------------------
+    progress_percent = round(((step_index + 1) / total_steps) * 100, 2)
+
+    show_hint = False
+
+    # ----------------------------------------------------
+    # POST — student action (answer or hint)
+    # ----------------------------------------------------
     if request.method == "POST":
-        # HINT BUTTON
+
+        # -----------------------------
+        # Student pressed HINT
+        # -----------------------------
         if "hint" in request.form:
+            show_hint = True
             return render_template(
                 "assignment_step.html",
                 assignment=assignment,
@@ -1029,38 +1037,41 @@ def assignment_step(practice_id):
                 total=total_steps,
                 show_hint=True,
                 submitted=False,
+                progress_percent=progress_percent
             )
 
-        # ANSWER SUBMITTED
+        # -----------------------------
+        # Student submitted an answer
+        # -----------------------------
         student_answer = (request.form.get("student_answer") or "").strip().lower()
         correct_answers = [a.lower() for a in step.get("expected", [])]
 
         step["student_answer"] = student_answer
-        step["status"] = (
-            "correct" if student_answer in correct_answers else "incorrect"
-        )
+        step["status"] = "correct" if student_answer in correct_answers else "incorrect"
 
-        answers = session.get("student_answers", [])
-        answers.append(student_answer)
-        session["student_answers"] = answers
-
+        session["student_answers"].append(student_answer)
         session["practice_step"] = step_index + 1
-        session.modified = True
 
+        # -----------------------------
+        # If final step → summary page
+        # -----------------------------
         if step_index + 1 >= total_steps:
             score = sum(1 for s in steps if s.get("status") == "correct")
             score_percent = round((score / total_steps) * 100, 1)
+
             return render_template(
                 "assignment_complete.html",
                 assignment=assignment,
                 score_percent=score_percent,
                 final_message=practice.get("final_message", "Great work!"),
-                steps=steps,
+                steps=steps
             )
 
         return redirect(f"/assignment/{practice_id}/step")
 
-    # GET – normal display
+    # ----------------------------------------------------
+    # GET — show question normally
+    # ----------------------------------------------------
     return render_template(
         "assignment_step.html",
         assignment=assignment,
@@ -1069,8 +1080,8 @@ def assignment_step(practice_id):
         total=total_steps,
         show_hint=False,
         submitted=False,
+        progress_percent=progress_percent
     )
-
 
 # ============================================================
 # CLASS ANALYTICS (TEACHER VIEW) – DB RESULTS ONLY

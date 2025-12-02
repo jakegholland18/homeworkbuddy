@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Take Assignment</title>
+    <title>{{ assignment.title }} – Assignment</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
@@ -11,6 +11,7 @@
 
 <div class="content-box">
 
+    <!-- Assignment Info -->
     <div class="assignment-meta">
         <p><strong>Subject:</strong> {{ assignment.subject|title }}</p>
         <p><strong>Topic:</strong> {{ assignment.topic }}</p>
@@ -24,47 +25,60 @@
 
     <!-- Progress Bar -->
     <div class="progress-bar">
-        <div class="progress-fill" style="width: {{ progress_percent }}%;"></div>
+        <div class="progress-fill"
+            style="width: {{ progress_percent|round(1) }}%;"></div>
     </div>
-    <p class="progress-label">{{ current_index + 1 }} / {{ total_questions }}</p>
 
+    <p class="progress-label">
+        Question {{ index + 1 }} of {{ total }} ({{ progress_percent|round(1) }}%)
+    </p>
+
+    <!-- Question Box -->
     <div class="question-box">
-        <h2>Question {{ current_index + 1 }}</h2>
-        <p>{{ question.question_text }}</p>
+
+        <h2>Question {{ index + 1 }}</h2>
+        <p>{{ step.prompt }}</p>
 
         <form method="POST">
 
-            {% if question.question_type == "multiple_choice" %}
-                <div class="mc-option">
-                    <label><input type="radio" name="answer" value="A"> A. {{ question.choice_a }}</label>
-                </div>
-                <div class="mc-option">
-                    <label><input type="radio" name="answer" value="B"> B. {{ question.choice_b }}</label>
-                </div>
-                <div class="mc-option">
-                    <label><input type="radio" name="answer" value="C"> C. {{ question.choice_c }}</label>
-                </div>
-                <div class="mc-option">
-                    <label><input type="radio" name="answer" value="D"> D. {{ question.choice_d }}</label>
-                </div>
+            <!-- Multiple Choice -->
+            {% if step.type == "multiple_choice" %}
+                {% for choice in step.choices %}
+                    <div class="mc-option">
+                        <label>
+                            <input type="radio" name="student_answer"
+                                   value="{{ choice[0] | lower }}">
+                            {{ choice }}
+                        </label>
+                    </div>
+                {% endfor %}
 
+            <!-- Free Response -->
             {% else %}
-                <textarea name="answer" placeholder="Type your answer..." required></textarea>
+                <textarea name="student_answer"
+                          placeholder="Type your answer..."
+                          required></textarea>
             {% endif %}
 
+            <!-- Buttons -->
             <div class="btn-row">
-                {% if current_index > 0 %}
-                <a class="btn-gray" href="/assignment_take/{{ assignment.id }}?q={{ current_index - 1 }}">Previous</a>
-                {% endif %}
 
+                <!-- Hint button -->
+                <button class="btn-gray" type="submit" name="hint">Hint</button>
+
+                <!-- Submit button -->
                 <button class="btn-blue" type="submit">Submit Answer</button>
 
-                {% if current_index + 1 < total_questions %}
-                <a class="btn-gray" href="/assignment_take/{{ assignment.id }}?q={{ current_index + 1 }}">Next</a>
-                {% endif %}
             </div>
 
         </form>
+
+        <!-- Optional Hint Display -->
+        {% if show_hint %}
+        <div class="hint-box">
+            <strong>Hint:</strong> {{ step.hint }}
+        </div>
+        {% endif %}
 
     </div>
 
@@ -72,3 +86,4 @@
 
 </body>
 </html>
+

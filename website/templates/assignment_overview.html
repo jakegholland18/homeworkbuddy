@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container fade-in" style="max-width: 900px; margin: 40px auto;">
+
+    <h1>{{ assignment.title }}</h1>
+    <p><strong>Subject:</strong> {{ assignment.subject }}</p>
+    <p><strong>Topic:</strong> {{ assignment.topic }}</p>
+    <p><strong>Instructions:</strong> {{ assignment.instructions }}</p>
+    <p><strong>Due:</strong> {{ assignment.due_date.strftime("%B %d, %Y") if assignment.due_date else "No Due Date" }}</p>
+
+    <hr>
+
+    <h2>Questions</h2>
+
+    {% if questions %}
+        <ul>
+        {% for q in questions %}
+            <li>{{ q.question_text[:120] }}{% if q.question_text|length > 120 %}...{% endif %}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No questions found in this assignment yet.</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Actions</h2>
+
+    <a href="/teacher/assignments" class="btn">Back to Assignments</a>
+    <a href="/teacher/assignments/{{ assignment.id }}/edit" class="btn">Edit Assignment</a>
+
+</div>
+{% endblock %}
