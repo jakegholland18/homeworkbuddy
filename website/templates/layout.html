@@ -3,7 +3,7 @@
 <head>
 
     <meta charset="UTF-8">
-    <title>Homework Buddy</title>
+    <title>CosmicStudy</title>
 
     <!-- GLOBAL STYLES -->
     <link rel="stylesheet" href="/static/style.css">
@@ -11,15 +11,12 @@
     <!-- OPTIONAL ANIMATION CSS -->
     <link rel="stylesheet" href="/static/animations.css">
 
-    <!-- REMOVE OLD CHARACTER CSS SYSTEM -->
-    <!-- PNGs ONLY NOW — NO MORE CSS-BASED CHARACTERS -->
-
     <style>
         /* ----------- SIDEBAR ----------- */
         .sidebar {
             width: 240px;
             height: 100vh;
-            background: #0b1424;
+            background: #060d1b;
             position: fixed;
             left: 0;
             top: 0;
@@ -27,28 +24,32 @@
             display: flex;
             flex-direction: column;
             gap: 18px;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.5);
+            box-shadow: 4px 0 20px rgba(0,0,0,0.6);
+            border-right: 1px solid rgba(120,150,255,0.18);
         }
 
         .sidebar-title {
-            font-size: 1.6rem;
-            color: #bcdfff;
+            font-size: 1.7rem;
+            color: #d4e8ff;
             margin-bottom: 25px;
-            text-shadow: 0 0 10px #78aaff;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-shadow: 0 0 14px #7bb3ff;
         }
 
         .sidebar a {
             text-decoration: none;
             color: #e2eeff;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             padding: 10px 12px;
             border-radius: 10px;
             transition: 0.25s;
         }
 
         .sidebar a:hover {
-            background: #1d2c49;
-            transform: translateX(5px);
+            background: #162445;
+            transform: translateX(6px);
+            box-shadow: 0 3px 10px rgba(60,120,255,0.4);
         }
 
         /* ----------- MAIN CONTENT ----------- */
@@ -56,17 +57,44 @@
             margin-left: 260px;
             padding: 40px;
             min-height: 100vh;
+            animation: fadeIn 0.4s ease-out;
         }
 
-        /* MOBILE */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---------- FOOTER ---------- */
+        footer {
+            text-align:center;
+            margin-top: 40px;
+            margin-bottom: 30px;
+            opacity: 0.7;
+            font-size: 0.95rem;
+        }
+
+        footer a {
+            color: #bfe6ff;
+            margin: 0 14px;
+            text-decoration: none;
+            transition: 0.25s;
+        }
+
+        footer a:hover {
+            color: white;
+            text-shadow: 0 0 10px #78aaff;
+        }
+
+        /* ---------- MOBILE ---------- */
         @media(max-width: 900px) {
             .sidebar {
-                width: 180px;
+                width: 190px;
             }
 
             .main-content {
-                margin-left: 200px;
-                padding: 20px;
+                margin-left: 210px;
+                padding: 25px;
             }
         }
 
@@ -78,7 +106,10 @@
                 flex-direction: row;
                 flex-wrap: wrap;
                 justify-content: center;
-                gap: 10px;
+                gap: 12px;
+                padding: 15px;
+                border-right: none;
+                border-bottom: 1px solid rgba(120,150,255,0.18);
             }
 
             .main-content {
@@ -86,6 +117,7 @@
                 padding: 20px;
             }
         }
+
     </style>
 
 </head>
@@ -96,12 +128,14 @@
 <!--        SIDEBAR MENU       -->
 <!-- ========================= -->
 <div class="sidebar">
-    <h2 class="sidebar-title">📚 Homework Buddy</h2>
+    <h2 class="sidebar-title">🌌 CozmicLearning</h2>
 
     <a href="/">🏠 Home</a>
     <a href="/dashboard">📊 Student Dashboard</a>
-    <a href="/choose-character">🎨 Choose Buddy</a>
+    <a href="/choose-character">🎨 Choose Galaxy Mentor</a>
+    <a href="/subjects">🪐 Explore Subjects</a>
     <a href="/parent_dashboard">👨‍👩‍👦 Parent Dashboard</a>
+    <a href="/teach_dashboard">📘 Teacher Dashboard</a>
 </div>
 
 <!-- ========================= -->
@@ -111,10 +145,11 @@
     {% block content %}
     {% endblock %}
 </div>
-<footer style="text-align:center; margin-top:40px; margin-bottom:25px; opacity:0.6;">
-    <a href="/terms" style="color:#bfe6ff; margin-right:15px;">Terms of Service</a>
-    <a href="/privacy" style="color:#bfe6ff; margin-right:15px;">Privacy Policy</a>
-    <a href="/disclaimer" style="color:#bfe6ff;">Disclaimer</a>
+
+<footer>
+    <a href="/terms">Terms of Service</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/disclaimer">Disclaimer</a>
 </footer>
 
 </body>

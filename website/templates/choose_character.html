@@ -7,7 +7,8 @@
         font-size: 2.8rem;
         margin-bottom: 30px;
         color: #cde7ff;
-        text-shadow: 0 0 20px #78aaff;
+        text-shadow: 0 0 25px #78aaff;
+        letter-spacing: 0.04em;
     }
 
     .character-grid {
@@ -50,6 +51,7 @@
         color: #d9ecff;
         font-size: 1.2rem;
         font-weight: 600;
+        letter-spacing: 0.03em;
     }
 
     #continue-btn {
@@ -72,7 +74,7 @@
     }
 </style>
 
-<h1 class="page-title fade-in">Choose Your Study Buddy</h1>
+<h1 class="page-title fade-in">Choose Your Galaxy Mentor</h1>
 
 <div class="character-grid fade-in">
     {% for id, char in characters.items() %}
@@ -83,7 +85,7 @@
     {% endfor %}
 </div>
 
-<button id="continue-btn" onclick="submitCharacter()">Continue</button>
+<button id="continue-btn" onclick="submitCharacter()">Begin Your Journey</button>
 
 <script>
 let selectedCharacter = null;
@@ -109,9 +111,9 @@ function submitCharacter() {
     })
     .then(res => {
         if (res.ok) {
-            window.location.href = "/subjects";  // after choosing buddy → subject screen
+            window.location.href = "/subjects";  // after choosing → subject screen
         } else {
-            alert("Error selecting character.");
+            alert("Error selecting your galaxy mentor.");
         }
     });
 }

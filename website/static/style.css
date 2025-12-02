@@ -1,8 +1,8 @@
 /* =======================================================
-   GLOBAL PAGE STYLING – CLEAN + GALAXY HYBRID
+   GLOBAL PAGE STYLING – COZMICLEARNING
 ======================================================= */
 
-/* Main background with galaxy gradient */
+/* Main cozmic background */
 body {
     margin: 0;
     padding: 0;
@@ -13,7 +13,7 @@ body {
     position: relative;
 }
 
-/* Galaxy stars background */
+/* Starfield */
 body::before {
     content: "";
     position: fixed;
@@ -30,18 +30,19 @@ body::before {
     to { transform: translateY(-1400px); }
 }
 
-/* Nebula Glow Layer */
+/* Nebula glow layer */
 body::after {
     content: "";
     position: fixed;
     inset: 0;
-    background: radial-gradient(circle at 60% 20%, rgba(76, 141, 255, 0.18), transparent 60%),
-                radial-gradient(circle at 20% 80%, rgba(255, 100, 200, 0.12), transparent 60%);
+    background:
+        radial-gradient(circle at 60% 20%, rgba(76, 141, 255, 0.18), transparent 60%),
+        radial-gradient(circle at 20% 80%, rgba(255, 100, 200, 0.12), transparent 60%);
     filter: blur(25px);
     z-index: -2;
 }
 
-/* Soft cinematic fade-in */
+/* Smooth fade-in */
 .fade-in {
     animation: fadeIn 0.7s ease-out both;
 }
@@ -50,9 +51,8 @@ body::after {
     to   { opacity: 1; transform: translateY(0); }
 }
 
-
 /* =======================================================
-   FLOATING CHARACTERS – UNIVERSAL SIZING
+   CHARACTER IMAGES
 ======================================================= */
 
 .character-universal,
@@ -69,13 +69,8 @@ body::after {
     filter: drop-shadow(0 0 18px rgba(0,0,0,0.55));
 }
 
-.character-large {
-    width: 240px;
-}
-
-.character-small {
-    width: 120px;
-}
+.character-large { width: 240px; }
+.character-small { width: 120px; }
 
 .character-float {
     animation: floatCharacter 3s ease-in-out infinite;
@@ -85,7 +80,6 @@ body::after {
     50%  { transform: translateY(-14px); }
     100% { transform: translateY(0); }
 }
-
 
 /* =======================================================
    TITLES
@@ -99,7 +93,6 @@ body::after {
     margin-top: 40px;
     text-shadow: 0 0 22px rgba(140, 200, 255, 0.6);
 }
-
 
 /* =======================================================
    BUTTONS
@@ -136,9 +129,8 @@ body::after {
     background:#ff7100;
 }
 
-
 /* =======================================================
-   CARDS – Cinematic softened surfaces
+   CARDS
 ======================================================= */
 
 .card {
@@ -157,9 +149,8 @@ body::after {
     to   { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-
 /* =======================================================
-   STATS ROW
+   STATS
 ======================================================= */
 
 .stats-row {
@@ -174,14 +165,13 @@ body::after {
     background: rgba(255,255,255,0.12);
     padding: 22px 30px;
     border-radius: 18px;
-    text-align: center;
     min-width: 140px;
+    text-align: center;
     box-shadow: 0 6px 18px rgba(0,0,0,0.4);
 }
 
-
 /* =======================================================
-   PLANET GRID – STILL USED FOR SUBJECT SELECT
+   PLANET GRID (Subject Select)
 ======================================================= */
 
 .planet-container {
@@ -228,7 +218,6 @@ body::after {
     text-shadow: 0 0 12px #ffb638;
 }
 
-
 /* =======================================================
    ASK QUESTION PAGE
 ======================================================= */
@@ -249,7 +238,6 @@ body::after {
     backdrop-filter: blur(8px);
 }
 
-
 /* =======================================================
    CHARACTER SELECT
 ======================================================= */
@@ -265,9 +253,9 @@ body::after {
     background: rgba(255,255,255,0.1);
     padding: 25px;
     border-radius: 22px;
+    text-align: center;
     box-shadow: 0 6px 18px rgba(0,0,0,0.35);
     backdrop-filter: blur(8px);
-    text-align: center;
     transition: 0.3s;
 }
 
@@ -275,7 +263,6 @@ body::after {
     transform: translateY(-10px) scale(1.05);
     background: rgba(255,255,255,0.2);
 }
-
 
 /* =======================================================
    SIDEBAR
@@ -292,6 +279,7 @@ body::after {
     padding: 25px 22px;
     box-shadow: 3px 0 14px rgba(0,0,0,0.55);
     backdrop-filter: blur(8px);
+    z-index: 5;
 }
 
 .sidebar a {
@@ -310,7 +298,6 @@ body::after {
     padding-left: 22px;
 }
 
-
 /* =======================================================
    MAIN CONTENT
 ======================================================= */
@@ -320,4 +307,5 @@ body::after {
     padding: 40px;
     min-height: 100vh;
 }
+
 

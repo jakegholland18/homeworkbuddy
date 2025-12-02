@@ -785,7 +785,7 @@ def practice_help_message():
 
     # Build a rich tutoring prompt reflecting your preferences
     ai_prompt = f"""
-You are HOMEWORK BUDDY — a warm, patient tutor.
+You are COZMICLEARNING — a warm, patient cozmic mentor guiding students through the galaxy of learning.
 
 The student is asking for help about a practice question.
 
