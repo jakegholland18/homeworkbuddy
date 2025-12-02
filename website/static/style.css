@@ -32,6 +32,24 @@
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+    
+    /* Background Gradients */
+    --bg-gradient-main: linear-gradient(135deg, #0a0e27 0%, #050813 100%);
+    --bg-gradient-premium: linear-gradient(135deg, 
+        rgba(10, 14, 39, 0.95) 0%, 
+        rgba(5, 8, 19, 0.98) 100%);
+    --bg-nebula: radial-gradient(
+        circle at 50% 0%, 
+        rgba(86, 162, 255, 0.15) 0%, 
+        transparent 65%),
+        radial-gradient(
+        circle at 0% 80%, 
+        rgba(255, 204, 112, 0.09) 0%, 
+        transparent 60%),
+        radial-gradient(
+        circle at 100% 60%, 
+        rgba(132, 94, 255, 0.16) 0%, 
+        transparent 60%);
 }
 
 /* ==================== GLOBAL LAYOUT ==================== */
@@ -1300,6 +1318,32 @@ body::after {
     content: "✨ ";
     font-size: 1.2rem;
     margin-right: 8px;
+}
+
+/* Background Utility Classes */
+.bg-main {
+    background: var(--bg-gradient-main);
+}
+
+.bg-premium {
+    background: var(--bg-gradient-premium);
+}
+
+.body-with-nebula {
+    background: var(--bg-gradient-main);
+    position: relative;
+}
+
+.body-with-nebula::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-nebula);
+    pointer-events: none;
+    z-index: -1;
 }
 
 
