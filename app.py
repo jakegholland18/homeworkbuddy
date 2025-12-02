@@ -8,17 +8,16 @@ import logging
 import traceback
 from datetime import datetime, timedelta
 
-# ============================================================
-# TEMPORARY: DELETE OLD DATABASE SO NEW SCHEMA CAN BE CREATED
-# ============================================================
+DB_PATH = os.path.join(BASE_DIR, "cozmiclearning.db")
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-db_path = os.path.join(BASE_DIR, "cozmiclearning.db")
-
-if os.path.exists(db_path):
-    print("Deleting outdated cozmiclearning.db...")
-    os.remove(db_path)
-
+# -------------------------------------------------
+# FORCE DELETE OLD DB SO SCHEMA CAN RE-BUILD CLEAN
+# -------------------------------------------------
+if os.path.exists(DB_PATH):
+    print("🗑️ Found old DB — deleting so new schema can be created...")
+    os.remove(DB_PATH)
+else:
+    print("📦 No database found — creating new one...")
 
 # ============================================================
 # FLASK + SECURITY IMPORTS
