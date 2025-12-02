@@ -9,6 +9,18 @@ import traceback
 from datetime import datetime, timedelta
 
 # ============================================================
+# TEMPORARY: DELETE OLD DATABASE SO NEW SCHEMA CAN BE CREATED
+# ============================================================
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+db_path = os.path.join(BASE_DIR, "cozmiclearning.db")
+
+if os.path.exists(db_path):
+    print("Deleting outdated cozmiclearning.db...")
+    os.remove(db_path)
+
+
+# ============================================================
 # FLASK + SECURITY IMPORTS
 # ============================================================
 
