@@ -93,6 +93,34 @@
         </a>
         {% endif %}
 
+        <h3>Manual Questions (Optional)</h3>
+        <p>You can also add manual questions to this assignment:</p>
+        
+        <a class="btn-blue btn-wide" href="/teacher/assignments/{{ assignment.id }}/questions/new">
+            ➕ Add Question
+        </a>
+
+        {% if assignment.questions %}
+        <h3>Questions Preview</h3>
+        {% for q in assignment.questions %}
+        <div class="q-box">
+            <p><strong>Q{{ loop.index }}:</strong> {{ q.question_text }}</p>
+
+            {% if q.question_type == "multiple_choice" %}
+                <p class="small-label">A: {{ q.choice_a }}</p>
+                <p class="small-label">B: {{ q.choice_b }}</p>
+                <p class="small-label">C: {{ q.choice_c }}</p>
+                <p class="small-label">D: {{ q.choice_d }}</p>
+            {% endif %}
+
+            <p><strong>Correct:</strong> {{ q.correct_answer }}</p>
+            <p><strong>Explanation:</strong> {{ q.explanation }}</p>
+            
+            <a href="/teacher/questions/{{ q.id }}/edit" style="color: #5c6bff; text-decoration: none;">Edit</a>
+        </div>
+        {% endfor %}
+        {% endif %}
+
         <a class="btn-gray btn-wide" href="/teacher/assignments">
             Back to Assignments
         </a>
