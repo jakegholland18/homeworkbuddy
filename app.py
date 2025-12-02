@@ -9,11 +9,17 @@ import traceback
 from datetime import datetime, timedelta
 
 # ============================================================
-# PATHS + DB FILE
+# PATHS + DB FILE  (UPDATED FOR PERSISTENT STORAGE)
 # ============================================================
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DB_PATH = os.path.join(BASE_DIR, "cozmiclearning.db")
+
+# Create persistent DB folder if missing
+PERSIST_DIR = os.path.join(BASE_DIR, "persistent_db")
+os.makedirs(PERSIST_DIR, exist_ok=True)
+
+# Use persistent SQLite file
+DB_PATH = os.path.join(PERSIST_DIR, "cozmiclearning.db")
 
 # ============================================================
 # FLASK + SECURITY IMPORTS
@@ -68,19 +74,44 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
 # ============================================================
-# DB SCHEMA VALIDATION / REBUILD (for parent_id, etc.)
+# SEED OWNER SAFELY
+# ============================================================
+
+from werkzeug.security import generate_password_hash
+from models import Teacher
+
+def seed_owner():
+    OWNER_EMAIL = "jakegholland18@gmail.com"
+    default_password = "Cash&Ollie123"
+
+    teacher = Teacher.query.filter_by(email=OWNER_EMAIL).first()
+    if not teacher:
+        t = Teacher(
+            name="Jake Holland",
+            email=OWNER_EMAIL,
+            password_hash=generate_password_hash(default_password)
+        )
+        db.session.add(t)
+        db.session.commit()
+
+with app.app_context():
+    db.create_all()  # ensure tables exist
+    seed_owner()
+
+# ============================================================
+# SAFE DB VALIDATION (NO DELETE)
 # ============================================================
 
 import sqlite3
 
-
 def rebuild_database_if_needed():
     """
-    Rebuild DB if critical columns are missing.
-    Currently checks for students.parent_id; if missing, nukes DB and recreates.
+    Validate schema but DO NOT delete the DB.
+    Warn developer if something is missing.
     """
+
     if not os.path.exists(DB_PATH):
-        print("📦 No DB — creating fresh...")
+        print("📦 No DB found — creating new persistent database...")
         with app.app_context():
             db.create_all()
         return
@@ -89,41 +120,33 @@ def rebuild_database_if_needed():
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
 
-        # Check students table
         cur.execute("PRAGMA table_info(students);")
         student_cols = [col[1] for col in cur.fetchall()]
 
-        # Check assigned_practice table
         cur.execute("PRAGMA table_info(assigned_practice);")
         practice_cols = [col[1] for col in cur.fetchall()]
 
         conn.close()
 
-        needs_rebuild = False
+        warnings = []
+
         if "parent_id" not in student_cols:
-            print("⚠️ parent_id missing on students — will rebuild DB.")
-            needs_rebuild = True
+            warnings.append("parent_id missing from students table")
+
         if "differentiation_mode" not in practice_cols:
-            print("⚠️ differentiation_mode missing on assigned_practice — will rebuild DB.")
-            needs_rebuild = True
+            warnings.append("differentiation_mode missing from assigned_practice")
 
-        if needs_rebuild:
-            print("⚠️ Rebuilding SQLite DB from models.py...")
-            os.remove(DB_PATH)
-            with app.app_context():
-                db.create_all()
+        if warnings:
+            print("⚠️ Database schema warning:")
+            for w in warnings:
+                print("   -", w)
+            print("⚠️ No destructive rebuild performed. Apply migrations manually if needed.")
         else:
-            print("✅ Database OK — required columns exist.")
-    except Exception as e:
-        print("⚠️ DB check failed:", e)
-        print("⚠️ Rebuilding DB as fallback...")
-        try:
-            os.remove(DB_PATH)
-        except Exception:
-            pass
-        with app.app_context():
-            db.create_all()
+            print("✅ Database OK — all required columns exist.")
 
+    except Exception as e:
+        print("⚠️ DB validation failed:", e)
+        print("⚠️ No destructive rebuild performed.")
 
 rebuild_database_if_needed()
 
