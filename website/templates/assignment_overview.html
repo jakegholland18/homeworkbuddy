@@ -1,34 +1,139 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assignment Overview – {{ assignment.title }}</title>
+    <link rel="stylesheet" href="/static/style.css">
 
-{% block content %}
-<div class="container fade-in" style="max-width: 900px; margin: 40px auto;">
+    <style>
+        .overview-box {
+            width: 90%;
+            max-width: 850px;
+            margin: 30px auto;
+            background: rgba(255,255,255,0.06);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.35);
+        }
 
-    <h1>{{ assignment.title }}</h1>
-    <p><strong>Subject:</strong> {{ assignment.subject }}</p>
+        .btn-wide {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .btn-blue {
+            background: #5c6bff;
+        }
+
+        .btn-blue:hover {
+            background: #7683ff;
+        }
+
+        .btn-gray {
+            background: #444;
+        }
+
+        .q-box {
+            padding: 12px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .small-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body class="fade-in">
+
+<div class="page-title">{{ assignment.title }}</div>
+
+<div class="overview-box">
+
+    <h2>Assignment Details</h2>
+
+    <p><strong>Subject:</strong> {{ assignment.subject|title }}</p>
     <p><strong>Topic:</strong> {{ assignment.topic }}</p>
-    <p><strong>Instructions:</strong> {{ assignment.instructions }}</p>
-    <p><strong>Due:</strong> {{ assignment.due_date.strftime("%B %d, %Y") if assignment.due_date else "No Due Date" }}</p>
 
-    <hr>
-
-    <h2>Questions</h2>
-
-    {% if questions %}
-        <ul>
-        {% for q in questions %}
-            <li>{{ q.question_text[:120] }}{% if q.question_text|length > 120 %}...{% endif %}</li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No questions found in this assignment yet.</p>
+    {% if assignment.instructions %}
+        <p><strong>Instructions:</strong> {{ assignment.instructions }}</p>
     {% endif %}
 
-    <hr>
+    {% if assignment.due_date %}
+        <p><strong>Due:</strong> {{ assignment.due_date.strftime("%B %d, %Y") }}</p>
+    {% endif %}
 
-    <h2>Actions</h2>
+    <hr><br>
 
-    <a href="/teacher/assignments" class="btn">Back to Assignments</a>
-    <a href="/teacher/assignments/{{ assignment.id }}/edit" class="btn">Edit Assignment</a>
+    <!-- ----------------------------- -->
+    <!-- BEFORE PUBLISHING -->
+    <!-- ----------------------------- -->
+
+    {% if not assignment.is_published %}
+
+        <h2>AI Mission Options</h2>
+
+        <a class="btn-blue btn-wide" href="/teacher/assignments/{{ assignment.id }}/preview">
+            🚀 Generate & Preview AI Mission
+        </a>
+
+        {% if assignment.preview_json %}
+        <a class="btn-blue btn-wide" href="/teacher/assignments/{{ assignment.id }}/publish">
+            ✅ Approve & Publish Mission
+        </a>
+        {% endif %}
+
+        <a class="btn-gray btn-wide" href="/teacher/assignments">
+            Back to Assignments
+        </a>
+
+    {% else %}
+
+    <!-- ----------------------------- -->
+    <!-- AFTER PUBLISHING -->
+    <!-- ----------------------------- -->
+
+        <h2>Published Mission</h2>
+
+        <p>This mission has been published and is available to students.</p>
+
+        <h3>Mission Questions</h3>
+
+        {% for q in assignment.questions %}
+        <div class="q-box">
+            <p><strong>Q{{ loop.index }}:</strong> {{ q.question_text }}</p>
+
+            {% if q.question_type == "multiple_choice" %}
+                <p class="small-label">A: {{ q.choice_a }}</p>
+                <p class="small-label">B: {{ q.choice_b }}</p>
+                <p class="small-label">C: {{ q.choice_c }}</p>
+                <p class="small-label">D: {{ q.choice_d }}</p>
+            {% endif %}
+
+            <p><strong>Correct:</strong> {{ q.correct_answer }}</p>
+            <p><strong>Explanation:</strong> {{ q.explanation }}</p>
+        </div>
+        {% endfor %}
+
+        <a class="btn-gray btn-wide" href="/teacher/assignments">
+            Back to Assignments
+        </a>
+
+    {% endif %}
 
 </div>
-{% endblock %}
+
+</body>
+</html>
+
+

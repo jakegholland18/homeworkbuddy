@@ -758,7 +758,7 @@ def teacher_assignments():
         )
 
     return render_template(
-        "teacher_assignments.html",
+        "assignment_overview.html",
         teacher=teacher,
         classes=classes,
         assignment_map=assignment_map,
