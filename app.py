@@ -1251,20 +1251,30 @@ def teacher_dashboard():
     )
 
 # ============================================================
-# ADMIN DASHBOARD (full visibility)
+# ADMIN DASHBOARD (FULL VISIBILITY)
 # ============================================================
 
 @app.route("/admin/dashboard")
 def admin_dashboard():
     if not session.get("is_admin"):
-        return redirect("/admin/login")
+        flash("Admin access required.", "error")
+        return redirect("/choose_login_role")
 
+    # Counts for stat cards
+    total_teachers = Teacher.query.count()
+    total_classes = Class.query.count()
+    total_students = Student.query.count()
+
+    # Full lists if you need them later for tables
     all_teachers = Teacher.query.all()
     all_classes = Class.query.all()
     all_students = Student.query.all()
 
     return render_template(
         "admin_dashboard.html",
+        total_teachers=total_teachers,
+        total_classes=total_classes,
+        total_students=total_students,
         teachers=all_teachers,
         classes=all_classes,
         students=all_students,

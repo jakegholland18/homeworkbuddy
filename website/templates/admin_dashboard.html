@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard — CozmicLearning</title>
+    <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at top, #0f1a2b, #000814);
+            font-family: "Poppins", sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            inset: 0;
+            background: url('/static/stars.png');
+            background-size: cover;
+            opacity: 0.25;
+            z-index: -1;
+            animation: drift 65s linear infinite;
+        }
+        @keyframes drift {
+            from { transform: translateY(0); }
+            to { transform: translateY(-2200px); }
+        }
+
+        /* ===================== SIDEBAR ===================== */
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(14px);
+            border-right: 1px solid rgba(255,255,255,0.12);
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 30px 20px;
+            box-shadow: 6px 0 25px rgba(0,0,0,0.5);
+        }
+
+        .sidebar h2 {
+            margin: 0 0 40px;
+            font-size: 1.7rem;
+            text-align: center;
+            color: #bfe6ff;
+            text-shadow: 0 0 12px rgba(255,255,255,0.4);
+        }
+
+        .nav-link {
+            display: block;
+            padding: 14px 18px;
+            border-radius: 12px;
+            color: white;
+            margin-bottom: 12px;
+            text-decoration: none;
+            background: rgba(255,255,255,0.05);
+            transition: 0.25s;
+        }
+        .nav-link:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateX(4px);
+        }
+
+        .logout {
+            margin-top: 40px;
+            background: rgba(255,100,100,0.25);
+        }
+        .logout:hover {
+            background: rgba(255,100,100,0.4);
+        }
+
+        /* ===================== MAIN CONTENT ===================== */
+
+        .main {
+            margin-left: 280px;
+            padding: 40px;
+            height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-size: 2.3rem;
+            margin-bottom: 25px;
+            color: #cfe8ff;
+        }
+
+        /* ===================== STAT CARDS ===================== */
+
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+        }
+
+        .stat-card {
+            width: 260px;
+            background: rgba(255,255,255,0.07);
+            padding: 25px;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            margin-top: 10px;
+            font-weight: bold;
+            color: #7acbff;
+            text-shadow: 0 0 10px rgba(0,150,255,0.5);
+        }
+
+        /* ===================== ACTION BUTTONS ===================== */
+
+        .section-title {
+            font-size: 1.7rem;
+            margin: 50px 0 15px;
+        }
+
+        .action-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .action-btn {
+            padding: 16px 20px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 14px;
+            text-decoration: none;
+            color: white;
+            font-size: 1.1rem;
+            transition: 0.25s;
+        }
+        .action-btn:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-4px);
+        }
+
+    </style>
+</head>
+
+<body>
+<div class="stars"></div>
+
+<!-- ===================== SIDEBAR ===================== -->
+<div class="sidebar">
+    <h2>Admin Panel</h2>
+
+    <a class="nav-link" href="/admin/dashboard">Dashboard</a>
+    <a class="nav-link" href="/admin/students">Manage Students</a>
+    <a class="nav-link" href="/admin/teachers">Manage Teachers</a>
+    <a class="nav-link" href="/admin/classes">Class Management</a>
+    <a class="nav-link" href="/admin/reports">Reports & Analytics</a>
+
+    <a class="nav-link logout" href="/logout">Log Out</a>
+</div>
+
+<!-- ===================== MAIN CONTENT ===================== -->
+<div class="main">
+
+    <div class="page-title">Welcome, Admin</div>
+
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Students</div>
+            <div class="stat-value">{{ total_students or 0 }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Total Teachers</div>
+            <div class="stat-value">{{ total_teachers or 0 }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Active Classes</div>
+            <div class="stat-value">{{ total_classes or 0 }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">System Health</div>
+            <div class="stat-value">OK</div>
+        </div>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="section-title">Quick Actions</div>
+    <div class="action-grid">
+        <a class="action-btn" href="/admin/create/student">+ Add Student</a>
+        <a class="action-btn" href="/admin/create/teacher">+ Add Teacher</a>
+        <a class="action-btn" href="/admin/logs">View System Logs</a>
+        <a class="action-btn" href="/admin/settings">System Settings</a>
+    </div>
+</div>
+
+</body>
+</html>
