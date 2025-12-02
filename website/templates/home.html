@@ -291,6 +291,7 @@
       transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
       position: relative;
       overflow: hidden;
+      cursor: pointer;
     }
 
     .feature-card::before {
@@ -310,6 +311,23 @@
       transform: translateY(-8px);
       border-color: rgba(118, 131, 255, 0.5);
       box-shadow: 0 20px 50px rgba(92, 107, 255, 0.25);
+    }
+
+    .feature-card::after {
+      content: "Click to preview";
+      position: absolute;
+      bottom: 15px;
+      right: 20px;
+      font-size: 0.75rem;
+      color: #5c6bff;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    .feature-card:hover::after {
+      opacity: 0.7;
     }
 
     .feature-icon {
@@ -555,6 +573,169 @@
         padding: 40px 25px;
       }
     }
+
+    /* ========================
+       FEATURE PREVIEW MODAL
+    ========================= */
+
+    .feature-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      padding: 20px;
+      animation: modalFadeIn 0.3s ease;
+    }
+
+    .feature-modal.active {
+      display: flex;
+    }
+
+    @keyframes modalFadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .feature-modal-content {
+      background: linear-gradient(135deg,
+        rgba(20, 25, 50, 0.95),
+        rgba(30, 35, 60, 0.95)
+      );
+      border: 2px solid rgba(118, 131, 255, 0.4);
+      border-radius: 24px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 40px;
+      position: relative;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+      animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 107, 107, 0.3);
+      border-color: rgba(255, 107, 107, 0.5);
+      transform: rotate(90deg);
+    }
+
+    .modal-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .modal-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #5c6bff, #00f2ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .modal-subtitle {
+      font-size: 1.1rem;
+      color: #8a92b3;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    .modal-features {
+      margin: 25px 0;
+    }
+
+    .modal-feature-item {
+      display: flex;
+      gap: 15px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: rgba(92, 107, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(92, 107, 255, 0.15);
+    }
+
+    .modal-feature-icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .modal-feature-text {
+      flex: 1;
+    }
+
+    .modal-feature-text strong {
+      display: block;
+      color: #fff;
+      font-size: 1.05rem;
+      margin-bottom: 5px;
+    }
+
+    .modal-feature-text p {
+      color: #b3c0ff;
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    .modal-cta {
+      margin-top: 35px;
+      text-align: center;
+    }
+
+    .modal-btn {
+      padding: 14px 35px;
+      background: linear-gradient(135deg, #5c6bff, #7683ff);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 10px 25px rgba(92, 107, 255, 0.4);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .modal-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(92, 107, 255, 0.6);
+    }
   </style>
 </head>
 
@@ -598,7 +779,7 @@
       </div>
 
       <div class="features-grid">
-        <div class="feature-card">
+        <div class="feature-card" onclick="openFeatureModal('ai-tutors')">
           <span class="feature-icon">🤖</span>
           <h3 class="feature-title">AI Subject Tutors</h3>
           <p class="feature-desc">
@@ -606,7 +787,7 @@
           </p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" onclick="openFeatureModal('gamification')">
           <span class="feature-icon">🎮</span>
           <h3 class="feature-title">Gamified Learning</h3>
           <p class="feature-desc">
@@ -614,7 +795,7 @@
           </p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" onclick="openFeatureModal('differentiation')">
           <span class="feature-icon">🎯</span>
           <h3 class="feature-title">Differentiated Practice</h3>
           <p class="feature-desc">
@@ -622,7 +803,7 @@
           </p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" onclick="openFeatureModal('characters')">
           <span class="feature-icon">👥</span>
           <h3 class="feature-title">Character Mentors</h3>
           <p class="feature-desc">
@@ -630,7 +811,7 @@
           </p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" onclick="openFeatureModal('analytics')">
           <span class="feature-icon">📊</span>
           <h3 class="feature-title">Analytics Dashboard</h3>
           <p class="feature-desc">
@@ -638,7 +819,7 @@
           </p>
         </div>
 
-        <div class="feature-card">
+        <div class="feature-card" onclick="openFeatureModal('faith')">
           <span class="feature-icon">✝️</span>
           <h3 class="feature-title">Faith-Integrated</h3>
           <p class="feature-desc">
@@ -647,6 +828,14 @@
         </div>
       </div>
     </section>
+
+    <!-- FEATURE PREVIEW MODALS -->
+    <div id="feature-modal" class="feature-modal" onclick="closeFeatureModal(event)">
+      <div class="feature-modal-content" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeFeatureModal()" aria-label="Close modal">×</button>
+        <div id="modal-body"></div>
+      </div>
+    </div>
 
     <!-- PLANETS SHOWCASE -->
     <section class="planets">
@@ -679,7 +868,7 @@
 
         <div class="planet-card">
           <div class="planet-icon">📖</div>
-          <div class="planet-name">LoreKeep</div>
+          <div class="planet-name">StoryVerse</div>
           <div class="planet-subject">Reading</div>
         </div>
 
@@ -691,32 +880,32 @@
 
         <div class="planet-card">
           <div class="planet-icon">📿</div>
-          <div class="planet-name">FaithForge</div>
+          <div class="planet-name">FaithRealm</div>
           <div class="planet-subject">Bible</div>
         </div>
 
         <div class="planet-card">
           <div class="planet-icon">⚖️</div>
-          <div class="planet-name">LogicRealm</div>
+          <div class="planet-name">TruthForge</div>
           <div class="planet-subject">Apologetics</div>
         </div>
 
         <div class="planet-card">
           <div class="planet-icon">💰</div>
-          <div class="planet-name">CoinVault</div>
+          <div class="planet-name">CoinQuest</div>
           <div class="planet-subject">Money</div>
         </div>
 
         <div class="planet-card">
           <div class="planet-icon">📈</div>
-          <div class="planet-name">WealthWave</div>
+          <div class="planet-name">StockStar</div>
           <div class="planet-subject">Investing</div>
         </div>
 
         <div class="planet-card">
           <div class="planet-icon">📚</div>
-          <div class="planet-name">StudyStation</div>
-          <div class="planet-subject">Study Skills</div>
+          <div class="planet-name">TerraNova</div>
+          <div class="planet-subject">General Knowledge</div>
         </div>
 
         <div class="planet-card">
@@ -761,12 +950,302 @@
         </p>
         <div class="cta-buttons">
           <a href="/choose_login_role" class="btn btn-primary">Sign Up Now</a>
-          <a href="/subjects" class="btn btn-secondary">Browse Subjects</a>
+          <a href="#" onclick="openCharacterPreview(); return false;" class="btn btn-secondary">Preview Characters</a>
         </div>
       </div>
     </section>
 
   </main>
+
+  <script>
+    const featureContent = {
+      'ai-tutors': {
+        icon: '🤖',
+        title: 'AI Subject Tutors',
+        subtitle: 'Your personal learning companion across 11 subjects',
+        features: [
+          {
+            icon: '🔢',
+            title: 'Math (NumForge)',
+            desc: 'Step-by-step explanations for algebra, geometry, calculus, and more. Ask "How do I solve 2x + 5 = 15?" and get detailed breakdowns.'
+          },
+          {
+            icon: '⚗️',
+            title: 'Science (AtomSphere)',
+            desc: 'Chemistry, physics, biology concepts explained with real-world examples. From photosynthesis to Newton\'s laws.'
+          },
+          {
+            icon: '✍️',
+            title: 'Writing & Reading',
+            desc: 'Get feedback on essays, learn literary analysis, improve grammar, and develop stronger writing skills.'
+          },
+          {
+            icon: '🎓',
+            title: 'Grade-Adaptive',
+            desc: 'AI automatically adjusts vocabulary and complexity based on your grade level (1-12). Same concept, different depth.'
+          }
+        ],
+        cta: 'Try AI Tutoring',
+        ctaLink: '/choose_login_role'
+      },
+      'gamification': {
+        icon: '🎮',
+        title: 'Gamified Learning',
+        subtitle: 'Turn education into an adventure with rewards and progression',
+        features: [
+          {
+            icon: '🪙',
+            title: 'Earn Tokens',
+            desc: 'Get 20 tokens for each correct answer. Use tokens to unlock special features and power-ups.'
+          },
+          {
+            icon: '⬆️',
+            title: 'Level Up System',
+            desc: 'Gain XP with every question answered. Each level requires more XP, creating a sense of continuous achievement.'
+          },
+          {
+            icon: '🔥',
+            title: 'Daily Streaks',
+            desc: 'Log in daily to maintain your streak. Longer streaks = bonus rewards and special badges.'
+          },
+          {
+            icon: '🏆',
+            title: 'Achievement Unlocks',
+            desc: 'Complete missions, master subjects, and reach milestones to unlock exclusive achievements and character upgrades.'
+          }
+        ],
+        cta: 'Start Your Journey',
+        ctaLink: '/choose_login_role'
+      },
+      'differentiation': {
+        icon: '🎯',
+        title: 'Differentiated Practice',
+        subtitle: 'Personalized learning paths that adapt to each student',
+        features: [
+          {
+            icon: '🪜',
+            title: 'Scaffold Mode',
+            desc: 'Breaking complex problems into smaller, manageable steps. Perfect for building confidence and foundational understanding.'
+          },
+          {
+            icon: '⚡',
+            title: 'Mastery Mode',
+            desc: 'Multi-step application problems that require deeper thinking. For students ready to prove complete understanding.'
+          },
+          {
+            icon: '🚀',
+            title: 'Challenge Mode',
+            desc: 'Advanced difficulty with real-world scenarios and cross-subject integration. Push beyond grade-level expectations.'
+          },
+          {
+            icon: '📊',
+            title: 'Adaptive AI',
+            desc: 'System tracks last 10 results to determine ability level (struggling, on-level, advanced) and auto-adjusts difficulty.'
+          }
+        ],
+        cta: 'See Practice Modes',
+        ctaLink: '/subjects'
+      },
+      'characters': {
+        icon: '👥',
+        title: 'Character Mentors',
+        subtitle: 'Choose your AI learning companion',
+        features: [
+          {
+            icon: '👸',
+            title: 'Princess Everly Dawn',
+            desc: 'Warm, imaginative, and encouraging. Perfect for students who love stories and creative connections.'
+          },
+          {
+            icon: '🕵️',
+            title: 'Agent Lio Stormheart',
+            desc: 'Calm, analytical, and strategic. Great for logical thinkers who want step-by-step problem solving.'
+          },
+          {
+            icon: '🤓',
+            title: 'Theo Sparks',
+            desc: 'Friendly genius who makes STEM subjects accessible. Patient explanations with real-world examples.'
+          },
+          {
+            icon: '🔬',
+            title: 'Nova Circuit',
+            desc: 'Experimental scientist who turns every question into a mini-investigation. Curious and hands-on approach.'
+          },
+          {
+            icon: '✨',
+            title: 'Jasmine Starflare',
+            desc: 'Cosmic princess bringing galactic calm and inspiration to reading and writing lessons.'
+          }
+        ],
+        cta: 'Choose Your Mentor',
+        ctaLink: '/choose-character'
+      },
+      'analytics': {
+        icon: '📊',
+        title: 'Analytics Dashboard',
+        subtitle: 'Comprehensive insights for teachers and parents',
+        features: [
+          {
+            icon: '👨‍🏫',
+            title: 'Teacher Dashboard',
+            desc: 'Track entire class performance by subject. See which students are struggling, on-level, or advanced in real-time.'
+          },
+          {
+            icon: '👪',
+            title: 'Parent Reports',
+            desc: 'Monitor your child\'s progress across all subjects. View completed assignments, ability levels, and time spent learning.'
+          },
+          {
+            icon: '📈',
+            title: 'Ability Assessment',
+            desc: 'Auto-calculated tiers based on recent performance. System identifies struggling students early for intervention.'
+          },
+          {
+            icon: '🎯',
+            title: 'Subject Mastery',
+            desc: 'Detailed breakdowns showing strengths and weaknesses across 11 learning planets. Data-driven instruction.'
+          }
+        ],
+        cta: 'View Sample Dashboard',
+        ctaLink: '/choose_login_role'
+      },
+      'faith': {
+        icon: '✝️',
+        title: 'Faith-Integrated Learning',
+        subtitle: 'Education rooted in Christian worldview',
+        features: [
+          {
+            icon: '📖',
+            title: 'Six-Section Format',
+            desc: 'Every lesson includes Overview, Key Facts, Christian View, Agreement, Difference, and Practice sections.'
+          },
+          {
+            icon: '🌍',
+            title: 'Worldview Analysis',
+            desc: 'Students learn to identify how different worldviews approach the same topic. Critical thinking with biblical foundation.'
+          },
+          {
+            icon: '📿',
+            title: 'Bible Study Planet',
+            desc: 'Dedicated FaithRealm planet for scripture exploration, theology questions, and biblical literacy.'
+          },
+          {
+            icon: '⚖️',
+            title: 'Apologetics Training',
+            desc: 'TruthForge planet teaches students to defend their faith with reason, logic, and evidence-based arguments.'
+          }
+        ],
+        cta: 'Explore Faith Integration',
+        ctaLink: '/choose_login_role'
+      }
+    };
+
+    function openFeatureModal(featureId) {
+      const modal = document.getElementById('feature-modal');
+      const modalBody = document.getElementById('modal-body');
+      const content = featureContent[featureId];
+
+      if (!content) return;
+
+      let html = `
+        <span class="modal-icon">${content.icon}</span>
+        <h2 class="modal-title">${content.title}</h2>
+        <p class="modal-subtitle">${content.subtitle}</p>
+        <div class="modal-features">
+      `;
+
+      content.features.forEach(feature => {
+        html += `
+          <div class="modal-feature-item">
+            <span class="modal-feature-icon">${feature.icon}</span>
+            <div class="modal-feature-text">
+              <strong>${feature.title}</strong>
+              <p>${feature.desc}</p>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `
+        </div>
+        <div class="modal-cta">
+          <a href="${content.ctaLink}" class="modal-btn">${content.cta}</a>
+        </div>
+      `;
+
+      modalBody.innerHTML = html;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeFeatureModal(event) {
+      if (event && event.target !== event.currentTarget) return;
+      const modal = document.getElementById('feature-modal');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeFeatureModal();
+    });
+
+    // Character Preview Modal
+    function openCharacterPreview() {
+      const modal = document.getElementById('feature-modal');
+      const modalBody = document.getElementById('modal-body');
+
+      const html = `
+        <span class="modal-icon">👥</span>
+        <h2 class="modal-title">Meet Your AI Mentors</h2>
+        <p class="modal-subtitle">Choose the learning companion that matches your style</p>
+        <div class="modal-features">
+          <div class="modal-feature-item">
+            <span class="modal-feature-icon">👸</span>
+            <div class="modal-feature-text">
+              <strong>Princess Everly Dawn</strong>
+              <p>Brave and gentle warrior-princess mentor. Warm, steady, kind, and lightly elegant. Perfect for students who love stories and creative connections.</p>
+            </div>
+          </div>
+          <div class="modal-feature-item">
+            <span class="modal-feature-icon">✨</span>
+            <div class="modal-feature-text">
+              <strong>Jasmine Starflare</strong>
+              <p>Calm cosmic explorer. Graceful, soft, curious, and bright. Brings galactic calm and inspiration to reading and writing lessons.</p>
+            </div>
+          </div>
+          <div class="modal-feature-item">
+            <span class="modal-feature-icon">🕵️</span>
+            <div class="modal-feature-text">
+              <strong>Special Agent Lio Stormheart</strong>
+              <p>Smooth space-agent guide. Cool, observant, clear, and steady like a space James Bond. Great for logical thinkers who want step-by-step problem solving.</p>
+            </div>
+          </div>
+          <div class="modal-feature-item">
+            <span class="modal-feature-icon">🤓</span>
+            <div class="modal-feature-text">
+              <strong>Theo Sparks</strong>
+              <p>Thoughtful super-intelligent mentor. Nerdy-smart, calm, slow, academic but gentle. Makes STEM subjects accessible with patient explanations.</p>
+            </div>
+          </div>
+          <div class="modal-feature-item">
+            <span class="modal-feature-icon">🔬</span>
+            <div class="modal-feature-text">
+              <strong>Nova Circuit</strong>
+              <p>Excited but gentle scientist inventor. Curious, upbeat, softly enthusiastic. Turns every question into a mini-investigation with a hands-on approach.</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-cta">
+          <a href="/choose_login_role" class="modal-btn">Choose Your Mentor</a>
+        </div>
+      `;
+
+      modalBody.innerHTML = html;
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  </script>
 </body>
 </html>
 
