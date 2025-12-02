@@ -8,10 +8,15 @@ import logging
 import traceback
 from datetime import datetime, timedelta
 
+# ============================================================
+# FIX STATIC + TEMPLATE PATHS FOR RENDER
+# ============================================================
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, "cozmiclearning.db")
 
 # -------------------------------------------------
-# FORCE DELETE OLD DB SO SCHEMA CAN RE-BUILD CLEAN
+# FORCE DELETE OLD DB (Optional during development)
 # -------------------------------------------------
 if os.path.exists(DB_PATH):
     print("🗑️ Found old DB — deleting so new schema can be created...")
@@ -31,10 +36,8 @@ from flask import got_request_exception
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # ============================================================
-# APP PATHS
+# FLASK APP SETUP
 # ============================================================
-
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(
     __name__,
@@ -46,14 +49,10 @@ app = Flask(
 app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
 
 # ============================================================
-# OWNER OVERRIDE
+# OWNER + ADMIN
 # ============================================================
 
 OWNER_EMAIL = "jakegholland18@gmail.com"
-
-# ============================================================
-# ADMIN PASSWORD FOR FULL SYSTEM ACCESS
-# ============================================================
 ADMIN_PASSWORD = "Cash&Ollie123"
 
 # ============================================================
@@ -72,62 +71,51 @@ from models import (
 from sqlalchemy import func
 
 # Database configuration
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cozmiclearning.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-# Initialize database
 db.init_app(app)
 
-# Create database tables automatically
-with app.app_context():
-    db.create_all()
+# ============================================================
+# ENSURE DATABASE SCHEMA IS VALID
+# ============================================================
 
-# ============================================================
-# DATABASE SCHEMA FIX — Add parent_id to students
-# ============================================================
 import sqlite3
-import os
-
-DB_PATH = os.path.join(BASE_DIR, "cozmiclearning.db")  # same DB as your config
 
 def rebuild_database_if_needed():
-    """Rebuild SQLite DB if parent_id column does not exist."""
+    """Rebuild DB if parent_id column missing."""
     if not os.path.exists(DB_PATH):
-        print("📦 No database found — creating new one...")
-        db.create_all()
+        print("📦 No DB — creating fresh...")
+        with app.app_context():
+            db.create_all()
         return
 
     try:
         conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-
-        # Check columns in students table
-        cursor.execute("PRAGMA table_info(students);")
-        columns = [col[1] for col in cursor.fetchall()]
+        cur = conn.cursor()
+        cur.execute("PRAGMA table_info(students);")
+        columns = [col[1] for col in cur.fetchall()]
         conn.close()
 
         if "parent_id" not in columns:
-            print("⚠️ parent_id missing — rebuilding database...")
+            print("⚠️ parent_id missing — rebuilding DB...")
             os.remove(DB_PATH)
-            db.create_all()
+            with app.app_context():
+                db.create_all()
         else:
-            print("✅ Database OK — parent_id found.")
-
+            print("✅ Database OK — parent_id exists.")
     except Exception as e:
-        print("⚠️ DB check error:", e)
-        print("⚠️ Rebuilding DB just in case...")
+        print("⚠️ DB check failed:", e)
+        print("⚠️ Rebuilding DB...")
         try:
             os.remove(DB_PATH)
         except:
             pass
-        db.create_all()
+        with app.app_context():
+            db.create_all()
 
-
-with app.app_context():
-    rebuild_database_if_needed()
-
-with app.app_context():
-    db.create_all()
+# Run DB validation
+rebuild_database_if_needed()
 
 # ============================================================
 # ERROR LOGGING
