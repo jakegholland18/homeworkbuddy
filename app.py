@@ -1215,20 +1215,6 @@ def teacher_logout():
     flash("You have been logged out.", "info")
     return redirect("/teacher/login")
 
-
-@app.route("/teacher/dashboard")
-def teacher_dashboard():
-    teacher = get_current_teacher()
-    if not teacher:
-        return redirect("/teacher/login")
-
-    classes = teacher.classes if teacher else []
-
-    return render_template(
-        "teacher_dashboard.html",
-        teacher=teacher,
-        classes=classes,
-    )
 # ============================================================
 # ADMIN LOGIN (password-only)
 # ============================================================
