@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>New Assignment</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="fade-in">
+
+<div class="page-title">Create Assignment</div>
+
+<div class="content-box">
+
+    <form method="POST">
+        <label>Title</label>
+        <input type="text" name="title" required>
+
+        <label>Subject</label>
+        <select name="subject">
+            <option value="math">Math</option>
+            <option value="science">Science</option>
+            <option value="history">History</option>
+            <option value="reading">Reading</option>
+            <option value="writing">Writing</option>
+            <option value="bible">Bible</option>
+            <option value="money">Money</option>
+            <option value="investing">Investing</option>
+        </select>
+
+        <label>Topic</label>
+        <input type="text" name="topic" required>
+
+        <label>Instructions (optional)</label>
+        <textarea name="instructions"></textarea>
+
+        <label>Due Date (optional)</label>
+        <input type="date" name="due_date">
+
+        <button class="btn-blue" type="submit">Create Assignment</button>
+    </form>
+
+</div>
+
+</body>
+</html>
