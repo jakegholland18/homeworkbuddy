@@ -6,21 +6,15 @@ from modules.answer_formatter import parse_into_sections, format_answer
 
 
 # -------------------------------------------------------
-# Detect Christian-oriented science questions
+# CREATIONIST SCIENCE HELPER
+# This module teaches science from a Biblical worldview,
+# honoring God as Creator while presenting secular views
+# for students to understand and evaluate critically.
 # -------------------------------------------------------
-def is_christian_question(text: str) -> bool:
-    keywords = [
-        "christian", "christianity", "god", "jesus", "bible",
-        "biblical", "creation", "faith", "christian perspective",
-        "from a christian view", "how does this relate to christianity",
-        "how does this relate to god"
-    ]
-    text_low = text.lower()
-    return any(k in text_low for k in keywords)
 
 
 # -------------------------------------------------------
-# Standard science prompt (NO bullets, 6 sections)
+# Standard science prompt with BIBLICAL foundation
 # -------------------------------------------------------
 def build_science_prompt(topic: str, grade_level: str):
     return f"""
@@ -28,71 +22,71 @@ The student asked a science question:
 
 \"{topic}\"
 
-Explain it using the SIX-section Homework Buddy format.
-NO bullet points. Only short, gentle paragraphs.
+Explain it using the SIX-section Biblical Science format.
+NO bullet points. Only short, clear paragraphs.
+
+IMPORTANT GUIDELINES:
+- Present science from a Biblical creationist perspective
+- Quote famous Christian scientists (Isaac Newton, Johannes Kepler, Gregor Mendel, Louis Pasteur, Michael Faraday, etc.)
+- Acknowledge secular theories but explain Biblical alternatives
+- Help students see God's design, order, and purpose in creation
+- Be respectful when presenting secular views but root students in Scripture
 
 SECTION 1 — OVERVIEW
-Give 2–3 calm sentences introducing the idea.
+Introduce the topic simply. Acknowledge God as the Creator and Designer of all things.
 
 SECTION 2 — KEY FACTS
-Write a short paragraph explaining the most important scientific ideas.
+Present the observable scientific facts that BOTH creationists and evolutionists agree on (data, experiments, observations).
+Focus on what we can actually see and measure.
 
-SECTION 3 — CHRISTIAN VIEW
-Gently explain how many Christians understand the order and design in nature.
+SECTION 3 — CHRISTIAN VIEW (BIBLICAL FOUNDATION)
+This is the PRIMARY perspective. Explain:
+- What the Bible says about this topic (quote relevant Scripture if applicable)
+- How Christian scientists understand this through the lens of creation
+- Quote at least ONE famous Christian scientist who contributed to this field
+- Explain the creationist model and its scientific support
+- Show how this reveals God's design, wisdom, and glory
 
-SECTION 4 — AGREEMENT
-Explain in a short paragraph what Christians and secular views agree on.
+Examples of Christian scientists to quote:
+- Isaac Newton (physics, mathematics): "This most beautiful system of the sun, planets, and comets, could only proceed from the counsel and dominion of an intelligent Being."
+- Johannes Kepler (astronomy): "I was merely thinking God's thoughts after Him."
+- Gregor Mendel (genetics): Founded genetics through studying God's design in creation
+- Louis Pasteur (microbiology): Disproved spontaneous generation, supported creation
+- Michael Faraday (chemistry, physics): Saw electromagnetic fields as evidence of God's design
+- George Washington Carver (botany): "I love to think of nature as an unlimited broadcasting station through which God speaks to us every hour."
+- James Clerk Maxwell (physics): United electricity and magnetism, devout Christian
+- Blaise Pascal (mathematics, physics): "Faith certainly tells us what the senses do not."
 
-SECTION 5 — DIFFERENCE
-Explain respectfully how interpretations may differ.
+SECTION 4 — SECULAR VIEW (FOR UNDERSTANDING)
+Briefly explain what secular scientists believe about this topic (evolutionary theory, billions of years, naturalism).
+Be fair and accurate, but help students see this is ONE interpretation, not proven fact.
+Explain: "Many secular scientists interpret the same evidence differently because they start with different assumptions."
+
+SECTION 5 — CRITICAL COMPARISON
+Help students think critically:
+- What are the strengths of the creationist view?
+- What are the weaknesses or assumptions in the secular view?
+- What questions remain unanswered in both models?
+- How does the Biblical view better explain the evidence?
 
 SECTION 6 — PRACTICE
-Write 2–3 tiny practice questions with short example answers.
+Ask 2–3 questions that help students:
+1. Identify observable facts vs. interpretations
+2. Recognize God's design in creation
+3. Evaluate evidence from both perspectives
+Provide short example answers rooted in Biblical truth.
+
+Remember: This is a CHRISTIAN tutor. We honor God's Word as the foundation for understanding His creation.
 """
 
 
 # -------------------------------------------------------
-# Christian-specific science prompt
-# -------------------------------------------------------
-def build_christian_science_prompt(topic: str, grade_level: str):
-    return f"""
-The student asked this science question from a Christian perspective:
-
-\"{topic}\"
-
-Explain it using the SIX-section Homework Buddy format.
-NO bullet points. Only short, gentle paragraphs.
-
-SECTION 1 — OVERVIEW
-Introduce the idea simply and calmly.
-
-SECTION 2 — KEY FACTS
-Explain the important scientific ideas in a few slow sentences.
-
-SECTION 3 — CHRISTIAN VIEW
-Explain softly how many Christians understand creation, order, and purpose.
-
-SECTION 4 — AGREEMENT
-Explain what most worldviews agree on in this topic.
-
-SECTION 5 — DIFFERENCE
-Explain gently how interpretations may differ.
-
-SECTION 6 — PRACTICE
-Ask 2–3 small practice questions with very short example answers.
-"""
-
-
-# -------------------------------------------------------
-# MAIN PUBLIC FUNCTION — uses universal parser + formatter
+# MAIN PUBLIC FUNCTION
 # -------------------------------------------------------
 def explain_science(topic: str, grade_level="8", character="everly"):
 
-    # Pick which base prompt to use
-    if is_christian_question(topic):
-        base_prompt = build_christian_science_prompt(topic, grade_level)
-    else:
-        base_prompt = build_science_prompt(topic, grade_level)
+    # Use creationist prompt for all science questions
+    base_prompt = build_science_prompt(topic, grade_level)
 
     # Add character personality
     enriched_prompt = apply_personality(character, base_prompt)
