@@ -218,6 +218,38 @@
 
 <h1 class="dashboard-title">📊 Parent Dashboard</h1>
 
+{% if parent %}
+<div style="text-align: center; margin-bottom: 24px; position: relative; z-index: 1;">
+    <div style="display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, var(--gold), #ffb300); border-radius: 12px; box-shadow: 0 8px 24px rgba(255, 213, 79, 0.4);">
+        <div style="font-size: 0.85rem; color: rgba(0, 0, 0, 0.7); font-weight: 600; margin-bottom: 4px;">Your Parent Access Code</div>
+        <div style="font-size: 2rem; font-weight: 800; color: #02020a; letter-spacing: 4px; font-family: 'Courier New', monospace;">{{ parent.access_code }}</div>
+        <div style="font-size: 0.75rem; color: rgba(0, 0, 0, 0.6); margin-top: 6px;">Share this code with your children to link their accounts</div>
+    </div>
+</div>
+
+<div style="text-align: center; margin-bottom: 20px; position: relative; z-index: 1;">
+    <div style="display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+        <div style="padding: 8px 16px; background: var(--glass-1); border: 1px solid var(--border-soft); border-radius: 8px;">
+            <span style="color: var(--muted-3); font-size: 0.8rem;">Plan:</span>
+            <strong style="color: var(--accent); margin-left: 6px;">{{ parent.plan.title() if parent.plan else 'Free' }}</strong>
+        </div>
+        <div style="padding: 8px 16px; background: var(--glass-1); border: 1px solid var(--border-soft); border-radius: 8px;">
+            <span style="color: var(--muted-3); font-size: 0.8rem;">Students:</span>
+            <strong style="color: var(--success); margin-left: 6px;">{{ parent.students|length }}</strong>
+            <span style="color: var(--muted-3); font-size: 0.75rem;">
+                {% if parent.plan == 'free' %}
+                    / 1
+                {% elif parent.plan == 'basic' %}
+                    / 3
+                {% else %}
+                    / unlimited
+                {% endif %}
+            </span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div style="text-align: center; margin-bottom: 20px; position: relative; z-index: 1;">
     <a href="/parent/messages" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: var(--text); text-decoration: none; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;">
         📬 Messages from Teachers

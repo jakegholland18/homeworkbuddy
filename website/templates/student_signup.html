@@ -56,8 +56,9 @@
         </div>
 
         <div>
-            <label>Parent Email</label>
-            <input type="email" name="parent_email" placeholder="parent@example.com" required>
+            <label>Parent Access Code</label>
+            <input type="text" name="parent_code" placeholder="6-character code from your parent" required maxlength="6" style="text-transform: uppercase;">
+            <small style="color: #8a92b3; display: block; margin-top: 4px;">Ask your parent for their unique access code</small>
         </div>
 
         <div>
@@ -76,7 +77,7 @@
     <p class="auth-footer">
         Already have an account? <a href="/student/login">Log in here</a>
         <br>
-        <span class="hint">• Password tip: 8+ chars, one number. • Your parent email grants dashboard access.</span>
+        <span class="hint">• Password tip: 8+ chars, one number. • Your parent must create an account first to get an access code.</span>
     </p>
 
 </div>

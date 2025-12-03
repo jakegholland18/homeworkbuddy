@@ -246,6 +246,7 @@ def rebuild_database_if_needed():
         ensure_column("parents", parent_cols, "trial_start", "DATETIME")
         ensure_column("parents", parent_cols, "trial_end", "DATETIME")
         ensure_column("parents", parent_cols, "subscription_active", "BOOLEAN")
+        ensure_column("parents", parent_cols, "access_code", "TEXT UNIQUE")
 
         ensure_column("teachers", teacher_cols, "plan", "TEXT")
         ensure_column("teachers", teacher_cols, "billing", "TEXT")
@@ -371,6 +372,23 @@ from modules import (
 from modules.practice_helper import generate_practice_session
 from modules.answer_formatter import parse_into_sections
 from modules.teacher_tools import assign_questions, generate_lesson_plan
+import string
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def generate_parent_access_code():
+    """Generate a unique 6-character alphanumeric access code for parents."""
+    while True:
+        # Generate uppercase alphanumeric code (no ambiguous chars like O/0, I/1)
+        chars = string.ascii_uppercase.replace('O', '').replace('I', '') + string.digits.replace('0', '').replace('1', '')
+        code = ''.join(secrets.choice(chars) for _ in range(6))
+        
+        # Ensure uniqueness
+        existing = Parent.query.filter_by(access_code=code).first()
+        if not existing:
+            return code
 
 # ============================================================
 # SUBJECT → FUNCTION MAP (PLANETS)
@@ -709,13 +727,10 @@ def student_signup():
         name = safe_text(request.form.get("name", ""), 100)
         email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
-        parent_email = safe_email(request.form.get("parent_email", ""))
-        # Pricing selections
-        plan = safe_text(request.form.get("plan", ""), 50) or None
-        billing = safe_text(request.form.get("billing", ""), 20) or None
+        parent_code = safe_text(request.form.get("parent_code", ""), 10).upper().strip()
 
-        if not name or not email or not password or not parent_email:
-            flash("All fields are required, including parent email.", "error")
+        if not name or not email or not password or not parent_code:
+            flash("All fields are required, including parent access code.", "error")
             return redirect("/student/signup")
 
         existing_student = Student.query.filter_by(student_email=email).first()
@@ -723,43 +738,31 @@ def student_signup():
             flash("A student with that email already exists.", "error")
             return redirect("/student/login")
 
-        # Find or create parent
-        parent = Parent.query.filter_by(email=parent_email).first()
+        # Find parent by access code
+        parent = Parent.query.filter_by(access_code=parent_code).first()
         if not parent:
-            trial_start = datetime.utcnow()
-            trial_end = trial_start + timedelta(days=7)
-            parent = Parent(
-                name=f"Parent of {name}",
-                email=parent_email,
-                password_hash=generate_password_hash(password),
-                plan=plan,
-                billing=billing,
-                trial_start=trial_start,
-                trial_end=trial_end,
-                subscription_active=False,
-            )
-            db.session.add(parent)
-            db.session.commit()
-        else:
-            # If parent exists, update selections if provided
-            if plan:
-                parent.plan = plan
-            if billing:
-                parent.billing = billing
-            if not parent.trial_start and not parent.trial_end:
-                parent.trial_start = datetime.utcnow()
-                parent.trial_end = parent.trial_start + timedelta(days=7)
-            db.session.commit()
+            flash("Invalid parent access code. Please check with your parent.", "error")
+            return redirect("/student/signup")
+        
+        # Check parent's subscription limits
+        current_student_count = len(parent.students)
+        if parent.plan == "free" and current_student_count >= 1:
+            flash("Your parent's Free plan only allows 1 student. They need to upgrade.", "error")
+            return redirect("/student/signup")
+        elif parent.plan == "basic" and current_student_count >= 3:
+            flash("Your parent's Basic plan only allows 3 students. They need to upgrade to Premium.", "error")
+            return redirect("/student/signup")
 
+        # Student inherits parent's subscription plan
         new_student = Student(
             student_name=name,
             student_email=email,
             parent_id=parent.id,
-            plan=plan,
-            billing=billing,
-            trial_start=datetime.utcnow(),
-            trial_end=datetime.utcnow() + timedelta(days=7),
-            subscription_active=False,
+            plan=parent.plan,
+            billing=parent.billing,
+            trial_start=parent.trial_start,
+            trial_end=parent.trial_end,
+            subscription_active=parent.subscription_active,
         )
         db.session.add(new_student)
         db.session.commit()
@@ -769,7 +772,7 @@ def student_signup():
         session["student_name"] = name
         session["student_email"] = email
 
-        flash(f"Welcome to CozmicLearning, {name}!", "info")
+        flash(f"Welcome to CozmicLearning, {name}! Your account is linked to {parent.name}.", "info")
         return redirect("/dashboard")
 
     return render_template("student_signup.html")
@@ -834,10 +837,14 @@ def parent_signup():
         trial_start = datetime.utcnow()
         trial_end = trial_start + timedelta(days=7)
         
+        # Generate unique access code
+        access_code = generate_parent_access_code()
+        
         parent = Parent(
             name=name,
             email=email,
             password_hash=generate_password_hash(password),
+            access_code=access_code,
             plan=plan,
             billing=billing,
             trial_start=trial_start,
@@ -850,8 +857,9 @@ def parent_signup():
         session["parent_id"] = parent.id
         session["user_role"] = "parent"
         session["parent_name"] = parent.name
+        session["access_code"] = access_code  # Store to display on dashboard
 
-        flash(f"Parent account created with {plan.title()} plan! Enjoy your 7-day trial.", "success")
+        flash(f"Welcome! Your Parent Access Code is: {access_code} - Share this with your children to link their accounts.", "success")
         return redirect("/parent_dashboard")
 
     return render_template("parent_signup.html", selected_plan=selected_plan)
@@ -876,6 +884,11 @@ def parent_login():
         session["parent_id"] = parent.id
         session["user_role"] = "parent"
         session["parent_name"] = parent.name
+        
+        # Generate access code if parent doesn't have one (for existing accounts)
+        if not parent.access_code:
+            parent.access_code = generate_parent_access_code()
+            db.session.commit()
 
         flash("Logged in!", "info")
         return redirect("/parent_dashboard")
@@ -3565,8 +3578,11 @@ def parent_dashboard():
     init_user()
 
     parent_id = session.get("parent_id")
+    parent = None
     unread_messages = 0
+    
     if parent_id:
+        parent = Parent.query.get(parent_id)
         unread_messages = Message.query.filter_by(
             recipient_type="parent",
             recipient_id=parent_id,
@@ -3584,6 +3600,7 @@ def parent_dashboard():
 
     return render_template(
         "parent_dashboard.html",
+        parent=parent,
         progress=progress,
         utilization=session["usage_minutes"],
         xp=session["xp"],

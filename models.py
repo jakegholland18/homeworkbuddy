@@ -15,6 +15,9 @@ class Parent(db.Model):
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String(255))
 
+    # Unique access code for student linking (e.g., "ABC123")
+    access_code = db.Column(db.String(10), unique=True, nullable=True)
+
     # Subscription fields
     plan = db.Column(db.String(50))           # free/basic/premium
     billing = db.Column(db.String(20))        # monthly/yearly
