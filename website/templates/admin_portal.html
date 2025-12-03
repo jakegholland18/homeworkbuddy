@@ -249,35 +249,35 @@
         
         <div class="mode-grid">
             <!-- Student Mode -->
-            <div class="mode-card student">
+            <div class="mode-card student" onclick="window.location.href='/admin_mode/student';" style="cursor: pointer;">
                 <span class="mode-icon">👨‍🚀</span>
                 <h2>Student Mode</h2>
                 <p>Access student dashboard, planets, AI tutoring, practice missions, and all learning features</p>
-                <a href="/admin_mode/student" class="enter-btn">Enter Student View →</a>
+                <a href="/admin_mode/student" class="enter-btn" onclick="event.stopPropagation();">Enter Student View →</a>
             </div>
             
             <!-- Parent Mode -->
-            <div class="mode-card parent">
+            <div class="mode-card parent" onclick="window.location.href='/admin_mode/parent';" style="cursor: pointer;">
                 <span class="mode-icon">👨‍👩‍👧‍👦</span>
                 <h2>Parent Mode</h2>
                 <p>View parent dashboard, student reports, analytics, time limits, and messaging features</p>
-                <a href="/admin_mode/parent" class="enter-btn">Enter Parent View →</a>
+                <a href="/admin_mode/parent" class="enter-btn" onclick="event.stopPropagation();">Enter Parent View →</a>
             </div>
             
             <!-- Teacher Mode -->
-            <div class="mode-card teacher">
+            <div class="mode-card teacher" onclick="window.location.href='/admin_mode/teacher';" style="cursor: pointer;">
                 <span class="mode-icon">👩‍🏫</span>
                 <h2>Teacher Mode</h2>
                 <p>Access teacher dashboard, class management, assignments, lesson plans, and analytics</p>
-                <a href="/admin_mode/teacher" class="enter-btn">Enter Teacher View →</a>
+                <a href="/admin_mode/teacher" class="enter-btn" onclick="event.stopPropagation();">Enter Teacher View →</a>
             </div>
             
             <!-- Homeschool Mode -->
-            <div class="mode-card homeschool">
+            <div class="mode-card homeschool" onclick="window.location.href='/admin_mode/homeschool';" style="cursor: pointer;">
                 <span class="mode-icon">🏠</span>
                 <h2>Homeschool Mode</h2>
                 <p>Combined parent features with homeschool-specific tools and curriculum planning</p>
-                <a href="/admin_mode/homeschool" class="enter-btn">Enter Homeschool View →</a>
+                <a href="/admin_mode/homeschool" class="enter-btn" onclick="event.stopPropagation();">Enter Homeschool View →</a>
             </div>
         </div>
         
