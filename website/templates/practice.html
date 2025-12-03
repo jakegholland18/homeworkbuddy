@@ -89,7 +89,7 @@
 
         .main-layout {
             display: grid;
-            grid-template-columns: 2fr 1.35fr;
+            grid-template-columns: 1fr; /* stack for better alignment */
             gap: 24px;
             margin-top: 12px;
         }
@@ -681,7 +681,7 @@
 
     <div class="main-layout">
 
-        <!-- LEFT: PRACTICE FLOW -->
+        <!-- Practice Flow + Help aligned in one column -->
         <div>
             <img id="character-avatar" class="avatar" src="/static/characters/{{ character }}.png">
 
@@ -739,10 +739,8 @@
                     <button class="session-secondary" onclick="chooseNewTopic()">🔄 Practice a different topic</button>
                 </div>
             </div>
-        </div>
 
-        <!-- RIGHT: HELP CHAT -->
-        <div>
+            <!-- HELP CHAT: moved under practice for better alignment -->
             <div class="help-panel">
                 <div class="help-title">🧠 Need help? Ask your tutor</div>
                 <div class="help-subtitle">
