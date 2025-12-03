@@ -1,0 +1,237 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+    .analytics-container {
+        max-width: 1200px;
+        margin: 24px auto;
+        padding: 0 20px;
+    }
+    
+    .page-header {
+        margin-bottom: 32px;
+    }
+    
+    .page-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .page-header p {
+        color: var(--muted-3);
+        margin: 0;
+    }
+    
+    .class-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
+    }
+    
+    .class-card {
+        padding: 24px;
+        background: rgba(92,107,255,0.08);
+        border: 1px solid rgba(118,131,255,0.3);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: var(--text);
+        display: block;
+    }
+    
+    .class-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px var(--shadow-strong);
+        border-color: var(--accent);
+    }
+    
+    .class-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(118,131,255,0.2);
+    }
+    
+    .class-name {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: var(--accent);
+        margin: 0;
+    }
+    
+    .class-id {
+        font-size: 0.85rem;
+        color: var(--muted-3);
+        background: rgba(0,242,255,0.1);
+        padding: 4px 10px;
+        border-radius: 8px;
+    }
+    
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .stat-label {
+        color: var(--muted-2);
+        font-size: 0.9rem;
+    }
+    
+    .stat-value {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .stat-value.good {
+        color: #00f2a0;
+    }
+    
+    .stat-value.warning {
+        color: #ffb800;
+    }
+    
+    .stat-value.danger {
+        color: #ff4444;
+    }
+    
+    .ability-bar {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid rgba(118,131,255,0.2);
+    }
+    
+    .ability-item {
+        flex: 1;
+        text-align: center;
+        padding: 8px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 8px;
+    }
+    
+    .ability-count {
+        display: block;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    
+    .ability-label {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--muted-3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .struggling .ability-count {
+        color: #ff4444;
+    }
+    
+    .on-level .ability-count {
+        color: #ffb800;
+    }
+    
+    .advanced .ability-count {
+        color: #00f2a0;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--muted-3);
+    }
+    
+    .empty-state h3 {
+        margin-bottom: 12px;
+        color: var(--muted-2);
+    }
+    
+    .btn {
+        padding: 10px 18px;
+        border-radius: 10px;
+        border: none;
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        color: var(--text);
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px var(--shadow-strong);
+    }
+</style>
+
+<div class="analytics-container">
+    <div class="page-header">
+        <h1>📊 Class Analytics</h1>
+        <p>View detailed analytics for each of your classes</p>
+    </div>
+
+    {% if class_summaries %}
+    <div class="class-grid">
+        {% for summary in class_summaries %}
+        <a href="/teacher/class/{{ summary.class.id }}/analytics" class="class-card">
+            <div class="class-card-header">
+                <h3 class="class-name">{{ summary.class.name }}</h3>
+                <span class="class-id">ID: {{ summary.class.id }}</span>
+            </div>
+
+            <div class="stat-row">
+                <span class="stat-label">Total Students</span>
+                <span class="stat-value">{{ summary.total_students }}</span>
+            </div>
+
+            <div class="stat-row">
+                <span class="stat-label">Class Average</span>
+                <span class="stat-value {% if summary.class_avg >= 85 %}good{% elif summary.class_avg >= 70 %}warning{% else %}danger{% endif %}">
+                    {{ summary.class_avg }}%
+                </span>
+            </div>
+
+            <div class="stat-row">
+                <span class="stat-label">Total Assessments</span>
+                <span class="stat-value">{{ summary.total_assessments }}</span>
+            </div>
+
+            <div class="ability-bar">
+                <div class="ability-item struggling">
+                    <span class="ability-count">{{ summary.struggling }}</span>
+                    <span class="ability-label">Struggling</span>
+                </div>
+                <div class="ability-item on-level">
+                    <span class="ability-count">{{ summary.on_level }}</span>
+                    <span class="ability-label">On-Level</span>
+                </div>
+                <div class="ability-item advanced">
+                    <span class="ability-count">{{ summary.advanced }}</span>
+                    <span class="ability-label">Advanced</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No Classes Yet</h3>
+        <p>Create a class to start viewing analytics</p>
+        <a href="/teacher/dashboard" class="btn">Go to Dashboard</a>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

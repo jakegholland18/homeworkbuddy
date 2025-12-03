@@ -2215,28 +2215,65 @@ def assignment_step(practice_id):
 
 @app.route("/teacher/analytics")
 def teacher_analytics_overview():
-    """Overview page - redirect to first class analytics or show class selector."""
+    """General analytics overview showing all classes with summary stats."""
     teacher = get_current_teacher()
     if not teacher:
         return redirect("/teacher/login")
 
     # Get all teacher's classes
     if is_owner(teacher):
-        classes = Class.query.order_by(Class.id).all()
+        classes = Class.query.order_by(Class.name).all()
     else:
-        classes = Class.query.filter_by(teacher_id=teacher.id).order_by(Class.id).all()
+        classes = Class.query.filter_by(teacher_id=teacher.id).order_by(Class.name).all()
 
-    # If only one class, redirect directly to it
-    if len(classes) == 1:
-        return redirect(f"/teacher/class/{classes[0].id}/analytics")
+    # Build summary stats for each class
+    class_summaries = []
+    for cls in classes:
+        students = cls.students or []
+        total_students = len(students)
+        
+        # Recompute abilities
+        for s in students:
+            recompute_student_ability(s)
+        
+        # Ability distribution
+        struggling = sum(1 for s in students if (s.ability_level or "").lower() == "struggling")
+        on_level = sum(1 for s in students if (s.ability_level or "").lower() == "on_level")
+        advanced = sum(1 for s in students if (s.ability_level or "").lower() == "advanced")
+        
+        # Class average from recent assessments
+        recent_scores = (
+            db.session.query(func.avg(AssessmentResult.score_percent))
+            .join(Student, AssessmentResult.student_id == Student.id)
+            .filter(Student.class_id == cls.id)
+            .scalar()
+        )
+        class_avg = round(recent_scores, 1) if recent_scores else 0.0
+        
+        # Total assessments
+        total_assessments = (
+            db.session.query(func.count(AssessmentResult.id))
+            .join(Student, AssessmentResult.student_id == Student.id)
+            .filter(Student.class_id == cls.id)
+            .scalar()
+        ) or 0
+        
+        class_summaries.append({
+            "class": cls,
+            "total_students": total_students,
+            "struggling": struggling,
+            "on_level": on_level,
+            "advanced": advanced,
+            "class_avg": class_avg,
+            "total_assessments": total_assessments,
+        })
     
-    # If no classes, show message
-    if not classes:
-        flash("No classes found. Create a class first.", "info")
-        return redirect("/teacher/dashboard")
-    
-    # Multiple classes - redirect to first one (could create a selector page instead)
-    return redirect(f"/teacher/class/{classes[0].id}/analytics")
+    return render_template(
+        "analytics_overview.html",
+        teacher=teacher,
+        class_summaries=class_summaries,
+        is_owner=is_owner(teacher),
+    )
 
 
 @app.route("/teacher/class/<int:class_id>/analytics")
