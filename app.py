@@ -55,7 +55,7 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 
-# CSRF protection — enabled globally. We'll exempt JSON POST endpoints below
+# CSRF protection - enabled globally. We'll exempt JSON POST endpoints below
 csrf = CSRFProtect(app)
 
 # ============================================================
@@ -205,7 +205,7 @@ def rebuild_database_if_needed():
     """
 
     if not os.path.exists(DB_PATH):
-        print("📦 No DB found — creating new persistent database...")
+        print("📦 No DB found - creating new persistent database...")
         with app.app_context():
             db.create_all()
         return
@@ -268,7 +268,7 @@ def rebuild_database_if_needed():
                 print("   -", w)
             print("⚠️ No destructive rebuild performed. Apply migrations manually if needed.")
         else:
-            print("✅ Database OK — all required columns exist.")
+            print("✅ Database OK - all required columns exist.")
 
     except Exception as e:
         print("⚠️ DB validation failed:", e)
@@ -595,7 +595,7 @@ def subjects():
 
 
 # ------------------------------------------------------------
-# SUBJECT PREVIEW (Modal fragment) — Six-section with bullets
+# SUBJECT PREVIEW (Modal fragment) - Six-section with bullets
 # ------------------------------------------------------------
 @app.route("/subject-preview")
 def subject_preview():
@@ -608,12 +608,12 @@ def subject_preview():
     # PowerGrid handled separately; return brief guidance
     if subject == "power_grid":
         preview_text = (
-            "SECTION 1 — OVERVIEW\nPowerGrid is your deep study hub with plan → research → draft → review.\n\n"
-            "SECTION 2 — KEY FACTS\n• Plan tasks clearly.\n• Keep sources organized.\n• Iterate drafts.\n\n"
-            "SECTION 3 — CHRISTIAN VIEW\nWe value truth, diligence, and wisdom in learning.\n\n"
-            "SECTION 4 — AGREEMENT\n• Careful reasoning matters.\n• Evidence strengthens claims.\n\n"
-            "SECTION 5 — DIFFERENCE\n• Worldviews shape conclusions.\n\n"
-            "SECTION 6 — PRACTICE\n• Build a study plan with 3 steps."
+            "SECTION 1 - OVERVIEW\nPowerGrid is your deep study hub with plan → research → draft → review.\n\n"
+            "SECTION 2 - KEY FACTS\n• Plan tasks clearly.\n• Keep sources organized.\n• Iterate drafts.\n\n"
+            "SECTION 3 - CHRISTIAN VIEW\nWe value truth, diligence, and wisdom in learning.\n\n"
+            "SECTION 4 - AGREEMENT\n• Careful reasoning matters.\n• Evidence strengthens claims.\n\n"
+            "SECTION 5 - DIFFERENCE\n• Worldviews shape conclusions.\n\n"
+            "SECTION 6 - PRACTICE\n• Build a study plan with 3 steps."
         )
     else:
         func = subject_map.get(subject)
@@ -622,16 +622,16 @@ def subject_preview():
 
         # Tailored preview prompts per subject for product feel
         preview_prompts = {
-            "num_forge": "SECTION 1 — OVERVIEW\nExplain what the Mastery Ladder in math covers.\nSECTION 2 — KEY FACTS\n• Core skills\n• Typical mistakes\n• Tips\nSECTION 3 — CHRISTIAN VIEW\nPurpose, diligence, truth.\nSECTION 4 — AGREEMENT\n• Math consistency matters\nSECTION 5 — DIFFERENCE\n• Approaches to learning\nSECTION 6 — PRACTICE\n• Solve: 3 mixed problems (fractions, percents, algebra).",
-            "atom_sphere": "SECTION 1 — OVERVIEW\nExperiment Sim: hypothesis → variables → result.\nSECTION 2 — KEY FACTS\n• Variables\n• Controls\n• Data\nSECTION 3 — CHRISTIAN VIEW\nCreation care, wonder, order.\nSECTION 4 — AGREEMENT\n• Evidence matters\nSECTION 5 — DIFFERENCE\n• Interpretations vary\nSECTION 6 — PRACTICE\n• Design a simple experiment.",
-            "ink_haven": "SECTION 1 — OVERVIEW\nRevision Coach: thesis → body → conclusion.\nSECTION 2 — KEY FACTS\n• Thesis clarity\n• Cohesion\n• Tone\nSECTION 3 — CHRISTIAN VIEW\nSpeak truth with grace.\nSECTION 4 — AGREEMENT\n• Clear writing helps\nSECTION 5 — DIFFERENCE\n• Styles vary\nSECTION 6 — PRACTICE\n• Improve a sample paragraph.",
-            "chrono_core": "SECTION 1 — OVERVIEW\nTimeline Builder: eras and causes.\nSECTION 2 — KEY FACTS\n• Primary vs secondary sources\n• Cause-effect\n• Context\nSECTION 3 — CHRISTIAN VIEW\nProvidence and responsibility.\nSECTION 4 — AGREEMENT\n• Sources matter\nSECTION 5 — DIFFERENCE\n• Interpretations differ\nSECTION 6 — PRACTICE\n• Place 3 events on a timeline.",
-            "story_verse": "SECTION 1 — OVERVIEW\nReading Lab: theme, plot, inference.\nSECTION 2 — KEY FACTS\n• Theme\n• Characters\n• Setting\nSECTION 3 — CHRISTIAN VIEW\nTruth, beauty, goodness.\nSECTION 4 — AGREEMENT\n• Careful reading\nSECTION 5 — DIFFERENCE\n• Interpretations\nSECTION 6 — PRACTICE\n• Identify theme from a short passage.",
-            "truth_forge": "SECTION 1 — OVERVIEW\nWorldview Compare: claim, reasons, evidence.\nSECTION 2 — KEY FACTS\n• Claims\n• Logic\n• Evidence\nSECTION 3 — CHRISTIAN VIEW\nFaith seeks understanding.\nSECTION 4 — AGREEMENT\n• Reasoning matters\nSECTION 5 — DIFFERENCE\n• Worldview contrasts\nSECTION 6 — PRACTICE\n• Analyze a claim with two reasons.",
-            "faith_realm": "SECTION 1 — OVERVIEW\nPassage Deep Dive: context and application.\nSECTION 2 — KEY FACTS\n• Context\n• Cross-references\n• Application\nSECTION 3 — CHRISTIAN VIEW\nScripture and wisdom.\nSECTION 4 — AGREEMENT\n• Seek understanding\nSECTION 5 — DIFFERENCE\n• Denominational views\nSECTION 6 — PRACTICE\n• Summarize a short passage.",
-            "coin_quest": "SECTION 1 — OVERVIEW\nBudget Lab: earn, save, spend, give.\nSECTION 2 — KEY FACTS\n• Needs vs wants\n• Percent allocations\n• Tracking\nSECTION 3 — CHRISTIAN VIEW\nStewardship and generosity.\nSECTION 4 — AGREEMENT\n• Plan wisely\nSECTION 5 — DIFFERENCE\n• Budget styles\nSECTION 6 — PRACTICE\n• Build a 100-dollar budget.",
-            "stock_star": "SECTION 1 — OVERVIEW\nROI Simulator: risk vs return.\nSECTION 2 — KEY FACTS\n• Diversification\n• Time horizon\n• Compounding\nSECTION 3 — CHRISTIAN VIEW\nWisdom and prudence.\nSECTION 4 — AGREEMENT\n• Risk management\nSECTION 5 — DIFFERENCE\n• Strategies\nSECTION 6 — PRACTICE\n• Compare two investments.",
-            "terra_nova": "SECTION 1 — OVERVIEW\nGeneral Knowledge: curiosity missions.\nSECTION 2 — KEY FACTS\n• Inquiry\n• Evidence\n• Synthesis\nSECTION 3 — CHRISTIAN VIEW\nSeek truth with humility.\nSECTION 4 — AGREEMENT\n• Careful thinking\nSECTION 5 — DIFFERENCE\n• Perspectives\nSECTION 6 — PRACTICE\n• Draft three curious questions.",
+            "num_forge": "SECTION 1 - OVERVIEW\nExplain what the Mastery Ladder in math covers.\nSECTION 2 - KEY FACTS\n• Core skills\n• Typical mistakes\n• Tips\nSECTION 3 - CHRISTIAN VIEW\nPurpose, diligence, truth.\nSECTION 4 - AGREEMENT\n• Math consistency matters\nSECTION 5 - DIFFERENCE\n• Approaches to learning\nSECTION 6 - PRACTICE\n• Solve: 3 mixed problems (fractions, percents, algebra).",
+            "atom_sphere": "SECTION 1 - OVERVIEW\nExperiment Sim: hypothesis → variables → result.\nSECTION 2 - KEY FACTS\n• Variables\n• Controls\n• Data\nSECTION 3 - CHRISTIAN VIEW\nCreation care, wonder, order.\nSECTION 4 - AGREEMENT\n• Evidence matters\nSECTION 5 - DIFFERENCE\n• Interpretations vary\nSECTION 6 - PRACTICE\n• Design a simple experiment.",
+            "ink_haven": "SECTION 1 - OVERVIEW\nRevision Coach: thesis → body → conclusion.\nSECTION 2 - KEY FACTS\n• Thesis clarity\n• Cohesion\n• Tone\nSECTION 3 - CHRISTIAN VIEW\nSpeak truth with grace.\nSECTION 4 - AGREEMENT\n• Clear writing helps\nSECTION 5 - DIFFERENCE\n• Styles vary\nSECTION 6 - PRACTICE\n• Improve a sample paragraph.",
+            "chrono_core": "SECTION 1 - OVERVIEW\nTimeline Builder: eras and causes.\nSECTION 2 - KEY FACTS\n• Primary vs secondary sources\n• Cause-effect\n• Context\nSECTION 3 - CHRISTIAN VIEW\nProvidence and responsibility.\nSECTION 4 - AGREEMENT\n• Sources matter\nSECTION 5 - DIFFERENCE\n• Interpretations differ\nSECTION 6 - PRACTICE\n• Place 3 events on a timeline.",
+            "story_verse": "SECTION 1 - OVERVIEW\nReading Lab: theme, plot, inference.\nSECTION 2 - KEY FACTS\n• Theme\n• Characters\n• Setting\nSECTION 3 - CHRISTIAN VIEW\nTruth, beauty, goodness.\nSECTION 4 - AGREEMENT\n• Careful reading\nSECTION 5 - DIFFERENCE\n• Interpretations\nSECTION 6 - PRACTICE\n• Identify theme from a short passage.",
+            "truth_forge": "SECTION 1 - OVERVIEW\nWorldview Compare: claim, reasons, evidence.\nSECTION 2 - KEY FACTS\n• Claims\n• Logic\n• Evidence\nSECTION 3 - CHRISTIAN VIEW\nFaith seeks understanding.\nSECTION 4 - AGREEMENT\n• Reasoning matters\nSECTION 5 - DIFFERENCE\n• Worldview contrasts\nSECTION 6 - PRACTICE\n• Analyze a claim with two reasons.",
+            "faith_realm": "SECTION 1 - OVERVIEW\nPassage Deep Dive: context and application.\nSECTION 2 - KEY FACTS\n• Context\n• Cross-references\n• Application\nSECTION 3 - CHRISTIAN VIEW\nScripture and wisdom.\nSECTION 4 - AGREEMENT\n• Seek understanding\nSECTION 5 - DIFFERENCE\n• Denominational views\nSECTION 6 - PRACTICE\n• Summarize a short passage.",
+            "coin_quest": "SECTION 1 - OVERVIEW\nBudget Lab: earn, save, spend, give.\nSECTION 2 - KEY FACTS\n• Needs vs wants\n• Percent allocations\n• Tracking\nSECTION 3 - CHRISTIAN VIEW\nStewardship and generosity.\nSECTION 4 - AGREEMENT\n• Plan wisely\nSECTION 5 - DIFFERENCE\n• Budget styles\nSECTION 6 - PRACTICE\n• Build a 100-dollar budget.",
+            "stock_star": "SECTION 1 - OVERVIEW\nROI Simulator: risk vs return.\nSECTION 2 - KEY FACTS\n• Diversification\n• Time horizon\n• Compounding\nSECTION 3 - CHRISTIAN VIEW\nWisdom and prudence.\nSECTION 4 - AGREEMENT\n• Risk management\nSECTION 5 - DIFFERENCE\n• Strategies\nSECTION 6 - PRACTICE\n• Compare two investments.",
+            "terra_nova": "SECTION 1 - OVERVIEW\nGeneral Knowledge: curiosity missions.\nSECTION 2 - KEY FACTS\n• Inquiry\n• Evidence\n• Synthesis\nSECTION 3 - CHRISTIAN VIEW\nSeek truth with humility.\nSECTION 4 - AGREEMENT\n• Careful thinking\nSECTION 5 - DIFFERENCE\n• Perspectives\nSECTION 6 - PRACTICE\n• Draft three curious questions.",
         }
 
         question = preview_prompts.get(subject, "Give a concise overview and sample practice for this subject.")
@@ -647,12 +647,12 @@ def subject_preview():
 
     html = (
         f"<div>"
-        f"<h3>Section 1 — Overview</h3><p>{sections.get('overview','')}</p>"
-        f"<h3>Section 2 — Key Facts</h3>{render_list(sections.get('key_facts',[]))}"
-        f"<h3>Section 3 — Christian View</h3><p>{sections.get('christian_view','')}</p>"
-        f"<h3>Section 4 — Agreement</h3>{render_list(sections.get('agreement',[]))}"
-        f"<h3>Section 5 — Difference</h3>{render_list(sections.get('difference',[]))}"
-        f"<h3>Section 6 — Practice</h3>{render_list(sections.get('practice',[]))}"
+        f"<h3>Section 1 - Overview</h3><p>{sections.get('overview','')}</p>"
+        f"<h3>Section 2 - Key Facts</h3>{render_list(sections.get('key_facts',[]))}"
+        f"<h3>Section 3 - Christian View</h3><p>{sections.get('christian_view','')}</p>"
+        f"<h3>Section 4 - Agreement</h3>{render_list(sections.get('agreement',[]))}"
+        f"<h3>Section 5 - Difference</h3>{render_list(sections.get('difference',[]))}"
+        f"<h3>Section 6 - Practice</h3>{render_list(sections.get('practice',[]))}"
         f"</div>"
     )
 
@@ -1511,7 +1511,7 @@ def student_assignments():
     )
 
 # ============================================================
-# TEACHER — PREVIEW STORED AI MISSION
+# TEACHER - PREVIEW STORED AI MISSION
 # ============================================================
 
 @app.route("/teacher/assignments/<int:practice_id>/preview")
@@ -1544,7 +1544,7 @@ def assignment_preview(practice_id):
     )
 
 # ============================================================
-# TEACHER — PUBLISH AI-GENERATED MISSION
+# TEACHER - PUBLISH AI-GENERATED MISSION
 # ============================================================
 
 @app.route("/teacher/assignments/<int:assignment_id>/publish")
@@ -1612,7 +1612,7 @@ def assignment_publish(assignment_id):
     return redirect(f"/teacher/assignments/{assignment.id}")
 
 # ============================================================
-# TEACHER — AI QUESTION ASSIGNMENT GENERATOR
+# TEACHER - AI QUESTION ASSIGNMENT GENERATOR
 # ============================================================
 
 @csrf.exempt
@@ -1709,7 +1709,7 @@ def teacher_assign_questions():
     }), 201
 
 # ============================================================
-# TEACHER — PREVIEW AI QUESTIONS (NO PERSISTENCE)
+# TEACHER - PREVIEW AI QUESTIONS (NO PERSISTENCE)
 # ============================================================
 
 @csrf.exempt
@@ -1757,7 +1757,7 @@ def teacher_preview_questions():
     }), 200
 
 # ============================================================
-# TEACHER — GENERATE LESSON PLAN
+# TEACHER - GENERATE LESSON PLAN
 # ============================================================
 
 @csrf.exempt
@@ -1806,83 +1806,43 @@ def teacher_generate_lesson_plan():
     }), 201
 
 # ============================================================
-# TEACHER — TEACHER'S PET AI ASSISTANT
+# TEACHER - LESSON PLAN LIBRARY
 # ============================================================
 
-@csrf.exempt
-@app.route("/teacher/teachers_pet", methods=["POST"])
-def teachers_pet_assistant():
-    \"\"\"Teacher's Pet: AI assistant for teachers to ask questions about CozmicLearning and teaching.\"\"\"
-    teacher = get_current_teacher()
-    if not teacher:
-        return jsonify({\"error\": \"Not authenticated\"}), 401
-
-    data = request.get_json() or {}
-    question = safe_text(data.get(\"question\", \"\"), 2000)
-    history = data.get(\"history\", [])
-
-    if not question:
-        return jsonify({\"error\": \"Question is required\"}), 400
-
-    # Build context about CozmicLearning for Teacher's Pet
-    context_prompt = \"\"\"You are Teacher's Pet, a warm AI assistant for teachers using CozmicLearning.
-
-RESPONSE STYLE — CRITICAL:
-• Keep answers SHORT and POWER-PACKED (3-5 sentences max for most questions)
-• Get straight to the point - no long introductions
-• Use bullet points for lists (max 3-5 items)
-• One key Scripture reference when relevant, not multiple verses
-• Action-oriented: "Here's what to do..." not theory
-• Save long explanations only for complex "how-to" questions
-
-CozmicLearning Quick Reference:
-- 11 planets: NumForge (math), AtomSphere (science), FaithRealm (Bible), ChronoCore (history), InkHaven (writing), TruthForge (apologetics), StockStar (investing), CoinQuest (money), TerraNova (general), StoryVerse (reading), PowerGrid (study guide)
-- Differentiation: adaptive, gap_fill, mastery, scaffold
-- Six-section format includes Christian View in every lesson
-- Tools: assign questions, lesson plans, analytics, progress reports
-
-Your Voice:
-• Warm but efficient - respect teachers' time
-
-
-# ============================================================
-# TEACHER — LESSON PLAN LIBRARY
-# ============================================================
-
-@app.route(\"/teacher/lesson_plans\")
+@app.route("/teacher/lesson_plans")
 def teacher_lesson_plans():
-    \"\"\"View all saved lesson plans for the logged-in teacher.\"\"\"
+    """View all saved lesson plans for the logged-in teacher."""
     teacher = get_current_teacher()
     if not teacher:
-        return redirect(\"/teacher/login\")
+        return redirect("/teacher/login")
 
     lesson_plans = LessonPlan.query.filter_by(teacher_id=teacher.id).order_by(LessonPlan.created_at.desc()).all()
 
     return render_template(
-        \"lesson_plans_library.html\",
+        "lesson_plans_library.html",
         teacher=teacher,
         lesson_plans=lesson_plans,
         is_owner=is_owner(teacher),
     )
 
 
-@app.route(\"/teacher/lesson_plans/<int:lesson_id>\")
+@app.route("/teacher/lesson_plans/<int:lesson_id>")
 def view_lesson_plan(lesson_id):
-    \"\"\"View a single lesson plan with options to edit, regenerate, export.\"\"\"
+    """View a single lesson plan with options to edit, regenerate, export."""
     teacher = get_current_teacher()
     if not teacher:
-        return redirect(\"/teacher/login\")
+        return redirect("/teacher/login")
 
     lesson = LessonPlan.query.get_or_404(lesson_id)
     if not is_owner(teacher) and lesson.teacher_id != teacher.id:
-        flash(\"Not authorized to view this lesson plan.\", \"error\")
-        return redirect(\"/teacher/lesson_plans\")
+        flash("Not authorized to view this lesson plan.", "error")
+        return redirect("/teacher/lesson_plans")
 
     # Parse sections from JSON
     sections = json.loads(lesson.sections_json) if lesson.sections_json else {}
 
     return render_template(
-        \"lesson_plan_view.html\",
+        "lesson_plan_view.html",
         teacher=teacher,
         lesson=lesson,
         sections=sections,
@@ -1890,60 +1850,60 @@ def view_lesson_plan(lesson_id):
     )
 
 
-@app.route(\"/teacher/lesson_plans/<int:lesson_id>/edit\", methods=[\"GET\", \"POST\"])
+@app.route("/teacher/lesson_plans/<int:lesson_id>/edit", methods=["GET", "POST"])
 def edit_lesson_plan(lesson_id):
-    \"\"\"Edit lesson plan sections manually.\"\"\"
+    """Edit lesson plan sections manually."""
     teacher = get_current_teacher()
     if not teacher:
-        return redirect(\"/teacher/login\")
+        return redirect("/teacher/login")
 
     lesson = LessonPlan.query.get_or_404(lesson_id)
     if not is_owner(teacher) and lesson.teacher_id != teacher.id:
-        flash(\"Not authorized to edit this lesson plan.\", \"error\")
-        return redirect(\"/teacher/lesson_plans\")
+        flash("Not authorized to edit this lesson plan.", "error")
+        return redirect("/teacher/lesson_plans")
 
-    if request.method == \"POST\":
+    if request.method == "POST":
         # Update sections
         sections = {
-            \"overview\": safe_text(request.form.get(\"overview\", \"\"), 5000),
-            \"key_facts\": safe_text(request.form.get(\"key_facts\", \"\"), 5000),
-            \"christian_view\": safe_text(request.form.get(\"christian_view\", \"\"), 5000),
-            \"agreement\": safe_text(request.form.get(\"agreement\", \"\"), 5000),
-            \"difference\": safe_text(request.form.get(\"difference\", \"\"), 5000),
-            \"practice\": safe_text(request.form.get(\"practice\", \"\"), 5000),
+            "overview": safe_text(request.form.get("overview", ""), 5000),
+            "key_facts": safe_text(request.form.get("key_facts", ""), 5000),
+            "christian_view": safe_text(request.form.get("christian_view", ""), 5000),
+            "agreement": safe_text(request.form.get("agreement", ""), 5000),
+            "difference": safe_text(request.form.get("difference", ""), 5000),
+            "practice": safe_text(request.form.get("practice", ""), 5000),
         }
         
         # Rebuild full text
-        full_text = f\"\"\"SECTION 1 — OVERVIEW
+        full_text = f"""SECTION 1 - OVERVIEW
 {sections['overview']}
 
-SECTION 2 — KEY FACTS
+SECTION 2 - KEY FACTS
 {sections['key_facts']}
 
-SECTION 3 — CHRISTIAN VIEW
+SECTION 3 - CHRISTIAN VIEW
 {sections['christian_view']}
 
-SECTION 4 — AGREEMENT
+SECTION 4 - AGREEMENT
 {sections['agreement']}
 
-SECTION 5 — DIFFERENCE
+SECTION 5 - DIFFERENCE
 {sections['difference']}
 
-SECTION 6 — PRACTICE
-{sections['practice']}\"\"\"
+SECTION 6 - PRACTICE
+{sections['practice']}"""
 
         lesson.sections_json = json.dumps(sections)
         lesson.full_text = full_text
-        lesson.title = safe_text(request.form.get(\"title\", lesson.title), 200)
+        lesson.title = safe_text(request.form.get("title", lesson.title), 200)
         db.session.commit()
         
-        flash(\"Lesson plan updated.\", \"info\")
-        return redirect(f\"/teacher/lesson_plans/{lesson_id}\")
+        flash("Lesson plan updated.", "info")
+        return redirect(f"/teacher/lesson_plans/{lesson_id}")
 
     sections = json.loads(lesson.sections_json) if lesson.sections_json else {}
 
     return render_template(
-        \"lesson_plan_edit.html\",
+        "lesson_plan_edit.html",
         teacher=teacher,
         lesson=lesson,
         sections=sections,
@@ -1952,101 +1912,101 @@ SECTION 6 — PRACTICE
 
 
 @csrf.exempt
-@app.route(\"/teacher/lesson_plans/<int:lesson_id>/regenerate_section\", methods=[\"POST\"])
+@app.route("/teacher/lesson_plans/<int:lesson_id>/regenerate_section", methods=["POST"])
 def regenerate_lesson_section(lesson_id):
-    \"\"\"Regenerate a specific section of a lesson plan.\"\"\"
+    """Regenerate a specific section of a lesson plan."""
     teacher = get_current_teacher()
     if not teacher:
-        return jsonify({\"error\": \"Not authenticated\"}), 401
+        return jsonify({"error": "Not authenticated"}), 401
 
     lesson = LessonPlan.query.get_or_404(lesson_id)
     if not is_owner(teacher) and lesson.teacher_id != teacher.id:
-        return jsonify({\"error\": \"Not authorized\"}), 403
+        return jsonify({"error": "Not authorized"}), 403
 
     data = request.get_json() or {}
-    section_name = data.get(\"section\")  # overview, key_facts, etc.
+    section_name = data.get("section")  # overview, key_facts, etc.
 
-    if section_name not in [\"overview\", \"key_facts\", \"christian_view\", \"agreement\", \"difference\", \"practice\"]:
-        return jsonify({\"error\": \"Invalid section name\"}), 400
+    if section_name not in ["overview", "key_facts", "christian_view", "agreement", "difference", "practice"]:
+        return jsonify({"error": "Invalid section name"}), 400
 
     # Regenerate full lesson and extract the requested section
     new_lesson = generate_lesson_plan(
         subject=lesson.subject,
         topic=lesson.topic,
         grade=lesson.grade,
-        character=\"everly\",
+        character="everly",
     )
 
-    new_sections = new_lesson.get(\"sections\", {})
-    new_section_content = new_sections.get(section_name, \"\")
+    new_sections = new_lesson.get("sections", {})
+    new_section_content = new_sections.get(section_name, "")
 
     return jsonify({
-        \"success\": True,
-        \"section\": section_name,
-        \"content\": new_section_content,
+        "success": True,
+        "section": section_name,
+        "content": new_section_content,
     }), 200
 
 
-@app.route(\"/teacher/lesson_plans/<int:lesson_id>/print\")
+@app.route("/teacher/lesson_plans/<int:lesson_id>/print")
 def print_lesson_plan(lesson_id):
-    \"\"\"Print-friendly view of lesson plan.\"\"\"
+    """Print-friendly view of lesson plan."""
     teacher = get_current_teacher()
     if not teacher:
-        return redirect(\"/teacher/login\")
+        return redirect("/teacher/login")
 
     lesson = LessonPlan.query.get_or_404(lesson_id)
     if not is_owner(teacher) and lesson.teacher_id != teacher.id:
-        flash(\"Not authorized to view this lesson plan.\", \"error\")
-        return redirect(\"/teacher/lesson_plans\")
+        flash("Not authorized to view this lesson plan.", "error")
+        return redirect("/teacher/lesson_plans")
 
     sections = json.loads(lesson.sections_json) if lesson.sections_json else {}
 
     return render_template(
-        \"lesson_plan_print.html\",
+        "lesson_plan_print.html",
         lesson=lesson,
         sections=sections,
     )
 
 
-@app.route(\"/teacher/lesson_plans/<int:lesson_id>/export/pdf\")
+@app.route("/teacher/lesson_plans/<int:lesson_id>/export/pdf")
 def export_lesson_plan_pdf(lesson_id):
-    \"\"\"Export lesson plan as PDF (placeholder for now - can use reportlab later).\"\"\"
+    """Export lesson plan as PDF (placeholder for now - can use reportlab later)."""
     teacher = get_current_teacher()
     if not teacher:
-        return redirect(\"/teacher/login\")
+        return redirect("/teacher/login")
 
     lesson = LessonPlan.query.get_or_404(lesson_id)
     if not is_owner(teacher) and lesson.teacher_id != teacher.id:
-        flash(\"Not authorized to export this lesson plan.\", \"error\")
-        return redirect(\"/teacher/lesson_plans\")
+        flash("Not authorized to export this lesson plan.", "error")
+        return redirect("/teacher/lesson_plans")
 
     # For now, redirect to print view - can add PDF generation later
-    return redirect(f\"/teacher/lesson_plans/{lesson_id}/print\")
+    return redirect(f"/teacher/lesson_plans/{lesson_id}/print")
 
 
 # ============================================================
-# TEACHER — TEACHER'S PET AI ASSISTANT (CONTINUED)
+# TEACHER - TEACHER'S PET AI ASSISTANT (CONTINUED)
 # ============================================================
 
 @csrf.exempt
-@app.route(\"/teacher/teachers_pet\", methods=[\"POST\"])
+@app.route("/teacher/teachers_pet", methods=["POST"])
 def teachers_pet_assistant():
-    \"\"\"Teacher's Pet: AI assistant for teachers to ask questions about CozmicLearning and teaching.\"\"\"
+    """Teacher's Pet: AI assistant for teachers to ask questions about CozmicLearning and teaching."""
     teacher = get_current_teacher()
     if not teacher:
-        return jsonify({\"error\": \"Not authenticated\"}), 401
+        return jsonify({"error": "Not authenticated"}), 401
 
     data = request.get_json() or {}
-    question = safe_text(data.get(\"question\", \"\"), 2000)
-    history = data.get(\"history\", [])
+    question = safe_text(data.get("question", ""), 2000)
+    history = data.get("history", [])
 
     if not question:
-        return jsonify({\"error\": \"Question is required\"}), 400
+        return jsonify({"error": "Question is required"}), 400
 
     # Build context about CozmicLearning for Teacher's Pet
-    context_prompt = \"\"\"You are Teacher's Pet, a warm AI assistant for teachers using CozmicLearning.
+    context_prompt = """You are Teacher's Pet, a warm AI assistant for teachers using CozmicLearning.
 
-RESPONSE STYLE — CRITICAL:
+RESPONSE STYLE - CRITICAL:
 • Keep answers SHORT and POWER-PACKED (3-5 sentences max for most questions)
 • Get straight to the point - no long introductions
 • Use bullet points for lists (max 3-5 items)
@@ -2168,7 +2128,7 @@ def assignment_step(practice_id):
     show_hint = False
 
     # ----------------------------------------------------
-    # POST — student action (answer or hint)
+    # POST - student action (answer or hint)
     # ----------------------------------------------------
     if request.method == "POST":
 
@@ -2218,7 +2178,7 @@ def assignment_step(practice_id):
         return redirect(f"/assignment/{practice_id}/step")
 
     # ----------------------------------------------------
-    # GET — show question normally
+    # GET - show question normally
     # ----------------------------------------------------
     return render_template(
         "assignment_step.html",
@@ -2995,7 +2955,7 @@ def practice_help_message():
     chat_history.append({"role": "student", "content": student_msg})
 
     ai_prompt = f"""
-You are COZMICLEARNING — a warm, patient cozmic mentor guiding students through the galaxy of learning.
+You are COZMICLEARNING - a warm, patient cozmic mentor guiding students through the galaxy of learning.
 
 The student is asking for help about a practice question.
 
@@ -3005,13 +2965,13 @@ CONTEXT:
 - Character voice: {character}
 
 Current question:
-\"\"\"{prompt}\"\"\"
+{prompt}
 
 Expected correct answers (could be letters or short answers):
 {expected}
 
 Official explanation / teacher notes:
-\"\"\"{explanation}\"\"\"
+{explanation}
 
 Attempts used so far on this question: {attempts}
 
@@ -3019,7 +2979,7 @@ CHAT HISTORY for this question:
 {chat_history}
 
 STUDENT JUST SAID:
-\"\"\"{student_msg}\"\"\"
+{student_msg}
 
 RESPONSE RULES (VERY IMPORTANT):
 - Tone: encouraging, calm, never harsh.
@@ -3136,7 +3096,7 @@ def privacy():
 def disclaimer():
     return render_template("disclaimer.html")
 
-# TEMPORARY — DEBUG TEACHER ID
+# TEMPORARY - DEBUG TEACHER ID
 @app.route("/debug/teacher_id")
 def debug_teacher_id():
     from models import Teacher
