@@ -833,7 +833,11 @@ async function submitAssignQuestions() {
         
         if (res.ok) {
             const editUrl = data.edit_url || `/teacher/assignments/${data.assignment_id}/edit`;
-            resultDiv.innerHTML = `<strong style="color: var(--success);">✓ Success!</strong> ${data.message}<br><a href="${editUrl}" style="color: var(--accent); text-decoration: underline;">Edit Questions</a> · <a href="/teacher/assignments/${data.assignment_id}" style="color: var(--muted); text-decoration: underline;">Overview</a>`;
+            // Show success message briefly, then redirect to edit page
+            resultDiv.innerHTML = `<strong style="color: var(--success);">✓ Success!</strong> ${data.message}<br>Redirecting to edit page...`;
+            setTimeout(() => {
+                window.location.href = editUrl;
+            }, 800);
         } else {
             resultDiv.innerHTML = `<strong style="color: var(--warning);">✗ Error:</strong> ${data.error || 'Unknown error'}`;
         }
