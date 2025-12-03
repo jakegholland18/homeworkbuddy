@@ -253,6 +253,9 @@
         <a href="/parent/students" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: var(--text); text-decoration: none; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;">
             👥 Manage Students
         </a>
+        <a href="/parent/analytics" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: var(--text); text-decoration: none; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;">
+            📊 View Analytics
+        </a>
         <a href="/parent/messages" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: var(--text); text-decoration: none; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;">
             📬 Messages from Teachers
             {% if unread_messages > 0 %}
@@ -336,6 +339,61 @@
             {% else %}
             <div style="padding: 24px; text-align: center; color: var(--muted-3); background: rgba(0, 0, 0, 0.3); border-radius: 12px;">
                 <p>No activity yet. Encourage {{ student.student_name }} to start practicing!</p>
+            </div>
+            {% endif %}
+
+            <!-- Subject Performance Breakdown -->
+            {% set subject_stats = {} %}
+            {% for result in student.assessment_results %}
+                {% set subject = result.subject %}
+                {% if subject not in subject_stats %}
+                    {% set _ = subject_stats.update({subject: {'total': 0, 'count': 0, 'scores': []}}) %}
+                {% endif %}
+                {% set _ = subject_stats[subject]['scores'].append(result.score_percent) %}
+                {% set _ = subject_stats[subject].update({'total': subject_stats[subject]['total'] + result.score_percent}) %}
+                {% set _ = subject_stats[subject].update({'count': subject_stats[subject]['count'] + 1}) %}
+            {% endfor %}
+
+            {% if subject_stats %}
+            <h3 style="font-size: 1.2rem; color: var(--muted); margin-top: 24px; margin-bottom: 12px;">📈 Subject Performance</h3>
+            <div style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 16px;">
+                {% for subject, stats in subject_stats.items()|sort %}
+                {% set avg = stats['total'] / stats['count'] %}
+                <div style="margin-bottom: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="color: var(--text); font-weight: 600;">{{ subject.replace('_', ' ').title() }}</span>
+                        <div style="text-align: right;">
+                            <span style="font-weight: 700; font-size: 1.1rem;
+                                {% if avg >= 80 %}color: var(--success);
+                                {% elif avg >= 60 %}color: var(--accent);
+                                {% else %}color: var(--warning);{% endif %}">
+                                {{ "%.1f"|format(avg) }}%
+                            </span>
+                            <span style="color: var(--muted-3); font-size: 0.8rem; margin-left: 8px;">({{ stats['count'] }} attempt{{ 's' if stats['count'] != 1 else '' }})</span>
+                        </div>
+                    </div>
+                    <div style="background: rgba(118, 131, 255, 0.15); border-radius: 8px; height: 12px; overflow: hidden;">
+                        <div style="height: 100%; border-radius: 8px; transition: width 0.3s ease;
+                            width: {{ avg }}%;
+                            {% if avg >= 80 %}background: linear-gradient(90deg, var(--success), #6fff00);
+                            {% elif avg >= 60 %}background: linear-gradient(90deg, var(--accent), #00d4ff);
+                            {% else %}background: linear-gradient(90deg, var(--warning), #ff8800);{% endif %}">
+                        </div>
+                    </div>
+                    <!-- Strength/Weakness indicator -->
+                    <div style="margin-top: 4px; font-size: 0.75rem;">
+                        {% if avg >= 85 %}
+                            <span style="color: var(--success);">💪 Strong</span>
+                        {% elif avg >= 70 %}
+                            <span style="color: var(--accent);">✓ Proficient</span>
+                        {% elif avg >= 60 %}
+                            <span style="color: var(--warning);">⚠️ Developing</span>
+                        {% else %}
+                            <span style="color: var(--warning);">🎯 Needs Focus</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
             </div>
             {% endif %}
 

@@ -1,0 +1,315 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+    .analytics-header {
+        text-align: center;
+        margin: 30px 0 40px;
+    }
+    
+    .analytics-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+    }
+    
+    .student-selector {
+        max-width: 400px;
+        margin: 0 auto 40px;
+        text-align: center;
+    }
+    
+    .student-selector select {
+        width: 100%;
+        padding: 14px 18px;
+        background: rgba(92, 107, 255, 0.15);
+        border: 1px solid rgba(118, 131, 255, 0.4);
+        border-radius: 12px;
+        color: var(--text);
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    
+    .analytics-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+    
+    .stat-card {
+        background: rgba(92, 107, 255, 0.08);
+        border: 1px solid rgba(118, 131, 255, 0.3);
+        border-radius: 16px;
+        padding: 24px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        border-color: var(--accent);
+        box-shadow: 0 8px 24px rgba(0, 242, 255, 0.2);
+    }
+    
+    .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text);
+        margin-bottom: 8px;
+    }
+    
+    .stat-label {
+        color: var(--muted-3);
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .subject-chart {
+        background: rgba(92, 107, 255, 0.08);
+        border: 1px solid rgba(118, 131, 255, 0.3);
+        border-radius: 16px;
+        padding: 28px;
+        margin-bottom: 24px;
+    }
+    
+    .chart-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 24px;
+    }
+    
+    .subject-bar {
+        margin-bottom: 20px;
+    }
+    
+    .subject-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    
+    .subject-name {
+        font-weight: 600;
+        color: var(--text);
+        font-size: 1.05rem;
+    }
+    
+    .subject-score {
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    
+    .progress-track {
+        height: 16px;
+        background: rgba(118, 131, 255, 0.15);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+    }
+    
+    .insights-section {
+        background: rgba(0, 242, 255, 0.08);
+        border: 1px solid rgba(0, 242, 255, 0.3);
+        border-radius: 16px;
+        padding: 28px;
+        margin-bottom: 24px;
+    }
+    
+    .insights-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 20px;
+    }
+    
+    .insight-item {
+        padding: 16px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        margin-bottom: 12px;
+        border-left: 4px solid;
+    }
+    
+    .insight-strength {
+        border-left-color: var(--success);
+    }
+    
+    .insight-focus {
+        border-left-color: var(--warning);
+    }
+    
+    .insight-icon {
+        font-size: 1.3rem;
+        margin-right: 10px;
+    }
+</style>
+
+<div class="analytics-header">
+    <h1 class="analytics-title">📊 Student Analytics</h1>
+    <p style="color: var(--muted-3); font-size: 1rem;">Detailed performance insights and recommendations</p>
+</div>
+
+{% if parent and parent.students %}
+    <!-- Student Selector -->
+    {% if parent.students|length > 1 %}
+    <div class="student-selector">
+        <label style="color: var(--muted-3); font-size: 0.9rem; display: block; margin-bottom: 8px;">Select Student</label>
+        <select id="studentSelector" onchange="window.location.href='/parent/analytics?student_id=' + this.value">
+            {% for s in parent.students %}
+            <option value="{{ s.id }}" {% if selected_student and s.id == selected_student.id %}selected{% endif %}>
+                {{ s.student_name }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+
+    {% if selected_student %}
+    <div class="analytics-container">
+        
+        <!-- Overall Stats -->
+        <div class="analytics-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📚</div>
+                <div class="stat-value">{{ selected_student.assessment_results|length }}</div>
+                <div class="stat-label">Total Assessments</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value" style="color: {% if selected_student.average_score >= 80 %}var(--success){% elif selected_student.average_score >= 60 %}var(--accent){% else %}var(--warning){% endif %}">
+                    {{ "%.1f"|format(selected_student.average_score) }}%
+                </div>
+                <div class="stat-label">Overall Average</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-value">{{ subject_count }}</div>
+                <div class="stat-label">Subjects Practiced</div>
+            </div>
+        </div>
+
+        <!-- Subject Performance Chart -->
+        <div class="subject-chart">
+            <h2 class="chart-title">Subject Performance Breakdown</h2>
+            
+            {% for subject, stats in subject_stats.items()|sort %}
+            {% set avg = stats['total'] / stats['count'] %}
+            <div class="subject-bar">
+                <div class="subject-header">
+                    <span class="subject-name">{{ subject.replace('_', ' ').title() }}</span>
+                    <span class="subject-score" style="
+                        {% if avg >= 80 %}color: var(--success);
+                        {% elif avg >= 60 %}color: var(--accent);
+                        {% else %}color: var(--warning);{% endif %}">
+                        {{ "%.1f"|format(avg) }}%
+                    </span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="
+                        width: {{ avg }}%;
+                        {% if avg >= 80 %}background: linear-gradient(90deg, var(--success), #6fff00);
+                        {% elif avg >= 60 %}background: linear-gradient(90deg, var(--accent), #00d4ff);
+                        {% else %}background: linear-gradient(90deg, var(--warning), #ff8800);{% endif %}">
+                    </div>
+                </div>
+                <div style="margin-top: 6px; font-size: 0.8rem; color: var(--muted-3);">
+                    {{ stats['count'] }} attempt{{ 's' if stats['count'] != 1 else '' }}
+                    <span style="margin-left: 12px;">
+                        {% if avg >= 85 %}💪 Strong
+                        {% elif avg >= 70 %}✓ Proficient
+                        {% elif avg >= 60 %}⚠️ Developing
+                        {% else %}🎯 Needs Focus{% endif %}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- AI-Generated Insights -->
+        <div class="insights-section">
+            <h2 class="insights-title">💡 Insights & Recommendations</h2>
+            
+            {% set strengths = [] %}
+            {% set focus_areas = [] %}
+            {% for subject, stats in subject_stats.items() %}
+                {% set avg = stats['total'] / stats['count'] %}
+                {% if avg >= 85 %}
+                    {% set _ = strengths.append(subject.replace('_', ' ').title()) %}
+                {% elif avg < 65 %}
+                    {% set _ = focus_areas.append(subject.replace('_', ' ').title()) %}
+                {% endif %}
+            {% endfor %}
+            
+            {% if strengths %}
+            <div class="insight-item insight-strength">
+                <span class="insight-icon">🌟</span>
+                <strong style="color: var(--success);">Strengths:</strong>
+                {{ selected_student.student_name }} is excelling in {{ strengths|join(', ') }}. Encourage continued practice to maintain mastery!
+            </div>
+            {% endif %}
+            
+            {% if focus_areas %}
+            <div class="insight-item insight-focus">
+                <span class="insight-icon">🎯</span>
+                <strong style="color: var(--warning);">Focus Areas:</strong>
+                Consider spending more time on {{ focus_areas|join(', ') }}. Breaking topics into smaller chunks can help build confidence.
+            </div>
+            {% endif %}
+            
+            <div class="insight-item" style="border-left-color: var(--accent);">
+                <span class="insight-icon">📈</span>
+                <strong style="color: var(--accent);">Progress Trend:</strong>
+                {{ selected_student.student_name }} has completed {{ selected_student.assessment_results|length }} assessments.
+                {% if selected_student.average_score >= 80 %}
+                    Outstanding performance! Keep up the excellent work.
+                {% elif selected_student.average_score >= 70 %}
+                    Strong overall performance with room for growth in targeted areas.
+                {% else %}
+                    Consistent practice will build confidence and improve scores over time.
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+
+{% else %}
+    <div style="text-align: center; padding: 80px 20px; color: var(--muted-3);">
+        <div style="font-size: 4rem; margin-bottom: 20px;">📊</div>
+        <h2 style="color: var(--muted);">No Students to Analyze</h2>
+        <p>Link students to your account to view analytics.</p>
+    </div>
+{% endif %}
+
+<div style="text-align: center; margin: 40px 0;">
+    <a href="/parent_dashboard" class="btn">← Back to Dashboard</a>
+</div>
+
+{% endblock %}

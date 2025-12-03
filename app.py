@@ -3652,6 +3652,52 @@ def parent_remove_student(student_id):
     return redirect("/parent/students")
 
 
+@app.route("/parent/analytics")
+def parent_analytics():
+    """Parent analytics page with detailed subject performance."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        flash("Please log in as a parent.", "error")
+        return redirect("/parent/login")
+    
+    parent = Parent.query.get(parent_id)
+    if not parent:
+        return redirect("/parent/login")
+    
+    # Get selected student (default to first student)
+    student_id = request.args.get("student_id", type=int)
+    if student_id:
+        selected_student = Student.query.get(student_id)
+        # Verify parent owns this student
+        if not selected_student or selected_student.parent_id != parent.id:
+            selected_student = parent.students[0] if parent.students else None
+    else:
+        selected_student = parent.students[0] if parent.students else None
+    
+    # Calculate subject statistics
+    subject_stats = {}
+    subject_count = 0
+    
+    if selected_student:
+        for result in selected_student.assessment_results:
+            subject = result.subject
+            if subject not in subject_stats:
+                subject_stats[subject] = {'total': 0, 'count': 0, 'scores': []}
+                subject_count += 1
+            
+            subject_stats[subject]['scores'].append(result.score_percent)
+            subject_stats[subject]['total'] += result.score_percent
+            subject_stats[subject]['count'] += 1
+    
+    return render_template(
+        "parent_analytics.html",
+        parent=parent,
+        selected_student=selected_student,
+        subject_stats=subject_stats,
+        subject_count=subject_count,
+    )
+
+
 @app.route("/parent/messages")
 def parent_messages():
     """Parent inbox - view all messages from teachers."""
