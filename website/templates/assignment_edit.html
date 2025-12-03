@@ -9,7 +9,7 @@
 
     {% for q in questions %}
     <div style="margin-bottom: 18px; padding: 14px; border:1px solid rgba(118,131,255,0.3); border-radius: 12px; background: rgba(92,107,255,0.08);">
-      <input type="hidden" name="q_id" value="{{ q.id }}">
+      <input type="hidden" name="q_id[]" value="{{ q.id }}">
       <label><strong>Question {{ loop.index }} Text</strong></label>
       <textarea name="question_text_{{ q.id }}" rows="3" style="width:100%;">{{ q.question_text }}</textarea>
 
