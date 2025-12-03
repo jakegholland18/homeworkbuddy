@@ -1335,7 +1335,7 @@
               <li>• Limited monthly Q&A quota</li>
               <li>• Missions, streaks, and progress</li>
             </ul>
-            <a href="/choose_login_role" class="btn btn-primary" style="width:100%;text-align:center;">Start 1‑Week Trial</a>
+            <a id="cta-basic" href="/choose_login_role?plan=basic&billing=monthly" class="btn btn-primary" style="width:100%;text-align:center;">Start 1‑Week Trial</a>
           </div>
           <!-- Premium -->
           <div style="padding:24px;border-radius:16px;border:1px solid var(--border-soft);background:var(--glass-3);position:relative;overflow:hidden;">
@@ -1349,7 +1349,7 @@
               <li>• All differentiation modes</li>
               <li>• Advanced analytics & reports</li>
             </ul>
-            <a href="/choose_login_role" class="btn btn-primary" style="width:100%;text-align:center;">Start 1‑Week Trial</a>
+            <a id="cta-premium" href="/choose_login_role?plan=premium&billing=monthly" class="btn btn-primary" style="width:100%;text-align:center;">Start 1‑Week Trial</a>
           </div>
         </div>
         <div class="cta-buttons" style="margin-top:24px;">
@@ -1408,6 +1408,8 @@
       const monthlyBtn = document.getElementById('price-monthly');
       const yearlyBtn = document.getElementById('price-yearly');
       const prices = document.querySelectorAll('#pricing .price');
+      const ctaBasic = document.getElementById('cta-basic');
+      const ctaPremium = document.getElementById('cta-premium');
       function setMode(mode){
         prices.forEach(p => {
           const text = p.getAttribute(mode === 'yearly' ? 'data-yearly' : 'data-monthly');
@@ -1415,6 +1417,8 @@
         });
         monthlyBtn.style.opacity = mode === 'monthly' ? '1' : '0.8';
         yearlyBtn.style.opacity = mode === 'yearly' ? '1' : '0.8';
+        if (ctaBasic) ctaBasic.href = `/choose_login_role?plan=basic&billing=${mode}`;
+        if (ctaPremium) ctaPremium.href = `/choose_login_role?plan=premium&billing=${mode}`;
       }
       if (monthlyBtn && yearlyBtn) {
         monthlyBtn.addEventListener('click', () => setMode('monthly'));
