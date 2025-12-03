@@ -12,7 +12,7 @@
             background: linear-gradient(135deg, rgba(92,107,255,0.12), rgba(71,200,255,0.08));
             border: 1px solid rgba(118,131,255,0.35);
             display: grid;
-            grid-template-columns: 1.1fr 2fr auto;
+            grid-template-columns: 1.3fr auto; /* remove search for clarity */
             gap: 10px;
             align-items: center;
             box-shadow: 0 8px 24px rgba(0,0,0,0.2);
@@ -281,23 +281,19 @@
 
 <div class="stars"></div>
 
-<!-- Top Utility Bar -->
+<!-- Top Utility Bar (replaces teacher/parent/student links; logo remains) -->
 <div class="utility-bar" role="navigation" aria-label="Quick actions">
     <div class="utility-item">
-        <label>🪐 Subject</label>
+        <label>🪐 Choose a subject</label>
         <select id="subject-switcher" class="utility-select">
             {% for key, val in subjects.items() %}
                 <option value="{{ key }}" {% if key == subject %}selected{% endif %}>{{ val }}</option>
             {% endfor %}
         </select>
     </div>
-    <div class="utility-item">
-        <label>🔭 Search topics or questions</label>
-        <input id="global-search" class="utility-input" type="text" placeholder="e.g., percentages, thesis statement, photosynthesis...">
-    </div>
     <div class="utility-actions">
-        <button id="go-practice" class="utility-btn">🚀 Practice</button>
-        <button id="go-study" class="utility-btn">📚 Deep Study</button>
+        <button id="go-practice" class="utility-btn" title="Switch to practice">🚀 Practice</button>
+        <button id="go-study" class="utility-btn" title="Switch to deep study">📚 Deep Study</button>
         <a href="/logout" class="utility-btn utility-logout" aria-label="Logout">👩‍🚀 Logout</a>
     </div>
 </div>
@@ -426,21 +422,11 @@ document.addEventListener("DOMContentLoaded", () => {
 // Utility bar behavior
 document.addEventListener("DOMContentLoaded", () => {
     const subjectSel = document.getElementById("subject-switcher");
-    const searchInput = document.getElementById("global-search");
     const grade = "{{ grade }}";
 
     subjectSel?.addEventListener("change", () => {
         const subj = subjectSel.value;
         window.location.href = "/ask-question?subject=" + encodeURIComponent(subj) + "&grade=" + encodeURIComponent(grade);
-    });
-
-    // Search: redirect to ask-question with current subject and a query param (frontend only)
-    searchInput?.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" && searchInput.value.trim()) {
-            const subj = subjectSel?.value || "{{ subject }}";
-            const q = searchInput.value.trim();
-            window.location.href = "/ask-question?subject=" + encodeURIComponent(subj) + "&grade=" + encodeURIComponent(grade) + "&q=" + encodeURIComponent(q);
-        }
     });
 
     document.getElementById("go-practice")?.addEventListener("click", () => {
