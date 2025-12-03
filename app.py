@@ -573,7 +573,7 @@ def check_question_limit():
     if session.get("user_role") != "student":
         return (True, float('inf'), float('inf'))
     
-    student = Student.query.filter_by(email=session.get("student_email")).first()
+    student = Student.query.filter_by(student_email=session.get("student_email")).first()
     if not student:
         return (True, float('inf'), float('inf'))
     
@@ -933,15 +933,16 @@ def plans():
 
 
 @app.route("/trial_expired")
+@csrf.exempt
 def trial_expired():
-    """Show upgrade page when trial has expired."""
-    init_user()
+    """Show upgrade page when trial has expired - no subscription check needed."""
+    # Don't call init_user() or check subscription - this is the upgrade page
     role = request.args.get("role", "student")
     return render_template("trial_expired.html", role=role)
 
 
-@csrf.exempt  # Stripe checkout doesn't support CSRF
 @app.route("/create-checkout-session", methods=["POST"])
+@csrf.exempt  # Stripe checkout doesn't support CSRF - exempt AFTER route decorator
 def create_checkout_session():
     """Create Stripe checkout session for subscription."""
     try:
@@ -1038,8 +1039,9 @@ def subscription_success():
         return redirect(f"/trial_expired?role={role}")
 
 
-@csrf.exempt  # Stripe webhooks can't have CSRF
+
 @app.route("/stripe-webhook", methods=["POST"])
+@csrf.exempt  # Stripe webhooks can't have CSRF - exempt AFTER route decorator
 def stripe_webhook():
     """Handle Stripe webhook events for subscription management."""
     payload = request.data

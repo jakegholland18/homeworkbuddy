@@ -1,267 +1,615 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trial Expired - CozmicLearning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
 
-{% block title %}Trial Expired - CozmicLearning{% endblock %}
+<!-- Get role from query string -->
+{% set role = request.args.get('role', 'student') %}
+{% set user_id = session.get(role ~ '_id') %}
 
-{% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
-
-<div class="auth-container">
-    <div class="auth-box" style="max-width: 700px;">
-        <div class="auth-header">
+<div class="page-container">
+    <div class="content-wrapper">
+        <div class="header-section">
             <h1>🚀 Your Free Trial Has Ended</h1>
-            <p style="margin-top: 1rem; font-size: 1.1rem;">
-                Thanks for exploring CozmicLearning! Ready to continue your cosmic journey?
-            </p>
+            <p class="subtitle">Thanks for exploring CozmicLearning! Ready to continue your cosmic journey?</p>
         </div>
 
-        <!-- Get role from query string -->
-        {% set role = request.args.get('role', 'student') %}
-        {% set user_id = session.get(role ~ '_id') %}
-
-        <div class="trial-info" style="background: rgba(255, 255, 255, 0.1); padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem; text-align: center;">
-            <h2 style="margin-bottom: 1rem; color: #00d4ff;">Unlock Full Access</h2>
-            <p style="font-size: 1.05rem; margin-bottom: 0;">
-                Choose a plan below to continue using all CozmicLearning features.
-            </p>
+        <div class="unlock-section">
+            <h2>Unlock Full Access</h2>
+            <p>Choose a plan below to continue using all CozmicLearning features.</p>
         </div>
 
-        <!-- Pricing Cards Based on Role -->
-        <div style="display: grid; gap: 2rem; margin-bottom: 2rem;">
+        <div class="pricing-container">
             {% if role == 'student' %}
                 <!-- Student Plans -->
-                <div class="plan-card" style="background: rgba(255, 255, 255, 0.08); padding: 2rem; border-radius: 20px; border: 2px solid rgba(0, 212, 255, 0.3);">
-                    <h3 style="color: #00d4ff; margin-bottom: 0.5rem;">Basic Plan</h3>
-                    <p style="font-size: 2rem; font-weight: bold; margin: 1rem 0;">$7.99<span style="font-size: 1rem; font-weight: normal;">/month</span></p>
-                    <ul style="text-align: left; margin: 1.5rem 0; list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;">✓ 100 AI questions/month</li>
-                        <li style="margin-bottom: 0.5rem;">✓ All 11 subject planets</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Practice missions</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Progress tracking</li>
+                <div class="plan-card basic">
+                    <h3>Basic Plan</h3>
+                    <div class="price">
+                        <span class="amount">$7.99</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <ul class="features">
+                        <li>✓ 100 AI questions/month</li>
+                        <li>✓ All 11 subject planets</li>
+                        <li>✓ Practice missions</li>
+                        <li>✓ Progress tracking</li>
                     </ul>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1.5rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form">
                         <input type="hidden" name="role" value="student">
                         <input type="hidden" name="plan" value="basic">
                         <input type="hidden" name="billing" value="monthly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                            Choose Basic Monthly
-                        </button>
+                        <button type="submit" class="btn-primary">Choose Basic Monthly</button>
                     </form>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form-yearly">
                         <input type="hidden" name="role" value="student">
                         <input type="hidden" name="plan" value="basic">
                         <input type="hidden" name="billing" value="yearly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-secondary" style="width: 100%; padding: 0.75rem;">
-                            $85/year (save $11)
-                        </button>
+                        <button type="submit" class="btn-secondary">$85/year (save $11)</button>
                     </form>
                 </div>
 
-                <div class="plan-card" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(0, 212, 255, 0.2)); padding: 2rem; border-radius: 20px; border: 2px solid #9333ea;">
-                    <div style="background: #9333ea; color: white; padding: 0.5rem 1rem; border-radius: 20px; display: inline-block; margin-bottom: 1rem; font-weight: bold;">MOST POPULAR</div>
-                    <h3 style="color: #9333ea; margin-bottom: 0.5rem;">Premium Plan</h3>
-                    <p style="font-size: 2rem; font-weight: bold; margin: 1rem 0;">$12.99<span style="font-size: 1rem; font-weight: normal;">/month</span></p>
-                    <ul style="text-align: left; margin: 1.5rem 0; list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;">✓ <strong>Unlimited</strong> AI questions</li>
-                        <li style="margin-bottom: 0.5rem;">✓ All 11 subject planets</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Advanced practice missions</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Priority AI responses</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Detailed analytics</li>
+                <div class="plan-card premium">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <h3>Premium Plan</h3>
+                    <div class="price">
+                        <span class="amount">$12.99</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <ul class="features">
+                        <li>✓ <strong>Unlimited</strong> AI questions</li>
+                        <li>✓ All 11 subject planets</li>
+                        <li>✓ Advanced practice missions</li>
+                        <li>✓ Priority AI responses</li>
+                        <li>✓ Detailed analytics</li>
                     </ul>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1.5rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form">
                         <input type="hidden" name="role" value="student">
                         <input type="hidden" name="plan" value="premium">
                         <input type="hidden" name="billing" value="monthly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; background: linear-gradient(135deg, #9333ea, #00d4ff);">
-                            Choose Premium Monthly
-                        </button>
+                        <button type="submit" class="btn-primary premium-btn">Choose Premium Monthly</button>
                     </form>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form-yearly">
                         <input type="hidden" name="role" value="student">
                         <input type="hidden" name="plan" value="premium">
                         <input type="hidden" name="billing" value="yearly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-secondary" style="width: 100%; padding: 0.75rem;">
-                            $140/year (save $16)
-                        </button>
+                        <button type="submit" class="btn-secondary">$140/year (save $16)</button>
                     </form>
                 </div>
 
             {% elif role == 'parent' %}
                 <!-- Parent Plans -->
-                <div class="plan-card" style="background: rgba(255, 255, 255, 0.08); padding: 2rem; border-radius: 20px; border: 2px solid rgba(0, 212, 255, 0.3);">
-                    <h3 style="color: #00d4ff; margin-bottom: 0.5rem;">Basic Plan</h3>
-                    <p style="font-size: 2rem; font-weight: bold; margin: 1rem 0;">$9.99<span style="font-size: 1rem; font-weight: normal;">/month</span></p>
-                    <ul style="text-align: left; margin: 1.5rem 0; list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;">✓ Up to 3 students</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Progress tracking</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Weekly reports</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Time limit controls</li>
+                <div class="plan-card basic">
+                    <h3>Basic Plan</h3>
+                    <div class="price">
+                        <span class="amount">$9.99</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <ul class="features">
+                        <li>✓ Up to 3 students</li>
+                        <li>✓ Progress tracking</li>
+                        <li>✓ Weekly reports</li>
+                        <li>✓ Time limit controls</li>
                     </ul>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1.5rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form">
                         <input type="hidden" name="role" value="parent">
                         <input type="hidden" name="plan" value="basic">
                         <input type="hidden" name="billing" value="monthly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                            Choose Basic Monthly
-                        </button>
+                        <button type="submit" class="btn-primary">Choose Basic Monthly</button>
                     </form>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form-yearly">
                         <input type="hidden" name="role" value="parent">
                         <input type="hidden" name="plan" value="basic">
                         <input type="hidden" name="billing" value="yearly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-secondary" style="width: 100%; padding: 0.75rem;">
-                            $75/year (save $45)
-                        </button>
+                        <button type="submit" class="btn-secondary">$75/year (save $45)</button>
                     </form>
                 </div>
 
-                <div class="plan-card" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(0, 212, 255, 0.2)); padding: 2rem; border-radius: 20px; border: 2px solid #9333ea;">
-                    <div style="background: #9333ea; color: white; padding: 0.5rem 1rem; border-radius: 20px; display: inline-block; margin-bottom: 1rem; font-weight: bold;">MOST POPULAR</div>
-                    <h3 style="color: #9333ea; margin-bottom: 0.5rem;">Premium Plan</h3>
-                    <p style="font-size: 2rem; font-weight: bold; margin: 1rem 0;">$15.99<span style="font-size: 1rem; font-weight: normal;">/month</span></p>
-                    <ul style="text-align: left; margin: 1.5rem 0; list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;">✓ <strong>Unlimited</strong> students</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Advanced analytics</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Custom reports</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Priority support</li>
+                <div class="plan-card premium">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <h3>Premium Plan</h3>
+                    <div class="price">
+                        <span class="amount">$15.99</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <ul class="features">
+                        <li>✓ <strong>Unlimited</strong> students</li>
+                        <li>✓ Advanced analytics</li>
+                        <li>✓ Custom reports</li>
+                        <li>✓ Priority support</li>
                     </ul>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1.5rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form">
                         <input type="hidden" name="role" value="parent">
                         <input type="hidden" name="plan" value="premium">
                         <input type="hidden" name="billing" value="monthly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; background: linear-gradient(135deg, #9333ea, #00d4ff);">
-                            Choose Premium Monthly
-                        </button>
+                        <button type="submit" class="btn-primary premium-btn">Choose Premium Monthly</button>
                     </form>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form-yearly">
                         <input type="hidden" name="role" value="parent">
                         <input type="hidden" name="plan" value="premium">
                         <input type="hidden" name="billing" value="yearly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-secondary" style="width: 100%; padding: 0.75rem;">
-                            $160/year (save $32)
-                        </button>
+                        <button type="submit" class="btn-secondary">$160/year (save $32)</button>
                     </form>
                 </div>
 
             {% elif role == 'teacher' %}
                 <!-- Teacher Plans -->
-                <div class="plan-card" style="background: rgba(255, 255, 255, 0.08); padding: 2rem; border-radius: 20px; border: 2px solid rgba(0, 212, 255, 0.3);">
-                    <h3 style="color: #00d4ff; margin-bottom: 0.5rem;">Basic Plan</h3>
-                    <p style="font-size: 2rem; font-weight: bold; margin: 1rem 0;">$15.99<span style="font-size: 1rem; font-weight: normal;">/month</span></p>
-                    <ul style="text-align: left; margin: 1.5rem 0; list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;">✓ Up to 3 classes</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Up to 50 students</li>
-                        <li style="margin-bottom: 0.5rem;">✓ 50 lesson plans/month</li>
-                        <li style="margin-bottom: 0.5rem;">✓ 100 assignments/month</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Class analytics</li>
+                <div class="plan-card basic">
+                    <h3>Basic Plan</h3>
+                    <div class="price">
+                        <span class="amount">$15.99</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <ul class="features">
+                        <li>✓ Up to 3 classes</li>
+                        <li>✓ Up to 50 students</li>
+                        <li>✓ 50 lesson plans/month</li>
+                        <li>✓ 100 assignments/month</li>
+                        <li>✓ Class analytics</li>
                     </ul>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1.5rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form">
                         <input type="hidden" name="role" value="teacher">
                         <input type="hidden" name="plan" value="basic">
                         <input type="hidden" name="billing" value="monthly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                            Choose Basic Monthly
-                        </button>
+                        <button type="submit" class="btn-primary">Choose Basic Monthly</button>
                     </form>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form-yearly">
                         <input type="hidden" name="role" value="teacher">
                         <input type="hidden" name="plan" value="basic">
                         <input type="hidden" name="billing" value="yearly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-secondary" style="width: 100%; padding: 0.75rem;">
-                            $170/year (save $22)
-                        </button>
+                        <button type="submit" class="btn-secondary">$170/year (save $22)</button>
                     </form>
                 </div>
 
-                <div class="plan-card" style="background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(0, 212, 255, 0.2)); padding: 2rem; border-radius: 20px; border: 2px solid #9333ea;">
-                    <div style="background: #9333ea; color: white; padding: 0.5rem 1rem; border-radius: 20px; display: inline-block; margin-bottom: 1rem; font-weight: bold;">MOST POPULAR</div>
-                    <h3 style="color: #9333ea; margin-bottom: 0.5rem;">Premium Plan</h3>
-                    <p style="font-size: 2rem; font-weight: bold; margin: 1rem 0;">$25.99<span style="font-size: 1rem; font-weight: normal;">/month</span></p>
-                    <ul style="text-align: left; margin: 1.5rem 0; list-style: none; padding: 0;">
-                        <li style="margin-bottom: 0.5rem;">✓ <strong>Unlimited</strong> classes</li>
-                        <li style="margin-bottom: 0.5rem;">✓ <strong>Unlimited</strong> students</li>
-                        <li style="margin-bottom: 0.5rem;">✓ <strong>Unlimited</strong> lesson plans</li>
-                        <li style="margin-bottom: 0.5rem;">✓ <strong>Unlimited</strong> assignments</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Advanced analytics</li>
-                        <li style="margin-bottom: 0.5rem;">✓ Priority support</li>
+                <div class="plan-card premium">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <h3>Premium Plan</h3>
+                    <div class="price">
+                        <span class="amount">$25.99</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <ul class="features">
+                        <li>✓ <strong>Unlimited</strong> classes</li>
+                        <li>✓ <strong>Unlimited</strong> students</li>
+                        <li>✓ <strong>Unlimited</strong> lesson plans</li>
+                        <li>✓ <strong>Unlimited</strong> assignments</li>
+                        <li>✓ Advanced analytics</li>
+                        <li>✓ Priority support</li>
                     </ul>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1.5rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form">
                         <input type="hidden" name="role" value="teacher">
                         <input type="hidden" name="plan" value="premium">
                         <input type="hidden" name="billing" value="monthly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; background: linear-gradient(135deg, #9333ea, #00d4ff);">
-                            Choose Premium Monthly
-                        </button>
+                        <button type="submit" class="btn-primary premium-btn">Choose Premium Monthly</button>
                     </form>
-                    <form action="/create-checkout-session" method="POST" style="margin-top: 1rem;">
+                    <form action="/create-checkout-session" method="POST" class="plan-form-yearly">
                         <input type="hidden" name="role" value="teacher">
                         <input type="hidden" name="plan" value="premium">
                         <input type="hidden" name="billing" value="yearly">
                         <input type="hidden" name="user_id" value="{{ user_id }}">
-                        <button type="submit" class="btn-secondary" style="width: 100%; padding: 0.75rem;">
-                            $280/year (save $32)
-                        </button>
+                        <button type="submit" class="btn-secondary">$280/year (save $32)</button>
+                    </form>
+                </div>
+
+            {% elif role == 'homeschool' %}
+                <!-- Homeschool Plans -->
+                <div class="plan-card basic">
+                    <h3>Essential Plan</h3>
+                    <div class="price">
+                        <span class="amount">$19.99</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <ul class="features">
+                        <li>✓ Up to 5 students</li>
+                        <li>✓ Parent dashboard</li>
+                        <li>✓ Progress tracking</li>
+                        <li>✓ Weekly reports</li>
+                        <li>✓ 25 lesson plans/month</li>
+                        <li>✓ Time limit controls</li>
+                    </ul>
+                    <form action="/create-checkout-session" method="POST" class="plan-form">
+                        <input type="hidden" name="role" value="homeschool">
+                        <input type="hidden" name="plan" value="essential">
+                        <input type="hidden" name="billing" value="monthly">
+                        <input type="hidden" name="user_id" value="{{ user_id }}">
+                        <button type="submit" class="btn-primary">Choose Essential Monthly</button>
+                    </form>
+                    <form action="/create-checkout-session" method="POST" class="plan-form-yearly">
+                        <input type="hidden" name="role" value="homeschool">
+                        <input type="hidden" name="plan" value="essential">
+                        <input type="hidden" name="billing" value="yearly">
+                        <input type="hidden" name="user_id" value="{{ user_id }}">
+                        <button type="submit" class="btn-secondary">$215/year (save $25)</button>
+                    </form>
+                </div>
+
+                <div class="plan-card premium">
+                    <div class="popular-badge">MOST POPULAR</div>
+                    <h3>Complete Plan</h3>
+                    <div class="price">
+                        <span class="amount">$29.99</span>
+                        <span class="period">/month</span>
+                    </div>
+                    <ul class="features">
+                        <li>✓ <strong>Unlimited</strong> students</li>
+                        <li>✓ <strong>Unlimited</strong> lesson plans</li>
+                        <li>✓ Full teacher features</li>
+                        <li>✓ Advanced analytics</li>
+                        <li>✓ Custom assignments</li>
+                        <li>✓ Priority support</li>
+                    </ul>
+                    <form action="/create-checkout-session" method="POST" class="plan-form">
+                        <input type="hidden" name="role" value="homeschool">
+                        <input type="hidden" name="plan" value="complete">
+                        <input type="hidden" name="billing" value="monthly">
+                        <input type="hidden" name="user_id" value="{{ user_id }}">
+                        <button type="submit" class="btn-primary premium-btn">Choose Complete Monthly</button>
+                    </form>
+                    <form action="/create-checkout-session" method="POST" class="plan-form-yearly">
+                        <input type="hidden" name="role" value="homeschool">
+                        <input type="hidden" name="plan" value="complete">
+                        <input type="hidden" name="billing" value="yearly">
+                        <input type="hidden" name="user_id" value="{{ user_id }}">
+                        <button type="submit" class="btn-secondary">$320/year (save $40)</button>
                     </form>
                 </div>
             {% endif %}
         </div>
 
-        <!-- Questions Section -->
-        <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 15px;">
-            <h3 style="margin-bottom: 1rem; color: #00d4ff;">Questions?</h3>
-            <p style="margin-bottom: 0.5rem;">✓ Cancel anytime, no commitments</p>
-            <p style="margin-bottom: 0.5rem;">✓ Secure payment processing via Stripe</p>
-            <p style="margin-bottom: 0.5rem;">✓ 30-day money-back guarantee</p>
-            <p style="margin-top: 1rem;">
-                <a href="mailto:support@cozmiclearning.com" style="color: #00d4ff;">Contact support →</a>
-            </p>
-        </div>
+        <div class="footer-section">
+            <div class="questions-box">
+                <h3>Questions?</h3>
+                <p>✓ Cancel anytime, no commitments</p>
+                <p>✓ Secure payment processing via Stripe</p>
+                <p>✓ 30-day money-back guarantee</p>
+                <p class="support-link">
+                    <a href="mailto:support@cozmiclearning.com">Contact support →</a>
+                </p>
+            </div>
 
-        <div class="auth-footer" style="margin-top: 2rem;">
-            <a href="/" class="back-to-launch">🚀 Back to Launch Pad</a>
+            <a href="/" class="back-link">🚀 Back to Launch Pad</a>
         </div>
     </div>
 </div>
 
 <style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body {
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: #f7fbff;
+        background: radial-gradient(circle at top, #0f1a3d 0%, #050813 40%, #000000 100%);
+        min-height: 100vh;
+        overflow-x: hidden;
+        position: relative;
+    }
+    
+    body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: 
+            radial-gradient(circle at 10% 10%, rgba(0, 255, 255, 0.12), transparent 60%),
+            radial-gradient(circle at 85% 70%, rgba(255, 95, 162, 0.18), transparent 65%);
+        opacity: 0.25;
+        z-index: 0;
+        pointer-events: none;
+    }
+    
+    .page-container {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 20px;
+    }
+    
+    .content-wrapper {
+        width: 100%;
+        max-width: 1100px;
+        background: linear-gradient(135deg, rgba(92, 107, 255, 0.12), rgba(71, 200, 255, 0.08));
+        border: 1px solid rgba(118, 131, 255, 0.35);
+        padding: 60px 40px;
+        border-radius: 25px;
+        box-shadow: 
+            0 20px 60px rgba(0, 0, 0, 0.4),
+            inset 1px 1px 0 rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+    }
+    
+    .header-section {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .header-section h1 {
+        font-size: 2.8rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        background: linear-gradient(135deg, #00f2ff, #ff6fd8);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+    
+    .subtitle {
+        font-size: 1.2rem;
+        color: #c4d1ff;
+        line-height: 1.5;
+    }
+    
+    .unlock-section {
+        background: rgba(0, 212, 255, 0.1);
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 50px;
+        text-align: center;
+        border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+    
+    .unlock-section h2 {
+        color: #00d4ff;
+        font-size: 1.6rem;
+        margin-bottom: 8px;
+        font-weight: 700;
+    }
+    
+    .unlock-section p {
+        font-size: 1.05rem;
+        color: #c4d1ff;
+        margin: 0;
+    }
+    
+    .pricing-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+        margin-bottom: 50px;
+    }
+    
+    .plan-card {
+        background: rgba(255, 255, 255, 0.08);
+        padding: 35px;
+        border-radius: 20px;
+        border: 2px solid rgba(0, 212, 255, 0.3);
+        position: relative;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 212, 255, 0.2);
+    }
+    
+    .plan-card.premium {
+        background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(0, 212, 255, 0.2));
+        border: 2px solid #9333ea;
+    }
+    
+    .plan-card.premium:hover {
+        box-shadow: 0 15px 40px rgba(147, 51, 234, 0.3);
+    }
+    
+    .popular-badge {
+        background: #9333ea;
+        color: white;
+        padding: 8px 18px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 15px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+    }
+    
+    .plan-card h3 {
+        color: #00d4ff;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        font-weight: 700;
+    }
+    
+    .plan-card.premium h3 {
+        color: #c084fc;
+    }
+    
+    .price {
+        margin-bottom: 30px;
+    }
+    
+    .price .amount {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #fff;
+    }
+    
+    .price .period {
+        font-size: 1.1rem;
+        color: #c4d1ff;
+        font-weight: 400;
+    }
+    
+    .features {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 30px 0;
+    }
+    
+    .features li {
+        padding: 10px 0;
+        color: #e0e7ff;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    
+    .plan-form {
+        margin-bottom: 12px;
+    }
+    
+    .plan-form-yearly {
+        margin-bottom: 0;
+    }
+    
     .btn-primary {
+        width: 100%;
+        padding: 15px;
         background: linear-gradient(135deg, #00d4ff, #0ea5e9);
         color: white;
         border: none;
         border-radius: 12px;
         cursor: pointer;
-        font-weight: bold;
+        font-weight: 700;
+        font-size: 1.05rem;
+        font-family: inherit;
         transition: all 0.3s ease;
     }
-
+    
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 212, 255, 0.4);
+        box-shadow: 0 10px 25px rgba(0, 212, 255, 0.4);
     }
-
+    
+    .btn-primary.premium-btn {
+        background: linear-gradient(135deg, #9333ea, #00d4ff);
+    }
+    
+    .btn-primary.premium-btn:hover {
+        box-shadow: 0 10px 25px rgba(147, 51, 234, 0.4);
+    }
+    
     .btn-secondary {
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        border: 2px solid rgba(255, 255, 255, 0.3);
+        width: 100%;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #e0e7ff;
+        border: 2px solid rgba(255, 255, 255, 0.2);
         border-radius: 12px;
         cursor: pointer;
         font-weight: 600;
+        font-size: 0.95rem;
+        font-family: inherit;
         transition: all 0.3s ease;
     }
-
+    
     .btn-secondary:hover {
-        background: rgba(255, 255, 255, 0.15);
-        border-color: rgba(255, 255, 255, 0.5);
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+    
+    .footer-section {
+        text-align: center;
+    }
+    
+    .questions-box {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 30px;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 30px;
+    }
+    
+    .questions-box h3 {
+        color: #00d4ff;
+        font-size: 1.4rem;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+    
+    .questions-box p {
+        color: #c4d1ff;
+        margin-bottom: 8px;
+        font-size: 1rem;
+    }
+    
+    .support-link {
+        margin-top: 20px !important;
+    }
+    
+    .support-link a {
+        color: #00d4ff;
+        text-decoration: none;
+        font-weight: 600;
+        transition: color 0.3s ease;
+    }
+    
+    .support-link a:hover {
+        color: #5c6bff;
+    }
+    
+    .back-link {
+        display: inline-block;
+        padding: 15px 35px;
+        background: linear-gradient(135deg, rgba(92, 107, 255, 0.15), rgba(71, 200, 255, 0.15));
+        border: 2px solid rgba(118, 131, 255, 0.4);
+        border-radius: 50px;
+        color: #00f2ff;
+        text-decoration: none;
+        font-size: 1.05rem;
+        font-weight: 600;
+        transition: all 0.4s ease;
+        box-shadow: 0 8px 24px rgba(0, 242, 255, 0.2);
+    }
+    
+    .back-link:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(0, 242, 255, 0.4);
+        border-color: rgba(0, 242, 255, 0.6);
+    }
+    
+    @media (max-width: 900px) {
+        .pricing-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .header-section h1 {
+            font-size: 2.2rem;
+        }
+        
+        .content-wrapper {
+            padding: 40px 25px;
+        }
+    }
+    
+    @media (max-width: 600px) {
+        .header-section h1 {
+            font-size: 1.8rem;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+        }
+        
+        .plan-card {
+            padding: 25px;
+        }
+        
+        .price .amount {
+            font-size: 2rem;
+        }
     }
 </style>
-{% endblock %}
+
+</body>
+</html>
