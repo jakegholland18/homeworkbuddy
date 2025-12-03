@@ -1,0 +1,216 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+    .lesson-container {
+        max-width: 900px;
+        margin: 24px auto;
+        padding: 0 20px;
+    }
+    
+    .lesson-header {
+        margin-bottom: 24px;
+        padding: 20px;
+        background: linear-gradient(135deg, rgba(92,107,255,0.1), rgba(0,242,255,0.1));
+        border: 1px solid rgba(118,131,255,0.3);
+        border-radius: 16px;
+    }
+    
+    .lesson-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 1.8rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .lesson-meta {
+        color: var(--muted-3);
+        font-size: 0.9rem;
+    }
+    
+    .lesson-section {
+        margin-bottom: 24px;
+        padding: 20px;
+        background: rgba(92,107,255,0.08);
+        border: 1px solid rgba(118,131,255,0.3);
+        border-radius: 12px;
+        position: relative;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .section-header h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: var(--accent);
+    }
+    
+    .section-content {
+        line-height: 1.7;
+        color: var(--text);
+        white-space: pre-wrap;
+    }
+    
+    .btn {
+        padding: 10px 18px;
+        border-radius: 10px;
+        border: none;
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        color: var(--text);
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px var(--shadow-strong);
+    }
+    
+    .btn-secondary {
+        background: transparent;
+        border: 1px solid rgba(118,131,255,0.4);
+    }
+    
+    .btn-small {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .action-bar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+</style>
+
+<div class="lesson-container">
+    <div class="lesson-header">
+        <h1>{{ lesson.title }}</h1>
+        <div class="lesson-meta">
+            <strong>Subject:</strong> {{ lesson.subject.replace('_', ' ').title() }} · 
+            <strong>Topic:</strong> {{ lesson.topic }} · 
+            <strong>Grade:</strong> {{ lesson.grade }} ·
+            <strong>Created:</strong> {{ lesson.created_at.strftime('%B %d, %Y') }}
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <a href="/teacher/lesson_plans/{{ lesson.id }}/edit" class="btn">Edit Lesson</a>
+        <a href="/teacher/lesson_plans/{{ lesson.id }}/export/pdf" class="btn btn-secondary">Export PDF</a>
+        <a href="/teacher/lesson_plans/{{ lesson.id }}/print" class="btn btn-secondary" target="_blank">Print View</a>
+        <button class="btn btn-secondary" onclick="copyToClipboard()">Copy Text</button>
+        <a href="/teacher/lesson_plans" class="btn btn-secondary">Back to Library</a>
+    </div>
+
+    <div class="lesson-sections">
+        {% if sections.overview %}
+        <div class="lesson-section">
+            <div class="section-header">
+                <h3>SECTION 1 — OVERVIEW</h3>
+                <button class="btn btn-small btn-secondary" onclick="regenerateSection('overview')">Regenerate</button>
+            </div>
+            <div class="section-content" id="section-overview">{{ sections.overview }}</div>
+        </div>
+        {% endif %}
+
+        {% if sections.key_facts %}
+        <div class="lesson-section">
+            <div class="section-header">
+                <h3>SECTION 2 — KEY FACTS</h3>
+                <button class="btn btn-small btn-secondary" onclick="regenerateSection('key_facts')">Regenerate</button>
+            </div>
+            <div class="section-content" id="section-key_facts">{{ sections.key_facts }}</div>
+        </div>
+        {% endif %}
+
+        {% if sections.christian_view %}
+        <div class="lesson-section">
+            <div class="section-header">
+                <h3>SECTION 3 — CHRISTIAN VIEW</h3>
+                <button class="btn btn-small btn-secondary" onclick="regenerateSection('christian_view')">Regenerate</button>
+            </div>
+            <div class="section-content" id="section-christian_view">{{ sections.christian_view }}</div>
+        </div>
+        {% endif %}
+
+        {% if sections.agreement %}
+        <div class="lesson-section">
+            <div class="section-header">
+                <h3>SECTION 4 — AGREEMENT</h3>
+                <button class="btn btn-small btn-secondary" onclick="regenerateSection('agreement')">Regenerate</button>
+            </div>
+            <div class="section-content" id="section-agreement">{{ sections.agreement }}</div>
+        </div>
+        {% endif %}
+
+        {% if sections.difference %}
+        <div class="lesson-section">
+            <div class="section-header">
+                <h3>SECTION 5 — DIFFERENCE</h3>
+                <button class="btn btn-small btn-secondary" onclick="regenerateSection('difference')">Regenerate</button>
+            </div>
+            <div class="section-content" id="section-difference">{{ sections.difference }}</div>
+        </div>
+        {% endif %}
+
+        {% if sections.practice %}
+        <div class="lesson-section">
+            <div class="section-header">
+                <h3>SECTION 6 — PRACTICE</h3>
+                <button class="btn btn-small btn-secondary" onclick="regenerateSection('practice')">Regenerate</button>
+            </div>
+            <div class="section-content" id="section-practice">{{ sections.practice }}</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+async function regenerateSection(sectionName) {
+    const contentDiv = document.getElementById(`section-${sectionName}`);
+    const originalContent = contentDiv.textContent;
+    contentDiv.innerHTML = '<em style="color: var(--muted);">Regenerating...</em>';
+
+    try {
+        const res = await fetch('/teacher/lesson_plans/{{ lesson.id }}/regenerate_section', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ section: sectionName })
+        });
+
+        const data = await res.json();
+        
+        if (res.ok && data.content) {
+            contentDiv.textContent = data.content;
+        } else {
+            contentDiv.textContent = originalContent;
+            alert('Failed to regenerate section: ' + (data.error || 'Unknown error'));
+        }
+    } catch (err) {
+        contentDiv.textContent = originalContent;
+        alert('Network error: ' + err.message);
+    }
+}
+
+function copyToClipboard() {
+    const fullText = `{{ lesson.full_text | safe }}`;
+    navigator.clipboard.writeText(fullText).then(() => {
+        alert('Lesson plan copied to clipboard!');
+    }).catch(err => {
+        alert('Failed to copy: ' + err.message);
+    });
+}
+</script>
+
+{% endblock %}

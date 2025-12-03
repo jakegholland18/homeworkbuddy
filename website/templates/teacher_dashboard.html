@@ -698,29 +698,11 @@ async function generateLessonPlan() {
 
         const data = await res.json();
         
-        if (res.ok && data.lesson_plan) {
-            const lesson = data.lesson_plan;
-            let html = `<div style="margin-bottom: 16px; padding: 12px; background: rgba(0,242,255,0.1); border-radius: 8px;">
-                <strong>Topic:</strong> ${data.metadata.topic}<br>
-                <strong>Subject:</strong> ${data.metadata.subject}<br>
-                <strong>Grade:</strong> ${data.metadata.grade}
-            </div>`;
-            
-            // Display the raw lesson plan text with formatting
-            if (lesson.raw) {
-                html += `<div style="white-space: pre-wrap; line-height: 1.6; color: var(--text);">${lesson.raw}</div>`;
-            } else if (lesson.sections) {
-                // Alternative: render sections if available
-                const sections = lesson.sections;
-                if (sections.overview) html += `<div style="margin-bottom: 16px;"><strong>Overview:</strong><br>${sections.overview}</div>`;
-                if (sections.key_facts) html += `<div style="margin-bottom: 16px;"><strong>Key Facts:</strong><br>${sections.key_facts}</div>`;
-                if (sections.christian_view) html += `<div style="margin-bottom: 16px;"><strong>Christian View:</strong><br>${sections.christian_view}</div>`;
-                if (sections.agreement) html += `<div style="margin-bottom: 16px;"><strong>Agreement:</strong><br>${sections.agreement}</div>`;
-                if (sections.difference) html += `<div style="margin-bottom: 16px;"><strong>Difference:</strong><br>${sections.difference}</div>`;
-                if (sections.practice) html += `<div style="margin-bottom: 16px;"><strong>Practice:</strong><br>${sections.practice}</div>`;
-            }
-            
-            resultDiv.innerHTML = html;
+        if (res.ok && data.lesson_plan_id) {
+            resultDiv.innerHTML = '<strong style="color: var(--success);">✓ Success!</strong> Lesson plan created. Redirecting...';
+            setTimeout(() => {
+                window.location.href = data.redirect_url;
+            }, 800);
         } else {
             resultDiv.innerHTML = `<p style="color: var(--warning);">Error: ${data.error || 'Failed to generate lesson plan'}</p>`;
         }

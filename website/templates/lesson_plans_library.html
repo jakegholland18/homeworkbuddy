@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+{% block content %}
+<style>
+    .library-container {
+        max-width: 1200px;
+        margin: 24px auto;
+        padding: 0 20px;
+    }
+    
+    .library-header {
+        margin-bottom: 32px;
+    }
+    
+    .library-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2rem;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .lesson-card {
+        margin-bottom: 20px;
+        padding: 20px;
+        background: rgba(92,107,255,0.08);
+        border: 1px solid rgba(118,131,255,0.3);
+        border-radius: 16px;
+        transition: all 0.3s ease;
+    }
+    
+    .lesson-card:hover {
+        background: rgba(92,107,255,0.12);
+        transform: translateX(4px);
+    }
+    
+    .lesson-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+    
+    .lesson-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0 0 4px 0;
+    }
+    
+    .lesson-meta {
+        color: var(--muted-3);
+        font-size: 0.85rem;
+    }
+    
+    .lesson-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn {
+        padding: 8px 14px;
+        border-radius: 8px;
+        border: none;
+        background: linear-gradient(135deg, var(--primary), var(--primary-2));
+        color: var(--text);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background: transparent;
+        border: 1px solid rgba(118,131,255,0.4);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--muted-3);
+    }
+    
+    .empty-state a {
+        color: var(--accent);
+        text-decoration: underline;
+    }
+</style>
+
+<div class="library-container">
+    <div class="library-header">
+        <h1>📚 Lesson Plan Library</h1>
+        <small style="color: var(--muted);">View, edit, and export all your saved lesson plans.</small>
+    </div>
+
+    {% if lesson_plans %}
+        {% for lesson in lesson_plans %}
+        <div class="lesson-card">
+            <div class="lesson-card-header">
+                <div>
+                    <h3 class="lesson-title">{{ lesson.title }}</h3>
+                    <div class="lesson-meta">
+                        {{ lesson.subject.replace('_', ' ').title() }} · 
+                        {{ lesson.topic }} · 
+                        Grade {{ lesson.grade }} ·
+                        Created {{ lesson.created_at.strftime('%B %d, %Y') }}
+                        {% if lesson.updated_at != lesson.created_at %}
+                        · Updated {{ lesson.updated_at.strftime('%B %d, %Y') }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="lesson-actions">
+                    <a href="/teacher/lesson_plans/{{ lesson.id }}" class="btn">View</a>
+                    <a href="/teacher/lesson_plans/{{ lesson.id }}/edit" class="btn btn-secondary">Edit</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <p style="font-size: 1.1rem; margin-bottom: 8px;">No lesson plans yet!</p>
+            <p>Head to the <a href="/teacher/dashboard">dashboard</a> to generate your first lesson plan.</p>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

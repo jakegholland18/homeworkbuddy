@@ -187,6 +187,33 @@ class AssignedQuestion(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# ============================================================
+# TEACHER LESSON PLANS
+# ============================================================
+
+class LessonPlan(db.Model):
+    __tablename__ = "lesson_plans"
+
+    id = db.Column(db.Integer, primary_key=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey("teachers.id"), nullable=False)
+
+    title = db.Column(db.String(200), nullable=False)
+    subject = db.Column(db.String(50))
+    topic = db.Column(db.String(200))
+    grade = db.Column(db.String(20))
+
+    # Six-section structure stored as JSON
+    sections_json = db.Column(db.Text)  # {overview, key_facts, christian_view, agreement, difference, practice}
+    
+    # Full raw text for export/display
+    full_text = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    teacher = db.relationship("Teacher", backref="lesson_plans", lazy=True)
+
+
 
 
 

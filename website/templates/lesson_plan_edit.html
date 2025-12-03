@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container" style="max-width: 900px; margin: 24px auto; padding: 0 20px;">
+    <h2 style="margin-bottom: 8px;">Edit Lesson Plan</h2>
+    <small style="color:#8a92b3;">{{ lesson.subject.replace('_', ' ').title() }} · {{ lesson.topic }} · Grade {{ lesson.grade }}</small>
+
+    <form method="POST" style="margin-top: 16px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div style="margin-bottom: 16px;">
+            <label style="font-weight: 600; margin-bottom: 4px; display: block;">Lesson Title</label>
+            <input type="text" name="title" value="{{ lesson.title }}" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(118,131,255,0.3); background: rgba(0,0,0,0.3); color: var(--text);">
+        </div>
+
+        <div style="margin-bottom: 20px; padding: 16px; background: rgba(92,107,255,0.08); border: 1px solid rgba(118,131,255,0.3); border-radius: 12px;">
+            <label style="font-weight: 600; margin-bottom: 8px; display: block; color: var(--accent);">SECTION 1 — OVERVIEW</label>
+            <textarea name="overview" rows="5" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(118,131,255,0.3); background: rgba(0,0,0,0.3); color: var(--text); font-family: inherit; line-height: 1.6;">{{ sections.overview or '' }}</textarea>
+        </div>
+
+        <div style="margin-bottom: 20px; padding: 16px; background: rgba(92,107,255,0.08); border: 1px solid rgba(118,131,255,0.3); border-radius: 12px;">
+            <label style="font-weight: 600; margin-bottom: 8px; display: block; color: var(--accent);">SECTION 2 — KEY FACTS</label>
+            <textarea name="key_facts" rows="5" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(118,131,255,0.3); background: rgba(0,0,0,0.3); color: var(--text); font-family: inherit; line-height: 1.6;">{{ sections.key_facts or '' }}</textarea>
+        </div>
+
+        <div style="margin-bottom: 20px; padding: 16px; background: rgba(92,107,255,0.08); border: 1px solid rgba(118,131,255,0.3); border-radius: 12px;">
+            <label style="font-weight: 600; margin-bottom: 8px; display: block; color: var(--accent);">SECTION 3 — CHRISTIAN VIEW</label>
+            <textarea name="christian_view" rows="5" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(118,131,255,0.3); background: rgba(0,0,0,0.3); color: var(--text); font-family: inherit; line-height: 1.6;">{{ sections.christian_view or '' }}</textarea>
+        </div>
+
+        <div style="margin-bottom: 20px; padding: 16px; background: rgba(92,107,255,0.08); border: 1px solid rgba(118,131,255,0.3); border-radius: 12px;">
+            <label style="font-weight: 600; margin-bottom: 8px; display: block; color: var(--accent);">SECTION 4 — AGREEMENT</label>
+            <textarea name="agreement" rows="5" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(118,131,255,0.3); background: rgba(0,0,0,0.3); color: var(--text); font-family: inherit; line-height: 1.6;">{{ sections.agreement or '' }}</textarea>
+        </div>
+
+        <div style="margin-bottom: 20px; padding: 16px; background: rgba(92,107,255,0.08); border: 1px solid rgba(118,131,255,0.3); border-radius: 12px;">
+            <label style="font-weight: 600; margin-bottom: 8px; display: block; color: var(--accent);">SECTION 5 — DIFFERENCE</label>
+            <textarea name="difference" rows="5" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(118,131,255,0.3); background: rgba(0,0,0,0.3); color: var(--text); font-family: inherit; line-height: 1.6;">{{ sections.difference or '' }}</textarea>
+        </div>
+
+        <div style="margin-bottom: 20px; padding: 16px; background: rgba(92,107,255,0.08); border: 1px solid rgba(118,131,255,0.3); border-radius: 12px;">
+            <label style="font-weight: 600; margin-bottom: 8px; display: block; color: var(--accent);">SECTION 6 — PRACTICE</label>
+            <textarea name="practice" rows="5" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(118,131,255,0.3); background: rgba(0,0,0,0.3); color: var(--text); font-family: inherit; line-height: 1.6;">{{ sections.practice or '' }}</textarea>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+            <button class="btn" type="submit">Save Changes</button>
+            <a class="btn" href="/teacher/lesson_plans/{{ lesson.id }}" style="background: transparent; border: 1px solid rgba(118,131,255,0.4);">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

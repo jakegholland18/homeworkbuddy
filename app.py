@@ -78,6 +78,7 @@ from models import (
     AssessmentResult,
     AssignedPractice,
     AssignedQuestion,
+    LessonPlan,
 )
 from sqlalchemy import func
 import json
@@ -1762,7 +1763,7 @@ def teacher_preview_questions():
 @csrf.exempt
 @app.route("/teacher/generate_lesson_plan", methods=["POST"])
 def teacher_generate_lesson_plan():
-    """Generate a six-section lesson plan for teachers."""
+    """Generate a six-section lesson plan and save to database."""
     teacher = get_current_teacher()
     if not teacher:
         return jsonify({"error": "Not authenticated"}), 401
@@ -1785,15 +1786,24 @@ def teacher_generate_lesson_plan():
         character=character,
     )
 
+    # Save to database
+    lesson_plan = LessonPlan(
+        teacher_id=teacher.id,
+        title=f"{subject.replace('_', ' ').title()}: {topic}",
+        subject=subject,
+        topic=topic,
+        grade=grade,
+        sections_json=json.dumps(lesson.get("sections", {})),
+        full_text=lesson.get("raw", ""),
+    )
+    db.session.add(lesson_plan)
+    db.session.commit()
+
     return jsonify({
         "success": True,
-        "lesson_plan": lesson,
-        "metadata": {
-            "subject": subject,
-            "topic": topic,
-            "grade": grade,
-        }
-    }), 200
+        "lesson_plan_id": lesson_plan.id,
+        "redirect_url": f"/teacher/lesson_plans/{lesson_plan.id}",
+    }), 201
 
 # ============================================================
 # TEACHER — TEACHER'S PET AI ASSISTANT
@@ -1802,20 +1812,20 @@ def teacher_generate_lesson_plan():
 @csrf.exempt
 @app.route("/teacher/teachers_pet", methods=["POST"])
 def teachers_pet_assistant():
-    """Teacher's Pet: AI assistant for teachers to ask questions about CozmicLearning and teaching."""
+    \"\"\"Teacher's Pet: AI assistant for teachers to ask questions about CozmicLearning and teaching.\"\"\"
     teacher = get_current_teacher()
     if not teacher:
-        return jsonify({"error": "Not authenticated"}), 401
+        return jsonify({\"error\": \"Not authenticated\"}), 401
 
     data = request.get_json() or {}
-    question = safe_text(data.get("question", ""), 2000)
-    history = data.get("history", [])
+    question = safe_text(data.get(\"question\", \"\"), 2000)
+    history = data.get(\"history\", [])
 
     if not question:
-        return jsonify({"error": "Question is required"}), 400
+        return jsonify({\"error\": \"Question is required\"}), 400
 
     # Build context about CozmicLearning for Teacher's Pet
-    context_prompt = """You are Teacher's Pet, a warm AI assistant for teachers using CozmicLearning.
+    context_prompt = \"\"\"You are Teacher's Pet, a warm AI assistant for teachers using CozmicLearning.
 
 RESPONSE STYLE — CRITICAL:
 • Keep answers SHORT and POWER-PACKED (3-5 sentences max for most questions)
@@ -1833,6 +1843,225 @@ CozmicLearning Quick Reference:
 
 Your Voice:
 • Warm but efficient - respect teachers' time
+
+
+# ============================================================
+# TEACHER — LESSON PLAN LIBRARY
+# ============================================================
+
+@app.route(\"/teacher/lesson_plans\")
+def teacher_lesson_plans():
+    \"\"\"View all saved lesson plans for the logged-in teacher.\"\"\"
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect(\"/teacher/login\")
+
+    lesson_plans = LessonPlan.query.filter_by(teacher_id=teacher.id).order_by(LessonPlan.created_at.desc()).all()
+
+    return render_template(
+        \"lesson_plans_library.html\",
+        teacher=teacher,
+        lesson_plans=lesson_plans,
+        is_owner=is_owner(teacher),
+    )
+
+
+@app.route(\"/teacher/lesson_plans/<int:lesson_id>\")
+def view_lesson_plan(lesson_id):
+    \"\"\"View a single lesson plan with options to edit, regenerate, export.\"\"\"
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect(\"/teacher/login\")
+
+    lesson = LessonPlan.query.get_or_404(lesson_id)
+    if not is_owner(teacher) and lesson.teacher_id != teacher.id:
+        flash(\"Not authorized to view this lesson plan.\", \"error\")
+        return redirect(\"/teacher/lesson_plans\")
+
+    # Parse sections from JSON
+    sections = json.loads(lesson.sections_json) if lesson.sections_json else {}
+
+    return render_template(
+        \"lesson_plan_view.html\",
+        teacher=teacher,
+        lesson=lesson,
+        sections=sections,
+        is_owner=is_owner(teacher),
+    )
+
+
+@app.route(\"/teacher/lesson_plans/<int:lesson_id>/edit\", methods=[\"GET\", \"POST\"])
+def edit_lesson_plan(lesson_id):
+    \"\"\"Edit lesson plan sections manually.\"\"\"
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect(\"/teacher/login\")
+
+    lesson = LessonPlan.query.get_or_404(lesson_id)
+    if not is_owner(teacher) and lesson.teacher_id != teacher.id:
+        flash(\"Not authorized to edit this lesson plan.\", \"error\")
+        return redirect(\"/teacher/lesson_plans\")
+
+    if request.method == \"POST\":
+        # Update sections
+        sections = {
+            \"overview\": safe_text(request.form.get(\"overview\", \"\"), 5000),
+            \"key_facts\": safe_text(request.form.get(\"key_facts\", \"\"), 5000),
+            \"christian_view\": safe_text(request.form.get(\"christian_view\", \"\"), 5000),
+            \"agreement\": safe_text(request.form.get(\"agreement\", \"\"), 5000),
+            \"difference\": safe_text(request.form.get(\"difference\", \"\"), 5000),
+            \"practice\": safe_text(request.form.get(\"practice\", \"\"), 5000),
+        }
+        
+        # Rebuild full text
+        full_text = f\"\"\"SECTION 1 — OVERVIEW
+{sections['overview']}
+
+SECTION 2 — KEY FACTS
+{sections['key_facts']}
+
+SECTION 3 — CHRISTIAN VIEW
+{sections['christian_view']}
+
+SECTION 4 — AGREEMENT
+{sections['agreement']}
+
+SECTION 5 — DIFFERENCE
+{sections['difference']}
+
+SECTION 6 — PRACTICE
+{sections['practice']}\"\"\"
+
+        lesson.sections_json = json.dumps(sections)
+        lesson.full_text = full_text
+        lesson.title = safe_text(request.form.get(\"title\", lesson.title), 200)
+        db.session.commit()
+        
+        flash(\"Lesson plan updated.\", \"info\")
+        return redirect(f\"/teacher/lesson_plans/{lesson_id}\")
+
+    sections = json.loads(lesson.sections_json) if lesson.sections_json else {}
+
+    return render_template(
+        \"lesson_plan_edit.html\",
+        teacher=teacher,
+        lesson=lesson,
+        sections=sections,
+        is_owner=is_owner(teacher),
+    )
+
+
+@csrf.exempt
+@app.route(\"/teacher/lesson_plans/<int:lesson_id>/regenerate_section\", methods=[\"POST\"])
+def regenerate_lesson_section(lesson_id):
+    \"\"\"Regenerate a specific section of a lesson plan.\"\"\"
+    teacher = get_current_teacher()
+    if not teacher:
+        return jsonify({\"error\": \"Not authenticated\"}), 401
+
+    lesson = LessonPlan.query.get_or_404(lesson_id)
+    if not is_owner(teacher) and lesson.teacher_id != teacher.id:
+        return jsonify({\"error\": \"Not authorized\"}), 403
+
+    data = request.get_json() or {}
+    section_name = data.get(\"section\")  # overview, key_facts, etc.
+
+    if section_name not in [\"overview\", \"key_facts\", \"christian_view\", \"agreement\", \"difference\", \"practice\"]:
+        return jsonify({\"error\": \"Invalid section name\"}), 400
+
+    # Regenerate full lesson and extract the requested section
+    new_lesson = generate_lesson_plan(
+        subject=lesson.subject,
+        topic=lesson.topic,
+        grade=lesson.grade,
+        character=\"everly\",
+    )
+
+    new_sections = new_lesson.get(\"sections\", {})
+    new_section_content = new_sections.get(section_name, \"\")
+
+    return jsonify({
+        \"success\": True,
+        \"section\": section_name,
+        \"content\": new_section_content,
+    }), 200
+
+
+@app.route(\"/teacher/lesson_plans/<int:lesson_id>/print\")
+def print_lesson_plan(lesson_id):
+    \"\"\"Print-friendly view of lesson plan.\"\"\"
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect(\"/teacher/login\")
+
+    lesson = LessonPlan.query.get_or_404(lesson_id)
+    if not is_owner(teacher) and lesson.teacher_id != teacher.id:
+        flash(\"Not authorized to view this lesson plan.\", \"error\")
+        return redirect(\"/teacher/lesson_plans\")
+
+    sections = json.loads(lesson.sections_json) if lesson.sections_json else {}
+
+    return render_template(
+        \"lesson_plan_print.html\",
+        lesson=lesson,
+        sections=sections,
+    )
+
+
+@app.route(\"/teacher/lesson_plans/<int:lesson_id>/export/pdf\")
+def export_lesson_plan_pdf(lesson_id):
+    \"\"\"Export lesson plan as PDF (placeholder for now - can use reportlab later).\"\"\"
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect(\"/teacher/login\")
+
+    lesson = LessonPlan.query.get_or_404(lesson_id)
+    if not is_owner(teacher) and lesson.teacher_id != teacher.id:
+        flash(\"Not authorized to export this lesson plan.\", \"error\")
+        return redirect(\"/teacher/lesson_plans\")
+
+    # For now, redirect to print view - can add PDF generation later
+    return redirect(f\"/teacher/lesson_plans/{lesson_id}/print\")
+
+
+# ============================================================
+# TEACHER — TEACHER'S PET AI ASSISTANT (CONTINUED)
+# ============================================================
+
+@csrf.exempt
+@app.route(\"/teacher/teachers_pet\", methods=[\"POST\"])
+def teachers_pet_assistant():
+    \"\"\"Teacher's Pet: AI assistant for teachers to ask questions about CozmicLearning and teaching.\"\"\"
+    teacher = get_current_teacher()
+    if not teacher:
+        return jsonify({\"error\": \"Not authenticated\"}), 401
+
+    data = request.get_json() or {}
+    question = safe_text(data.get(\"question\", \"\"), 2000)
+    history = data.get(\"history\", [])
+
+    if not question:
+        return jsonify({\"error\": \"Question is required\"}), 400
+
+    # Build context about CozmicLearning for Teacher's Pet
+    context_prompt = \"\"\"You are Teacher's Pet, a warm AI assistant for teachers using CozmicLearning.
+
+RESPONSE STYLE — CRITICAL:
+• Keep answers SHORT and POWER-PACKED (3-5 sentences max for most questions)
+• Get straight to the point - no long introductions
+• Use bullet points for lists (max 3-5 items)
+• One key Scripture reference when relevant, not multiple verses
+• Action-oriented: "Here's what to do..." not theory
+• Save long explanations only for complex "how-to" questions
+
+CozmicLearning Quick Reference:
+- 11 planets: NumForge (math), AtomSphere (science), FaithRealm (Bible), ChronoCore (history), InkHaven (writing), TruthForge (apologetics), StockStar (investing), CoinQuest (money), TerraNova (general), StoryVerse (reading), PowerGrid (study guide)
+- Differentiation: adaptive, gap_fill, mastery, scaffold
+- Six-section format includes Christian View in every lesson
+- Tools: assign questions, lesson plans, analytics, progress reports
+
+Your Voice:
+• Warm but efficient - respect teachers' time"
 • Quick encouragement with Scripture when fitting
 • Practical tips over long explanations
 • Celebrate their calling briefly
