@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Progress Report</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #5c6bff, #47c8ff);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .header p {
+            margin: 8px 0 0;
+            opacity: 0.95;
+            font-size: 14px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .student-section {
+            margin-bottom: 35px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(92, 107, 255, 0.05), rgba(71, 200, 255, 0.03));
+            border-left: 4px solid #5c6bff;
+            border-radius: 8px;
+        }
+        .student-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #5c6bff;
+            margin: 0 0 15px;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e5e9f2;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #8a92b3;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+        }
+        .stat-value.score {
+            color: #84ff00;
+        }
+        .stat-value.high {
+            color: #84ff00;
+        }
+        .stat-value.medium {
+            color: #ff9f00;
+        }
+        .stat-value.low {
+            color: #ff6b9d;
+        }
+        .subject-performance {
+            margin-top: 20px;
+        }
+        .subject-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        .subject-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border: 1px solid #e5e9f2;
+        }
+        .subject-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+        .subject-score {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .ability-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .ability-advanced {
+            background: rgba(132, 255, 0, 0.2);
+            color: #5fa300;
+        }
+        .ability-on_level {
+            background: rgba(0, 242, 255, 0.2);
+            color: #0099a8;
+        }
+        .ability-struggling {
+            background: rgba(255, 107, 157, 0.2);
+            color: #c9004f;
+        }
+        .footer {
+            background: #f5f7fa;
+            padding: 25px 30px;
+            text-align: center;
+            color: #8a92b3;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .footer a {
+            color: #5c6bff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #5c6bff, #47c8ff);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+        @media only screen and (max-width: 600px) {
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Weekly Progress Report</h1>
+            <p>{{ week_start }} - {{ week_end }}</p>
+        </div>
+
+        <div class="content">
+            <div class="greeting">
+                Hi {{ parent_name }}! 👋
+            </div>
+
+            <p style="color: #666; line-height: 1.6; margin-bottom: 25px;">
+                Here's your weekly summary of your children's learning journey on CozmicLearning.
+            </p>
+
+            {% for student in students %}
+            <div class="student-section">
+                <h2 class="student-name">
+                    {{ student.name }}
+                    <span class="ability-badge ability-{{ student.ability_level }}">
+                        {% if student.ability_level == 'advanced' %}Advanced
+                        {% elif student.ability_level == 'on_level' %}On Level
+                        {% else %}Developing{% endif %}
+                    </span>
+                </h2>
+
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <div class="stat-label">Assessments</div>
+                        <div class="stat-value">{{ student.assessments_completed }}</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Average Score</div>
+                        <div class="stat-value {% if student.average_score >= 80 %}high{% elif student.average_score >= 60 %}medium{% else %}low{% endif %}">
+                            {{ student.average_score }}%
+                        </div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Time Spent</div>
+                        <div class="stat-value">{{ student.time_spent_minutes }} min</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Subjects</div>
+                        <div class="stat-value">{{ student.subjects_practiced }}</div>
+                    </div>
+                </div>
+
+                {% if student.subject_performance %}
+                <div class="subject-performance">
+                    <div class="subject-title">📚 Subject Performance</div>
+                    {% for subject, data in student.subject_performance.items() %}
+                    <div class="subject-item">
+                        <span class="subject-name">{{ subject|title }}</span>
+                        <span class="subject-score {% if data.average >= 80 %}high{% elif data.average >= 60 %}medium{% else %}low{% endif %}">
+                            {{ data.average|round(1) }}%
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="https://cozmiclearning.com/parent_dashboard" class="cta-button">
+                    View Full Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>Keep the momentum going!</strong><br>
+                Encourage your children to continue their learning journey.
+            </p>
+            <p style="margin-top: 15px;">
+                Questions? <a href="mailto:support@cozmiclearning.com">Contact Support</a><br>
+                <a href="https://cozmiclearning.com/parent/email-preferences">Manage Email Preferences</a>
+            </p>
+            <p style="margin-top: 15px; font-size: 11px; color: #aaa;">
+                © 2025 CozmicLearning. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

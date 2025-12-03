@@ -33,6 +33,7 @@ from flask import (
 from flask import got_request_exception
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import CSRFProtect
+from flask_mail import Mail, Message as EmailMessage
 
 # ============================================================
 # FLASK APP SETUP
@@ -57,6 +58,19 @@ app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 
 # CSRF protection - enabled globally. We'll exempt JSON POST endpoints below
 csrf = CSRFProtect(app)
+
+# ============================================================
+# EMAIL CONFIGURATION (FLASK-MAIL)
+# ============================================================
+
+app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True') == 'True'
+app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')  # Set in environment
+app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')  # Set in environment or use app password
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@cozmiclearning.com')
+
+mail = Mail(app)
 
 # ============================================================
 # OWNER + ADMIN
@@ -3790,6 +3804,149 @@ def parent_analytics():
         subject_stats=subject_stats,
         subject_count=subject_count,
     )
+
+
+# ============================================================
+# PARENT - WEEKLY EMAIL REPORTS (PHASE 4)
+# ============================================================
+
+def generate_weekly_report_data(parent):
+    """Generate weekly progress report data for a parent's students."""
+    report_data = {
+        'parent_name': parent.name,
+        'parent_email': parent.email,
+        'week_start': (datetime.utcnow() - timedelta(days=7)).strftime('%B %d, %Y'),
+        'week_end': datetime.utcnow().strftime('%B %d, %Y'),
+        'students': []
+    }
+    
+    for student in parent.students:
+        # Get assessments from past 7 days
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        weekly_assessments = [
+            r for r in student.assessment_results 
+            if r.created_at and r.created_at >= week_ago
+        ]
+        
+        if not weekly_assessments:
+            continue  # Skip students with no activity
+        
+        # Calculate stats
+        total_score = sum(r.score_percent for r in weekly_assessments)
+        avg_score = total_score / len(weekly_assessments) if weekly_assessments else 0
+        
+        # Subject breakdown
+        subject_performance = {}
+        for result in weekly_assessments:
+            if result.subject not in subject_performance:
+                subject_performance[result.subject] = {'scores': [], 'count': 0}
+            subject_performance[result.subject]['scores'].append(result.score_percent)
+            subject_performance[result.subject]['count'] += 1
+        
+        # Calculate subject averages
+        for subject in subject_performance:
+            scores = subject_performance[subject]['scores']
+            subject_performance[subject]['average'] = sum(scores) / len(scores)
+        
+        # Time spent (from today_minutes tracking)
+        time_spent = student.today_minutes or 0
+        
+        student_data = {
+            'name': student.student_name,
+            'assessments_completed': len(weekly_assessments),
+            'average_score': round(avg_score, 1),
+            'time_spent_minutes': time_spent,
+            'subjects_practiced': len(subject_performance),
+            'subject_performance': subject_performance,
+            'ability_level': student.ability_level or 'on_level'
+        }
+        
+        report_data['students'].append(student_data)
+    
+    return report_data
+
+
+def send_weekly_report_email(parent):
+    """Send weekly progress report email to parent."""
+    if not parent.email_reports_enabled:
+        return False
+    
+    report_data = generate_weekly_report_data(parent)
+    
+    # Skip if no student activity this week
+    if not report_data['students']:
+        return False
+    
+    try:
+        msg = EmailMessage(
+            subject=f"📊 CozmicLearning Weekly Progress Report",
+            recipients=[parent.email],
+        )
+        
+        msg.html = render_template(
+            'emails/weekly_report.html',
+            **report_data
+        )
+        
+        mail.send(msg)
+        
+        # Update last report sent timestamp
+        parent.last_report_sent = datetime.utcnow()
+        db.session.commit()
+        
+        return True
+    except Exception as e:
+        print(f"Error sending email to {parent.email}: {e}")
+        return False
+
+
+@app.route("/parent/email-preferences", methods=["GET", "POST"])
+def parent_email_preferences():
+    """Parent email preferences - enable/disable weekly reports."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        flash("Please log in as a parent.", "error")
+        return redirect("/parent/login")
+    
+    parent = Parent.query.get(parent_id)
+    if not parent:
+        return redirect("/parent/login")
+    
+    if request.method == "POST":
+        enabled = request.form.get("email_reports_enabled") == "on"
+        parent.email_reports_enabled = enabled
+        db.session.commit()
+        
+        if enabled:
+            flash("Weekly email reports enabled! You'll receive updates every Sunday.", "success")
+        else:
+            flash("Weekly email reports disabled.", "success")
+        
+        return redirect("/parent/email-preferences")
+    
+    return render_template("parent_email_preferences.html", parent=parent)
+
+
+@app.route("/parent/send-test-report")
+def parent_send_test_report():
+    """Manual trigger for testing weekly report emails."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        flash("Please log in as a parent.", "error")
+        return redirect("/parent/login")
+    
+    parent = Parent.query.get(parent_id)
+    if not parent:
+        return redirect("/parent/login")
+    
+    success = send_weekly_report_email(parent)
+    
+    if success:
+        flash("✅ Test report sent! Check your email.", "success")
+    else:
+        flash("⚠️ No student activity this week, or email reports disabled.", "warning")
+    
+    return redirect("/parent/email-preferences")
 
 
 @app.route("/parent/messages")

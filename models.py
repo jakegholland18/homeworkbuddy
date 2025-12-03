@@ -28,6 +28,10 @@ class Parent(db.Model):
     # Time limits (Phase 3)
     daily_limit_minutes = db.Column(db.Integer, nullable=True)  # null = no limit
 
+    # Email preferences (Phase 4)
+    email_reports_enabled = db.Column(db.Boolean, default=True)
+    last_report_sent = db.Column(db.DateTime, nullable=True)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # One parent → many students
