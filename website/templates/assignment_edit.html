@@ -8,7 +8,7 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     {% for q in questions %}
-    <div style="margin-bottom: 18px; padding: 14px; border:1px solid rgba(118,131,255,0.3); border-radius: 12px; background: rgba(92,107,255,0.08);">
+    <div class="question-block" data-qid="{{ q.id }}" style="margin-bottom: 18px; padding: 14px; border:1px solid rgba(118,131,255,0.3); border-radius: 12px; background: rgba(92,107,255,0.08);">
       <input type="hidden" name="q_id" value="{{ q.id }}">
       <label><strong>Question {{ loop.index }} Text</strong></label>
       <textarea name="question_text_{{ q.id }}" rows="3" style="width:100%;">{{ q.question_text }}</textarea>
@@ -16,7 +16,7 @@
       <div style="display:flex; gap:8px; margin-top:8px;">
         <div>
           <label>Type</label>
-          <select name="question_type_{{ q.id }}">
+          <select name="question_type_{{ q.id }}" class="question-type">
             <option value="free" {% if q.question_type == 'free' %}selected{% endif %}>Free Response</option>
             <option value="multiple_choice" {% if q.question_type == 'multiple_choice' %}selected{% endif %}>Multiple Choice</option>
           </select>
@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-top:8px;">
+      <div class="mc-choices" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-top:8px;">
         <div>
           <label>Choice A</label>
           <input type="text" name="choice_a_{{ q.id }}" value="{{ q.choice_a or '' }}">
@@ -53,7 +53,7 @@
       <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-top:8px;">
         <div>
           <label>Correct Answer(s)</label>
-          <input type="text" name="correct_answer_{{ q.id }}" value="{{ q.correct_answer or '' }}" placeholder="e.g., a or A,B">
+          <input type="text" name="correct_answer_{{ q.id }}" value="{{ q.correct_answer or '' }}" placeholder="e.g., A or A,B" class="correct-answer">
         </div>
         <div>
           <label>Explanation</label>
@@ -119,5 +119,44 @@ async function generateMoreQuestions() {
     resultDiv.innerHTML = `<strong style="color: var(--warning);">✗ Network Error:</strong> ${err.message}`;
   }
 }
+</script>
+<script>
+// Toggle multiple-choice fields and validate MC answers
+document.querySelectorAll('.question-block').forEach(block => {
+  const typeSelect = block.querySelector('.question-type');
+  const mcChoices = block.querySelector('.mc-choices');
+  const correctInput = block.querySelector('.correct-answer');
+
+  function updateVisibility() {
+    const isMC = typeSelect && typeSelect.value === 'multiple_choice';
+    if (mcChoices) mcChoices.style.display = isMC ? 'grid' : 'none';
+    if (correctInput) correctInput.placeholder = isMC ? 'e.g., A or A,B' : 'e.g., 42 or "Momentum increases"';
+  }
+  if (typeSelect) {
+    typeSelect.addEventListener('change', updateVisibility);
+    updateVisibility();
+  }
+});
+
+document.querySelector('form').addEventListener('submit', function(e) {
+  let ok = true;
+  document.querySelectorAll('.question-block').forEach(block => {
+    const typeSelect = block.querySelector('.question-type');
+    const correctInput = block.querySelector('.correct-answer');
+    if (typeSelect && typeSelect.value === 'multiple_choice' && correctInput) {
+      const val = (correctInput.value || '').trim();
+      if (val && !/^([A-D])(,([A-D]))*$/.test(val.toUpperCase())) {
+        ok = false;
+        correctInput.style.border = '1px solid #ff9f1c';
+      } else {
+        correctInput.style.border = '';
+      }
+    }
+  });
+  if (!ok) {
+    e.preventDefault();
+    alert('For Multiple Choice, use letters A-D (e.g., A or A,B).');
+  }
+});
 </script>
 {% endblock %}
