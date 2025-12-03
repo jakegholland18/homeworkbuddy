@@ -111,6 +111,7 @@
 <div class="content-box">
 
     <form method="POST" action="/teacher/assignments/create">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <div>
             <label>Class</label>

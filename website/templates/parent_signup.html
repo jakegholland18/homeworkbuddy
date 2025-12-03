@@ -31,9 +31,10 @@
     </div>
 
     <form method="POST" class="auth-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         <div>
-            <label>Full Name</label>
+            <label>Your Name</label>
             <input type="text" name="name" placeholder="Your full name" required>
         </div>
 

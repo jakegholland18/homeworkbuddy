@@ -1,6 +1,6 @@
 # modules/investment_helper.py
 
-from modules.shared_ai import study_buddy_ai
+from modules.shared_ai import study_buddy_ai, grade_depth_instruction
 from modules.personality_helper import apply_personality
 from modules.answer_formatter import parse_into_sections, format_answer
 
@@ -22,14 +22,18 @@ def is_christian_question(text: str) -> bool:
 # Standard investing prompt (NO BULLETS)
 # ------------------------------------------------------------
 def build_investing_prompt(topic: str, grade: str):
+    depth = grade_depth_instruction(grade)
     return f"""
 You are a gentle investing tutor helping a grade {grade} student.
 
 The student asked:
-\"{topic}\"
+"{topic}"
 
 Use the SIX-section Homework Buddy format.
 NO bullet points. ONLY short paragraphs.
+{depth}
+
+Important notes: This is educational guidance, not personal financial advice. Be clear about uncertainty and risk. Encourage stewardship, honesty, and wise planning.
 
 SECTION 1 — OVERVIEW
 Explain the investing idea in 2–3 short, simple sentences.
@@ -61,13 +65,17 @@ Write them in short paragraph sentences.
 # Christian-directed investing prompt (NO BULLETS)
 # ------------------------------------------------------------
 def build_christian_investing_prompt(topic: str, grade: str):
+    depth = grade_depth_instruction(grade)
     return f"""
 The student asked this investing question from a Christian perspective:
 
-\"{topic}\"
+"{topic}"
 
 Use the SIX-section Homework Buddy format.
 NO bullet points.
+{depth}
+
+Important notes: This is educational guidance, not personal financial advice. Be transparent about uncertainty and risk. Emphasize stewardship, generosity, and integrity.
 
 SECTION 1 — OVERVIEW
 Explain the idea calmly in 2–3 sentences.
@@ -190,6 +198,48 @@ Write a few tiny quiz questions with short example answers.
         practice=sections.get("practice", []),
         raw_text=raw
     )
+
+
+
+# ------------------------------------------------------------
+# Light calculation utilities (pure functions)
+# ------------------------------------------------------------
+def compound_growth(principal: float, rate_annual: float, years: float, contributions_annual: float = 0.0) -> float:
+    """Compute future value with annual compounding and optional annual contributions.
+    rate_annual expressed as decimal (e.g., 0.07)."""
+    fv = principal
+    for _ in range(int(years)):
+        fv = fv * (1 + rate_annual) + contributions_annual
+    # handle fractional year simply
+    frac = years - int(years)
+    if frac > 0:
+        fv = fv * (1 + rate_annual * frac) + contributions_annual * frac
+    return fv
+
+
+def cagr(begin_value: float, end_value: float, years: float) -> float:
+    """Compound annual growth rate as decimal."""
+    if begin_value <= 0 or years <= 0:
+        return 0.0
+    return (end_value / begin_value) ** (1.0 / years) - 1.0
+
+
+def weighted_expected_return(weights: list, returns: list) -> float:
+    """Weighted expected return given portfolio weights and expected returns (decimals)."""
+    if not weights or not returns or len(weights) != len(returns):
+        return 0.0
+    return sum(w * r for w, r in zip(weights, returns))
+
+
+def portfolio_variance(weights: list, covariance_matrix: list[list[float]]) -> float:
+    """Simple portfolio variance: w^T Σ w. Assumes covariance_matrix is square and matches weights length."""
+    n = len(weights)
+    if n == 0 or any(len(row) != n for row in covariance_matrix):
+        return 0.0
+    # compute Σw
+    sigma_w = [sum(covariance_matrix[i][j] * weights[j] for j in range(n)) for i in range(n)]
+    # w^T (Σw)
+    return sum(weights[i] * sigma_w[i] for i in range(n))
 
 
 

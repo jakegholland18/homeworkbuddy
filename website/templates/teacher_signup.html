@@ -32,6 +32,7 @@
     </div>
 
     <form method="POST" action="/teacher/signup" class="auth-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div>
             <label for="name">Full Name</label>
             <input id="name" name="name" type="text" placeholder="e.g., Ms. Johnson" required>

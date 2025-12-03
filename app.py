@@ -32,6 +32,7 @@ from flask import (
 )
 from flask import got_request_exception
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf import CSRFProtect
 
 # ============================================================
 # FLASK APP SETUP
@@ -45,6 +46,17 @@ app = Flask(
 )
 
 app.secret_key = "b3c2e773eaa84cd6841a9ffa54c918881b9fab30bb02f7128"
+
+# ------------------------------------------------------------
+# Secure session cookie configuration (essentials)
+# ------------------------------------------------------------
+app.config["SESSION_COOKIE_SECURE"] = True
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
+
+# CSRF protection — enabled globally. We'll exempt JSON POST endpoints below
+csrf = CSRFProtect(app)
 
 # ============================================================
 # OWNER + ADMIN
@@ -189,6 +201,21 @@ def log_exception(sender, exception, **extra):
 
 
 got_request_exception.connect(log_exception, app)
+
+# ------------------------------------------------------------
+# SIMPLE INPUT SANITIZATION HELPERS (essentials)
+# ------------------------------------------------------------
+def safe_text(value: str, max_len: int = 500) -> str:
+    if not isinstance(value, str):
+        return ""
+    v = value.strip()
+    if len(v) > max_len:
+        v = v[:max_len]
+    return v
+
+def safe_email(value: str, max_len: int = 254) -> str:
+    v = safe_text(value.lower(), max_len)
+    return v
 
 # ============================================================
 # JINJA2 FILTERS
@@ -549,10 +576,10 @@ def logout():
 def student_signup():
     init_user()
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip().lower()
+        name = safe_text(request.form.get("name", ""), 100)
+        email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
-        parent_email = request.form.get("parent_email", "").strip().lower()
+        parent_email = safe_email(request.form.get("parent_email", ""))
 
         if not name or not email or not password or not parent_email:
             flash("All fields are required, including parent email.", "error")
@@ -597,7 +624,7 @@ def student_signup():
 def student_login():
     init_user()
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
+        email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
 
         student = Student.query.filter_by(student_email=email).first()
@@ -621,8 +648,8 @@ def student_login():
 def parent_signup():
     init_user()
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip().lower()
+        name = safe_text(request.form.get("name", ""), 100)
+        email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
 
         if not name or not email or not password:
@@ -656,7 +683,7 @@ def parent_signup():
 def parent_login():
     init_user()
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
+        email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
 
         parent = Parent.query.filter_by(email=email).first()
@@ -685,8 +712,8 @@ def parent_login():
 @app.route("/teacher/signup", methods=["GET", "POST"])
 def teacher_signup():
     if request.method == "POST":
-        name = request.form.get("name", "").strip()
-        email = request.form.get("email", "").strip().lower()
+        name = safe_text(request.form.get("name", ""), 100)
+        email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
 
         if not name or not email or not password:
@@ -715,7 +742,7 @@ def teacher_signup():
 @app.route("/teacher/login", methods=["GET", "POST"])
 def teacher_login():
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
+        email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
 
         teacher = Teacher.query.filter_by(email=email).first()
@@ -1032,10 +1059,10 @@ def create_assignment():
 
     if request.method == "POST":
         class_id = request.form.get("class_id", type=int)
-        title = request.form.get("title", "").strip()
-        subject = (request.form.get("subject", "") or "general").strip().lower()
-        topic = (request.form.get("topic", "") or "").strip()
-        instructions = request.form.get("instructions", "").strip()
+        title = safe_text(request.form.get("title", ""), 120)
+        subject = safe_text((request.form.get("subject", "") or "general"), 50).lower()
+        topic = safe_text((request.form.get("topic", "") or ""), 500)
+        instructions = safe_text(request.form.get("instructions", ""), 2000)
         due_str = request.form.get("due_date", "").strip()
         differentiation_mode = request.form.get("differentiation_mode", "none")
 
@@ -1111,15 +1138,15 @@ def assignment_add_question(practice_id):
         return redirect("/teacher/assignments")
 
     if request.method == "POST":
-        question_text = request.form.get("question_text", "").strip()
+        question_text = safe_text(request.form.get("question_text", ""), 2000)
         question_type = request.form.get("question_type", "free")
 
-        choice_a = request.form.get("choice_a", "").strip() or None
-        choice_b = request.form.get("choice_b", "").strip() or None
-        choice_c = request.form.get("choice_c", "").strip() or None
-        choice_d = request.form.get("choice_d", "").strip() or None
-        correct_answer = request.form.get("correct_answer", "").strip() or None
-        explanation = request.form.get("explanation", "").strip() or None
+        choice_a = safe_text(request.form.get("choice_a", ""), 500) or None
+        choice_b = safe_text(request.form.get("choice_b", ""), 500) or None
+        choice_c = safe_text(request.form.get("choice_c", ""), 500) or None
+        choice_d = safe_text(request.form.get("choice_d", ""), 500) or None
+        correct_answer = safe_text(request.form.get("correct_answer", ""), 500) or None
+        explanation = safe_text(request.form.get("explanation", ""), 2000) or None
         difficulty = request.form.get("difficulty_level", "").strip() or None
 
         if not question_text:
@@ -1167,17 +1194,15 @@ def edit_question(question_id):
         return redirect("/teacher/assignments")
 
     if request.method == "POST":
-        question.question_text = request.form.get("question_text", "").strip()
+        question.question_text = safe_text(request.form.get("question_text", ""), 2000)
         question.question_type = request.form.get("question_type", "free")
 
-        question.choice_a = request.form.get("choice_a", "").strip() or None
-        question.choice_b = request.form.get("choice_b", "").strip() or None
-        question.choice_c = request.form.get("choice_c", "").strip() or None
-        question.choice_d = request.form.get("choice_d", "").strip() or None
-        question.correct_answer = (
-            request.form.get("correct_answer", "").strip() or None
-        )
-        question.explanation = request.form.get("explanation", "").strip() or None
+        question.choice_a = safe_text(request.form.get("choice_a", ""), 500) or None
+        question.choice_b = safe_text(request.form.get("choice_b", ""), 500) or None
+        question.choice_c = safe_text(request.form.get("choice_c", ""), 500) or None
+        question.choice_d = safe_text(request.form.get("choice_d", ""), 500) or None
+        question.correct_answer = safe_text(request.form.get("correct_answer", ""), 500) or None
+        question.explanation = safe_text(request.form.get("explanation", ""), 2000) or None
         question.difficulty_level = (
             request.form.get("difficulty_level", "").strip() or None
         )
@@ -1533,6 +1558,7 @@ def teacher_class_analytics(class_id):
 
 
 @app.route("/teacher/record_result", methods=["POST"])
+@csrf.exempt
 def teacher_record_result():
     teacher = get_current_teacher()
     if not teacher:
@@ -1688,6 +1714,7 @@ def subject_answer():
 # ============================================================
 
 @app.route("/followup_message", methods=["POST"])
+@csrf.exempt
 def followup_message():
     init_user()
 
@@ -1710,6 +1737,7 @@ def followup_message():
 
 
 @app.route("/deep_study_message", methods=["POST"])
+@csrf.exempt
 def deep_study_message():
     init_user()
 
@@ -1758,6 +1786,7 @@ Rules:
 # ============================================================
 
 @app.route("/powergrid_submit", methods=["POST"])
+@csrf.exempt
 def powergrid_submit():
     init_user()
 
@@ -1868,6 +1897,7 @@ def practice():
 
 
 @app.route("/start_practice", methods=["POST"])
+@csrf.exempt
 def start_practice():
     init_user()
 
@@ -1925,6 +1955,7 @@ def start_practice():
 
 
 @app.route("/navigate_question", methods=["POST"])
+@csrf.exempt
 def navigate_question():
     init_user()
 
@@ -1989,6 +2020,7 @@ def navigate_question():
 
 
 @app.route("/practice_step", methods=["POST"])
+@csrf.exempt
 def practice_step():
     init_user()
 
@@ -2147,6 +2179,7 @@ def practice_step():
 
 
 @app.route("/practice_help_message", methods=["POST"])
+@csrf.exempt
 def practice_help_message():
     init_user()
 

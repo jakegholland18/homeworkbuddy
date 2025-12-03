@@ -277,6 +277,7 @@
 
         <!-- MODE 1 -->
         <form id="ask-form-1" action="/subject" method="POST" class="ask-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <h3 style="margin-top:0;">🔎 Ask a Deep Question</h3>
             <p>Get a 6-section in-depth explanation, then chat with your tutor.</p>
 
@@ -290,6 +291,7 @@
 
         <!-- MODE 2 -->
         <form action="/powergrid_submit" method="POST" enctype="multipart/form-data" class="ask-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <h3 style="margin-top:0;">📚 Build a Custom Study Guide</h3>
             <p>Upload a file or type a topic. PowerGrid will create a full study guide.</p>
@@ -312,6 +314,7 @@
 
         <!-- NORMAL PLANETS -->
         <form id="ask-form-2" action="/subject" method="POST" class="ask-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="subject" value="{{ subject }}">
             <input type="hidden" name="grade" value="{{ grade }}">
 

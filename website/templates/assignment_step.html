@@ -200,6 +200,7 @@
     <!-- ANSWER FORM -->
     {% if not submitted %}
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         {% if step.type == "multiple_choice" %}
             {% for ch in step.choices %}
                 <label class="choice-label">
