@@ -1026,15 +1026,15 @@ def reset_password(token):
 @app.route("/teacher/dashboard")
 def teacher_dashboard():
     teacher = get_current_teacher()
-        # Count unread messages
-        unread_messages = Message.query.filter_by(
-            recipient_type="teacher",
-            recipient_id=teacher.id,
-            is_read=False
-        ).count()
-
     if not teacher:
         return redirect("/teacher/login")
+
+    # Count unread messages
+    unread_messages = Message.query.filter_by(
+        recipient_type="teacher",
+        recipient_id=teacher.id,
+        is_read=False,
+    ).count()
 
     classes = teacher.classes or []
     return render_template(
