@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container" style="max-width: 1000px; margin: 24px auto;">
+  <h2 style="margin-bottom: 8px;">Edit Assignment: {{ assignment.title }}</h2>
+  <small style="color:#8a92b3;">Subject: {{ assignment.subject }} · Class: {{ assignment.class_ref.class_name }}</small>
+
+  <form method="POST" style="margin-top: 16px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    {% for q in questions %}
+    <div style="margin-bottom: 18px; padding: 14px; border:1px solid rgba(118,131,255,0.3); border-radius: 12px; background: rgba(92,107,255,0.08);">
+      <input type="hidden" name="q_id" value="{{ q.id }}">
+      <label><strong>Question {{ loop.index }} Text</strong></label>
+      <textarea name="question_text_{{ q.id }}" rows="3" style="width:100%;">{{ q.question_text }}</textarea>
+
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <div>
+          <label>Type</label>
+          <select name="question_type_{{ q.id }}">
+            <option value="free" {% if q.question_type == 'free' %}selected{% endif %}>Free Response</option>
+            <option value="multiple_choice" {% if q.question_type == 'multiple_choice' %}selected{% endif %}>Multiple Choice</option>
+          </select>
+        </div>
+        <div>
+          <label>Difficulty</label>
+          <select name="difficulty_level_{{ q.id }}">
+            <option value="easy" {% if q.difficulty_level == 'easy' %}selected{% endif %}>Easy</option>
+            <option value="medium" {% if q.difficulty_level == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="hard" {% if q.difficulty_level == 'hard' %}selected{% endif %}>Hard</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-top:8px;">
+        <div>
+          <label>Choice A</label>
+          <input type="text" name="choice_a_{{ q.id }}" value="{{ q.choice_a or '' }}">
+        </div>
+        <div>
+          <label>Choice B</label>
+          <input type="text" name="choice_b_{{ q.id }}" value="{{ q.choice_b or '' }}">
+        </div>
+        <div>
+          <label>Choice C</label>
+          <input type="text" name="choice_c_{{ q.id }}" value="{{ q.choice_c or '' }}">
+        </div>
+        <div>
+          <label>Choice D</label>
+          <input type="text" name="choice_d_{{ q.id }}" value="{{ q.choice_d or '' }}">
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-top:8px;">
+        <div>
+          <label>Correct Answer(s)</label>
+          <input type="text" name="correct_answer_{{ q.id }}" value="{{ q.correct_answer or '' }}" placeholder="e.g., a or A,B">
+        </div>
+        <div>
+          <label>Explanation</label>
+          <input type="text" name="explanation_{{ q.id }}" value="{{ q.explanation or '' }}">
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <button class="btn" type="submit">Save Changes</button>
+    <a class="btn" href="/teacher/assignments/{{ assignment.id }}" style="margin-left:8px; background: transparent; border:1px solid rgba(118,131,255,0.4);">Back to Overview</a>
+  </form>
+</div>
+{% endblock %}

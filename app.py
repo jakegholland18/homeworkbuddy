@@ -1290,6 +1290,46 @@ def assignment_overview(practice_id):
     )
 
 
+@app.route("/teacher/assignments/<int:practice_id>/edit", methods=["GET", "POST"])
+def assignment_edit(practice_id):
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect("/teacher/login")
+
+    assignment = AssignedPractice.query.get_or_404(practice_id)
+    if not is_owner(teacher) and assignment.teacher_id != teacher.id:
+        flash("Not authorized to edit this assignment.", "error")
+        return redirect("/teacher/assignments")
+
+    if request.method == "POST":
+        # Bulk update: iterate posted questions
+        qids = request.form.getlist("q_id")
+        for qid in qids:
+            q = AssignedQuestion.query.get(int(qid))
+            if not q or q.practice_id != assignment.id:
+                continue
+            q.question_text = safe_text(request.form.get(f"question_text_{qid}", ""), 4000)
+            q.question_type = request.form.get(f"question_type_{qid}", "free")
+            q.choice_a = safe_text(request.form.get(f"choice_a_{qid}", ""), 1000) or None
+            q.choice_b = safe_text(request.form.get(f"choice_b_{qid}", ""), 1000) or None
+            q.choice_c = safe_text(request.form.get(f"choice_c_{qid}", ""), 1000) or None
+            q.choice_d = safe_text(request.form.get(f"choice_d_{qid}", ""), 1000) or None
+            q.correct_answer = safe_text(request.form.get(f"correct_answer_{qid}", ""), 1000) or None
+            q.explanation = safe_text(request.form.get(f"explanation_{qid}", ""), 4000) or None
+            q.difficulty_level = request.form.get(f"difficulty_level_{qid}", "") or None
+        db.session.commit()
+        flash("Questions updated.", "info")
+        return redirect(f"/teacher/assignments/{practice_id}/edit")
+
+    return render_template(
+        "assignment_edit.html",
+        teacher=teacher,
+        assignment=assignment,
+        questions=assignment.questions,
+        is_owner=is_owner(teacher),
+    )
+
+
 @app.route(
     "/teacher/assignments/<int:practice_id>/questions/new", methods=["GET", "POST"]
 )
@@ -1609,6 +1649,7 @@ def teacher_assign_questions():
         "success": True,
         "assignment_id": assignment.id,
         "message": f"Generated {len(questions_data)} questions for assignment '{title}'",
+        "edit_url": f"/teacher/assignments/{assignment.id}/edit",
     }), 201
 
 # ============================================================
