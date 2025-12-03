@@ -403,6 +403,7 @@
         <small>Name your class and choose the grade level.</small>
 
         <form class="inline-form" method="POST" action="/teacher/add_class">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="text" name="class_name" placeholder="e.g., 5th Grade Math" required>
             <input type="text" name="grade_level" placeholder="Grade (e.g., 5)">
             <button class="btn" type="submit">Create Class</button>
