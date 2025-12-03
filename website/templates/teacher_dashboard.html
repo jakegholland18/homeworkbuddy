@@ -715,7 +715,7 @@ async function previewQuestions() {
     const modal = document.getElementById('previewModal');
     const content = document.getElementById('previewContent');
     
-    content.innerHTML = '<p style="text-align: center;">Generating questions...</p>';
+    content.innerHTML = '<p style="text-align: center;">Generating questions... (this may take 15-30 seconds)<br><small style="color: var(--muted-3);">AI is creating professional, grade-appropriate questions</small></p>';
     modal.style.display = 'block';
 
     const payload = {
@@ -729,13 +729,19 @@ async function previewQuestions() {
     };
 
     try {
+        // Set a longer timeout for preview
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
         const res = await fetch('/teacher/preview_questions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
         const data = await res.json();
         
         if (res.ok && data.questions) {
@@ -777,7 +783,11 @@ async function previewQuestions() {
             content.innerHTML = `<p style="color: var(--warning);">Error: ${data.error || 'Failed to generate questions'}</p>`;
         }
     } catch (err) {
-        content.innerHTML = `<p style="color: var(--warning);">Network Error: ${err.message}</p>`;
+        if (err.name === 'AbortError') {
+            content.innerHTML = `<p style="color: var(--warning);">Request timed out. Try generating fewer questions (5-7) or use "Generate & Assign" to save directly without preview.</p>`;
+        } else {
+            content.innerHTML = `<p style="color: var(--warning);">Network Error: ${err.message}<br><small>Try using "Generate & Assign" instead of preview for faster results.</small></p>`;
+        }
     }
 }
 
@@ -788,7 +798,7 @@ function closePreview() {
 async function submitAssignQuestions() {
     const resultDiv = document.getElementById('assignQuestionsResult');
     resultDiv.style.display = 'block';
-    resultDiv.textContent = 'Generating questions...';
+    resultDiv.innerHTML = 'Generating questions... (this may take 15-30 seconds)<br><small style="color: var(--muted-3);">Creating your assignment...</small>';
 
     const payload = {
         class_id: parseInt(document.getElementById('assignClassId').value, 10),
@@ -804,13 +814,19 @@ async function submitAssignQuestions() {
     };
 
     try {
+        // Set a longer timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
         const res = await fetch('/teacher/assign_questions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
         const data = await res.json();
         
         if (res.ok) {
@@ -824,7 +840,11 @@ async function submitAssignQuestions() {
             resultDiv.innerHTML = `<strong style="color: var(--warning);">✗ Error:</strong> ${data.error || 'Unknown error'}`;
         }
     } catch (err) {
-        resultDiv.innerHTML = `<strong style="color: var(--warning);">✗ Network Error:</strong> ${err.message}`;
+        if (err.name === 'AbortError') {
+            resultDiv.innerHTML = `<strong style="color: var(--warning);">✗ Timeout:</strong> Request took too long. Try generating fewer questions (5-7 instead of 10+).`;
+        } else {
+            resultDiv.innerHTML = `<strong style="color: var(--warning);">✗ Network Error:</strong> ${err.message}`;
+        }
     }
 }
 
