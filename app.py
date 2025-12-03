@@ -1020,23 +1020,24 @@ def admin_set_mode(mode):
     session["admin_mode"] = mode
     session["bypass_auth"] = True  # Flag to bypass all auth checks
     session["is_owner"] = True  # Give owner privileges
+    session.modified = True  # Force session to save
     
     # Set appropriate redirect based on mode
     if mode == "student":
-        flash(f"🔧 Admin mode: Student View (Full Access)", "info")
+        flash(f"🔧 Admin mode: Student View (Full Access)", "success")
         return redirect("/subjects")  # Go to subjects page
     
     elif mode == "parent":
-        flash(f"🔧 Admin mode: Parent View (Full Access)", "info")
+        flash(f"🔧 Admin mode: Parent View (Full Access)", "success")
         return redirect("/parent_dashboard")
     
     elif mode == "teacher":
-        flash(f"🔧 Admin mode: Teacher View (Full Access)", "info")
+        flash(f"🔧 Admin mode: Teacher View (Full Access)", "success")
         return redirect("/teacher/dashboard")
     
     elif mode == "homeschool":
         session["homeschool_mode"] = True
-        flash(f"🔧 Admin mode: Homeschool View (Full Access)", "info")
+        flash(f"🔧 Admin mode: Homeschool View (Full Access)", "success")
         return redirect("/parent_dashboard")
     
     return redirect("/admin_portal")
