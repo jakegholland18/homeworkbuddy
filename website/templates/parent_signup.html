@@ -19,6 +19,9 @@
 
     <h2 class="auth-title">Create Parent Account</h2>
     <p class="auth-subtitle">Link to your student for progress, practice, and reports.</p>
+    <div id="planBadge" style="display:none;margin:8px 0 14px;">
+        <span style="display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(118,131,255,0.35);background:rgba(92,107,255,0.12);color:#cfe8ff;font-size:0.9rem;">Selected: <strong id="planName"></strong> — <span id="billingMode"></span></span>
+    </div>
 
     <div class="flash-messages">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -32,6 +35,8 @@
 
     <form method="POST" class="auth-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="plan" id="planField" value="">
+        <input type="hidden" name="billing" id="billingField" value="">
 
         <div>
             <label>Your Name</label>
@@ -66,5 +71,23 @@
 
 </div>
 
+        <script>
+        (function initPlanCapture(){
+            const params = new URLSearchParams(window.location.search);
+            const plan = params.get('plan');
+            const billing = params.get('billing');
+            const planMap = { basic: 'Basic', premium: 'Premium' };
+            const billingMap = { monthly: 'Monthly', yearly: 'Yearly' };
+            if (planMap[plan] && billingMap[billing]) {
+                document.getElementById('planName').textContent = planMap[plan];
+                document.getElementById('billingMode').textContent = billingMap[billing];
+                document.getElementById('planBadge').style.display = 'block';
+                const planField = document.getElementById('planField');
+                const billingField = document.getElementById('billingField');
+                if (planField) planField.value = plan;
+                if (billingField) billingField.value = billing;
+            }
+        })();
+        </script>
 </body>
 </html>
