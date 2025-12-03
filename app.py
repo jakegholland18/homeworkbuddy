@@ -1038,7 +1038,7 @@ def admin_set_mode(mode):
     elif mode == "homeschool":
         session["homeschool_mode"] = True
         flash(f"🔧 Admin mode: Homeschool View (Full Access)", "success")
-        return redirect("/parent_dashboard")
+        return redirect("/homeschool/dashboard")
     
     return redirect("/admin_portal")
 
@@ -4427,6 +4427,99 @@ def parent_dashboard():
 
     return render_template(
         "parent_dashboard.html",
+        parent=parent,
+        progress=progress,
+        utilization=session["usage_minutes"],
+        xp=session["xp"],
+        level=session["level"],
+        tokens=session["tokens"],
+        unread_messages=unread_messages,
+        character=session["character"],
+        has_teacher_features=has_teacher_features,
+        student_limit=student_limit if student_limit != float('inf') else None,
+        lesson_plans_limit=lesson_plans_limit if lesson_plans_limit != float('inf') else None,
+        assignments_limit=assignments_limit if assignments_limit != float('inf') else None,
+        trial_days_remaining=trial_days_remaining,
+        planets=planets,
+    )
+
+
+# ============================================================
+# HOMESCHOOL DASHBOARD (COMBINED PARENT + TEACHER FEATURES)
+# ============================================================
+
+@app.route("/homeschool/dashboard")
+def homeschool_dashboard():
+    """Unified dashboard for homeschool parents with teacher features."""
+    init_user()
+    
+    # Admin bypass - allow access without parent_id
+    if not session.get("bypass_auth"):
+        # Check subscription status for homeschool
+        access_check = check_subscription_access("parent")
+        if access_check != True:
+            return access_check  # Redirect to trial_expired
+
+    parent_id = session.get("parent_id")
+    parent = None
+    unread_messages = 0
+    has_teacher_features = False
+    student_limit = 3
+    lesson_plans_limit = 0
+    assignments_limit = 0
+    trial_days_remaining = 0
+    classes = []
+    recent_assignments = []
+    
+    if parent_id:
+        parent = Parent.query.get(parent_id)
+        
+        if parent:
+            # Get trial days remaining
+            trial_days_remaining = get_days_remaining_in_trial(parent)
+            
+            unread_messages = Message.query.filter_by(
+                recipient_type="parent",
+                recipient_id=parent_id,
+                is_read=False,
+            ).count()
+            
+            # Get plan limits for homeschool features
+            student_limit, lesson_plans_limit, assignments_limit, has_teacher_features = get_parent_plan_limits(parent)
+            
+            # If parent has teacher features, get their "classes" (which are just student groups)
+            # For homeschool, we treat the parent's students as a virtual class
+            if has_teacher_features and parent.students:
+                # Get recent assignments if parent has any linked teacher account
+                # For now, we'll create a virtual class concept
+                pass
+
+    progress = {
+        s: (
+            int(data["correct"] / data["questions"] * 100)
+            if data["questions"]
+            else 0
+        )
+        for s, data in session["progress"].items()
+    }
+    
+    # Get all planets for subject explorer
+    planets = [
+        ("chrono_core", "chrono_core.png", "ChronoCore", "History"),
+        ("num_forge", "num_forge.png", "NumForge", "Math"),
+        ("atom_sphere", "atom_sphere.png", "AtomSphere", "Science"),
+        ("story_verse", "story_verse.png", "StoryVerse", "Reading"),
+        ("ink_haven", "ink_haven.png", "InkHaven", "Writing"),
+        ("faith_realm", "faith_realm.png", "FaithRealm", "Bible"),
+        ("coin_quest", "coin_quest.png", "CoinQuest", "Money"),
+        ("stock_star", "stock_star.png", "StockStar", "Investing"),
+        ("terra_nova", "terra_nova.png", "TerraNova", "General Knowledge"),
+        ("power_grid", "power_grid.png", "PowerGrid", "Deep Study"),
+        ("truth_forge", "truth_forge.png", "TruthForge", "Apologetics"),
+    ]
+
+    return render_template(
+        "homeschool_dashboard.html",
         parent=parent,
         progress=progress,
         utilization=session["usage_minutes"],
