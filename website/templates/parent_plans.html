@@ -1,0 +1,380 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+body {
+    background: linear-gradient(135deg, #0a0e27 0%, #050813 100%);
+    color: white;
+    font-family: "Poppins", sans-serif;
+    min-height: 100vh;
+}
+
+.plans-header {
+    text-align: center;
+    margin: 50px 0 30px;
+}
+
+.plans-title {
+    font-size: 3rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #ff6b9d, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 15px;
+}
+
+.plans-subtitle {
+    color: #c4d1ff;
+    font-size: 1.2rem;
+    opacity: 0.9;
+}
+
+.plans-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.plan-card {
+    background: linear-gradient(135deg, rgba(92,107,255,0.08), rgba(0,242,255,0.05));
+    border: 2px solid rgba(118,131,255,0.3);
+    border-radius: 25px;
+    padding: 35px;
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    backdrop-filter: blur(10px);
+}
+
+.plan-card:hover {
+    transform: translateY(-8px);
+    border-color: #00f2ff;
+    box-shadow: 0 12px 48px rgba(0,242,255,0.4);
+}
+
+.plan-card.featured {
+    border-color: #ffd54f;
+    background: linear-gradient(135deg, rgba(255,213,79,0.12), rgba(255,159,28,0.08));
+    transform: scale(1.05);
+}
+
+.plan-card.featured:hover {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 16px 56px rgba(255,213,79,0.5);
+}
+
+.plan-badge {
+    position: absolute;
+    top: -15px;
+    right: 25px;
+    background: linear-gradient(135deg, #ffd54f, #ff9f1c);
+    color: #050813;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 16px rgba(255,213,79,0.5);
+}
+
+.plan-name {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #00f2ff;
+    margin-bottom: 10px;
+}
+
+.plan-price {
+    font-size: 3rem;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.plan-price span {
+    font-size: 1.2rem;
+    color: #8a92b3;
+    font-weight: 500;
+}
+
+.plan-trial {
+    color: #84ff00;
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 25px 0;
+}
+
+.plan-features li {
+    padding: 12px 0;
+    color: #c4d1ff;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.plan-features li::before {
+    content: "✓";
+    color: #84ff00;
+    font-weight: 900;
+    font-size: 1.3rem;
+}
+
+.plan-features li.disabled {
+    color: #6a7185;
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.plan-features li.disabled::before {
+    content: "✗";
+    color: #6a7185;
+}
+
+.plan-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 15px;
+    border: none;
+    background: linear-gradient(135deg, #5c6bff, #00f2ff);
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(92,107,255,0.4);
+}
+
+.plan-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(92,107,255,0.6);
+}
+
+.plan-btn.featured {
+    background: linear-gradient(135deg, #ffd54f, #ff9f1c);
+    color: #050813;
+}
+
+.comparison-section {
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+
+.comparison-title {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #00f2ff;
+    margin-bottom: 30px;
+}
+
+.comparison-table {
+    width: 100%;
+    background: rgba(92,107,255,0.08);
+    border: 2px solid rgba(118,131,255,0.3);
+    border-radius: 20px;
+    padding: 25px;
+    overflow-x: auto;
+}
+
+.comparison-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(118,131,255,0.2);
+}
+
+.comparison-table th {
+    color: #00f2ff;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.comparison-table td {
+    color: #c4d1ff;
+}
+
+@media (max-width: 768px) {
+    .plans-title {
+        font-size: 2rem;
+    }
+    
+    .plans-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .plan-card.featured {
+        transform: scale(1);
+    }
+}
+</style>
+
+<div class="plans-header">
+    <h1 class="plans-title">🌟 Choose Your Plan</h1>
+    <p class="plans-subtitle">Unlock the full power of CoZmicLearning for your family</p>
+</div>
+
+<div class="plans-container">
+    <!-- Free Plan -->
+    <div class="plan-card">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0<span>/month</span></div>
+        <div class="plan-trial">Try all features for 7 days!</div>
+        
+        <ul class="plan-features">
+            <li>1 student account</li>
+            <li>All 11 subject planets</li>
+            <li>AI tutor assistance</li>
+            <li>Basic progress tracking</li>
+            <li>20 questions/day limit</li>
+            <li class="disabled">Teacher messaging</li>
+            <li class="disabled">Detailed analytics</li>
+            <li class="disabled">Custom lesson plans</li>
+        </ul>
+        
+        <form action="/parent/signup" method="GET">
+            <input type="hidden" name="plan" value="free">
+            <button type="submit" class="plan-btn">Get Started Free</button>
+        </form>
+    </div>
+
+    <!-- Basic Plan -->
+    <div class="plan-card featured">
+        <div class="plan-badge">⭐ MOST POPULAR</div>
+        <div class="plan-name">Basic</div>
+        <div class="plan-price">$9.99<span>/month</span></div>
+        <div class="plan-trial">7-day free trial • Cancel anytime</div>
+        
+        <ul class="plan-features">
+            <li>Up to 3 student accounts</li>
+            <li>All 11 subject planets</li>
+            <li>AI tutor assistance</li>
+            <li>Detailed progress tracking</li>
+            <li>Unlimited questions</li>
+            <li>Teacher messaging</li>
+            <li>Weekly progress reports</li>
+            <li class="disabled">Custom lesson plans</li>
+            <li class="disabled">Priority AI support</li>
+        </ul>
+        
+        <form action="/parent/signup" method="GET">
+            <input type="hidden" name="plan" value="basic">
+            <button type="submit" class="plan-btn featured">Start 7-Day Trial</button>
+        </form>
+    </div>
+
+    <!-- Premium Plan -->
+    <div class="plan-card">
+        <div class="plan-name">Premium</div>
+        <div class="plan-price">$19.99<span>/month</span></div>
+        <div class="plan-trial">7-day free trial • Cancel anytime</div>
+        
+        <ul class="plan-features">
+            <li>Unlimited student accounts</li>
+            <li>All 11 subject planets</li>
+            <li>AI tutor assistance</li>
+            <li>Advanced analytics dashboard</li>
+            <li>Unlimited questions</li>
+            <li>Teacher messaging</li>
+            <li>Daily progress reports</li>
+            <li>Custom lesson plans</li>
+            <li>Priority AI support</li>
+            <li>Multi-device access</li>
+        </ul>
+        
+        <form action="/parent/signup" method="GET">
+            <input type="hidden" name="plan" value="premium">
+            <button type="submit" class="plan-btn">Start 7-Day Trial</button>
+        </form>
+    </div>
+</div>
+
+<div class="comparison-section">
+    <h2 class="comparison-title">Feature Comparison</h2>
+    
+    <div class="comparison-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Free</th>
+                    <th>Basic</th>
+                    <th>Premium</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Student Accounts</td>
+                    <td>1</td>
+                    <td>3</td>
+                    <td>Unlimited</td>
+                </tr>
+                <tr>
+                    <td>Daily Question Limit</td>
+                    <td>20</td>
+                    <td>Unlimited</td>
+                    <td>Unlimited</td>
+                </tr>
+                <tr>
+                    <td>AI Subject Tutoring</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>PowerGrid Study Guides</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>Progress Tracking</td>
+                    <td>Basic</td>
+                    <td>Detailed</td>
+                    <td>Advanced</td>
+                </tr>
+                <tr>
+                    <td>Teacher Messaging</td>
+                    <td>—</td>
+                    <td>✓</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>Custom Lesson Plans</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>✓</td>
+                </tr>
+                <tr>
+                    <td>Priority Support</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td>✓</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div style="text-align: center; margin: 50px 0;">
+    <a href="/" style="display: inline-block; padding: 14px 32px; background: rgba(92,107,255,0.2); border: 2px solid rgba(118,131,255,0.4); color: white; text-decoration: none; border-radius: 12px; font-weight: 600; transition: all 0.3s ease;">
+        ← Back to Home
+    </a>
+</div>
+
+{% endblock %}

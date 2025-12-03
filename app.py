@@ -799,16 +799,27 @@ def student_login():
     return render_template("student_login.html")
 
 
+@app.route("/parent/plans")
+def parent_plans():
+    """Display subscription plans for parents."""
+    init_user()
+    return render_template("parent_plans.html")
+
+
 @app.route("/parent/signup", methods=["GET", "POST"])
 def parent_signup():
     init_user()
+    
+    # Get plan from query string (from plans page)
+    selected_plan = request.args.get("plan", "free")
+    
     if request.method == "POST":
         name = safe_text(request.form.get("name", ""), 100)
         email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
         # Pricing selections
-        plan = safe_text(request.form.get("plan", ""), 50) or None
-        billing = safe_text(request.form.get("billing", ""), 20) or None
+        plan = safe_text(request.form.get("plan", ""), 50) or "free"
+        billing = safe_text(request.form.get("billing", ""), 20) or "monthly"
 
         if not name or not email or not password:
             flash("All fields are required.", "error")
@@ -819,8 +830,10 @@ def parent_signup():
             flash("Parent with that email already exists. Please log in.", "error")
             return redirect("/parent/login")
 
+        # Set trial period (7 days for all new accounts)
         trial_start = datetime.utcnow()
         trial_end = trial_start + timedelta(days=7)
+        
         parent = Parent(
             name=name,
             email=email,
@@ -829,7 +842,7 @@ def parent_signup():
             billing=billing,
             trial_start=trial_start,
             trial_end=trial_end,
-            subscription_active=False,
+            subscription_active=True if plan != "free" else False,
         )
         db.session.add(parent)
         db.session.commit()
@@ -838,10 +851,10 @@ def parent_signup():
         session["user_role"] = "parent"
         session["parent_name"] = parent.name
 
-        flash("Parent account created!", "info")
+        flash(f"Parent account created with {plan.title()} plan! Enjoy your 7-day trial.", "success")
         return redirect("/parent_dashboard")
 
-    return render_template("parent_signup.html")
+    return render_template("parent_signup.html", selected_plan=selected_plan)
 
 
 @app.route("/parent/login", methods=["GET", "POST"])
