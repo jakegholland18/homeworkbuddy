@@ -57,26 +57,80 @@ def message_parents(class_id: int, teacher_id: int, message: str) -> Dict:
 
 
 def get_class_analytics(class_id: int) -> Dict:
-    """Compute class analytics from AssessmentResult: averages and ability tiers per student."""
-    # Gather students
+    """Compute class analytics from AssessmentResult: averages, ability tiers, per-subject breakdown, and trend deltas."""
     students = Student.query.filter_by(class_id=class_id).all()
-    summary = {"class_id": class_id, "students": []}
+    summary: Dict = {"class_id": class_id, "students": [], "subjects": {}, "flags": []}
+
+    # Per-student analytics
     for s in students:
         results = (
             AssessmentResult.query.filter_by(student_id=s.id)
             .order_by(AssessmentResult.created_at.desc())
-            .limit(10)
+            .limit(20)
             .all()
         )
-        scores = [r.score for r in results if r.score is not None]
-        avg = sum(scores) / len(scores) if scores else 0
-        if avg < 60:
+        last10 = results[:10]
+        prev10 = results[10:20]
+        scores_last = [r.score for r in last10 if r.score is not None]
+        scores_prev = [r.score for r in prev10 if r.score is not None]
+        avg_last = sum(scores_last) / len(scores_last) if scores_last else 0
+        avg_prev = sum(scores_prev) / len(scores_prev) if scores_prev else 0
+        delta = round(avg_last - avg_prev, 2)
+
+        # Ability tier based on last10
+        if avg_last < 60:
             tier = "struggling"
-        elif avg < 85:
+        elif avg_last < 85:
             tier = "on_level"
         else:
             tier = "advanced"
-        summary["students"].append({"student_id": s.id, "name": getattr(s, "name", "Student"), "avg": avg, "ability": tier})
+
+        # Per-subject breakdown (last10)
+        subject_avgs: Dict[str, float] = {}
+        subject_groups: Dict[str, List[float]] = {}
+        for r in last10:
+            subj = getattr(r, "subject", "unknown") or "unknown"
+            if r.score is None:
+                continue
+            subject_groups.setdefault(subj, []).append(r.score)
+        for subj, arr in subject_groups.items():
+            subject_avgs[subj] = round(sum(arr) / len(arr), 2)
+
+        # Flag low subjects for intervention
+        weak_subjects = [subj for subj, a in subject_avgs.items() if a < 70]
+        suggested_mode = "adaptive" if tier == "on_level" else ("scaffold" if tier == "struggling" else "mastery")
+
+        summary["students"].append({
+            "student_id": s.id,
+            "name": getattr(s, "name", "Student"),
+            "avg": round(avg_last, 2),
+            "prev_avg": round(avg_prev, 2),
+            "delta": delta,
+            "ability": tier,
+            "subjects": subject_avgs,
+            "weak_subjects": weak_subjects,
+            "suggested_mode": suggested_mode,
+        })
+
+        # Aggregate class-level subjects
+        for subj, a in subject_avgs.items():
+            agg = summary["subjects"].setdefault(subj, {"scores": []})
+            agg["scores"].append(a)
+
+        # Class flags: student with steep negative trend or multiple weak subjects
+        if delta < -10 or len(weak_subjects) >= 2:
+            summary["flags"].append({
+                "student_id": s.id,
+                "name": getattr(s, "name", "Student"),
+                "delta": delta,
+                "weak_subjects": weak_subjects,
+            })
+
+    # Compute class-level subject averages
+    for subj, agg in summary["subjects"].items():
+        arr = agg.get("scores", [])
+        summary["subjects"][subj] = {"avg": round(sum(arr) / len(arr), 2) if arr else 0, "n": len(arr)}
+
     return summary
 
 
