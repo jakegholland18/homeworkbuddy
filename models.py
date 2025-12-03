@@ -214,6 +214,45 @@ class LessonPlan(db.Model):
     teacher = db.relationship("Teacher", backref="lesson_plans", lazy=True)
 
 
+# ============================================================
+# MESSAGING SYSTEM
+# ============================================================
+
+class Message(db.Model):
+    __tablename__ = "messages"
+
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Sender info
+    sender_type = db.Column(db.String(20), nullable=False)  # 'teacher' or 'parent'
+    sender_id = db.Column(db.Integer, nullable=False)  # ID of teacher or parent
+    
+    # Recipient info
+    recipient_type = db.Column(db.String(20), nullable=False)  # 'teacher' or 'parent'
+    recipient_id = db.Column(db.Integer, nullable=False)  # ID of teacher or parent
+    
+    # Student context (which student is this about)
+    student_id = db.Column(db.Integer, db.ForeignKey("students.id"), nullable=True)
+    
+    # Message content
+    subject = db.Column(db.String(255), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    
+    # Progress report attachment (optional JSON data)
+    progress_report_json = db.Column(db.Text, nullable=True)
+    
+    # Thread management
+    thread_id = db.Column(db.Integer, nullable=True)  # For grouping replies
+    
+    # Status
+    is_read = db.Column(db.Boolean, default=False)
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    student = db.relationship("Student", backref="messages", lazy=True)
+
+
 
 
 

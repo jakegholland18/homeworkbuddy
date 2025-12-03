@@ -79,6 +79,7 @@ from models import (
     AssignedPractice,
     AssignedQuestion,
     LessonPlan,
+    Message,
 )
 from sqlalchemy import func
 import json
@@ -2066,6 +2067,233 @@ def export_lesson_plan_pdf(lesson_id):
 
 
 # ============================================================
+# TEACHER - MESSAGING SYSTEM
+# ============================================================
+
+@app.route("/teacher/messages")
+def teacher_messages():
+    """Teacher inbox - view all messages from parents."""
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect("/teacher/login")
+    
+    # Get all messages where teacher is recipient
+    received = Message.query.filter_by(
+        recipient_type='teacher',
+        recipient_id=teacher.id
+    ).order_by(Message.created_at.desc()).all()
+    
+    # Get all messages teacher sent
+    sent = Message.query.filter_by(
+        sender_type='teacher',
+        sender_id=teacher.id
+    ).order_by(Message.created_at.desc()).all()
+    
+    # Count unread
+    unread_count = Message.query.filter_by(
+        recipient_type='teacher',
+        recipient_id=teacher.id,
+        is_read=False
+    ).count()
+    
+    return render_template(
+        "teacher_messages.html",
+        teacher=teacher,
+        received=received,
+        sent=sent,
+        unread_count=unread_count,
+        is_owner=is_owner(teacher),
+    )
+
+
+@app.route("/teacher/messages/<int:message_id>")
+def teacher_view_message(message_id):
+    """View a specific message."""
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect("/teacher/login")
+    
+    message = Message.query.get_or_404(message_id)
+    
+    # Check authorization
+    is_recipient = (message.recipient_type == 'teacher' and message.recipient_id == teacher.id)
+    is_sender = (message.sender_type == 'teacher' and message.sender_id == teacher.id)
+    
+    if not (is_recipient or is_sender or is_owner(teacher)):
+        flash("Not authorized to view this message.", "error")
+        return redirect("/teacher/messages")
+    
+    # Mark as read if recipient
+    if is_recipient and not message.is_read:
+        message.is_read = True
+        db.session.commit()
+    
+    # Get student info
+    student = Student.query.get(message.student_id) if message.student_id else None
+    
+    # Get sender/recipient names
+    if message.sender_type == 'parent':
+        sender = Parent.query.get(message.sender_id)
+        sender_name = sender.name if sender else "Unknown Parent"
+    else:
+        sender = Teacher.query.get(message.sender_id)
+        sender_name = sender.name if sender else "Unknown Teacher"
+    
+    if message.recipient_type == 'parent':
+        recipient = Parent.query.get(message.recipient_id)
+        recipient_name = recipient.name if recipient else "Unknown Parent"
+    else:
+        recipient = Teacher.query.get(message.recipient_id)
+        recipient_name = recipient.name if recipient else "Unknown Teacher"
+    
+    # Parse progress report if exists
+    progress_report = None
+    if message.progress_report_json:
+        progress_report = json.loads(message.progress_report_json)
+    
+    return render_template(
+        "view_message.html",
+        teacher=teacher,
+        message=message,
+        student=student,
+        sender_name=sender_name,
+        recipient_name=recipient_name,
+        progress_report=progress_report,
+        is_owner=is_owner(teacher),
+    )
+
+
+@app.route("/teacher/messages/compose", methods=["GET", "POST"])
+def teacher_compose_message():
+    """Compose a new message to a parent."""
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect("/teacher/login")
+    
+    if request.method == "POST":
+        student_id = request.form.get("student_id")
+        subject = safe_text(request.form.get("subject", ""), 255)
+        body = safe_text(request.form.get("body", ""), 5000)
+        
+        if not student_id or not subject or not body:
+            flash("Student, subject, and message are required.", "error")
+            return redirect("/teacher/messages/compose")
+        
+        student = Student.query.get(int(student_id))
+        if not student or not student.parent_id:
+            flash("Student not found or has no parent account.", "error")
+            return redirect("/teacher/messages/compose")
+        
+        # Create message
+        message = Message(
+            sender_type='teacher',
+            sender_id=teacher.id,
+            recipient_type='parent',
+            recipient_id=student.parent_id,
+            student_id=student.id,
+            subject=subject,
+            body=body,
+        )
+        db.session.add(message)
+        db.session.commit()
+        
+        flash("Message sent successfully!", "info")
+        return redirect("/teacher/messages")
+    
+    # GET - show compose form
+    # Get all students with parent accounts
+    classes = teacher.classes or []
+    students_with_parents = []
+    for cls in classes:
+        for student in cls.students or []:
+            if student.parent_id:
+                students_with_parents.append({
+                    "id": student.id,
+                    "name": student.student_name,
+                    "class": cls.class_name,
+                    "parent_id": student.parent_id,
+                })
+    
+    return render_template(
+        "compose_message.html",
+        teacher=teacher,
+        students=students_with_parents,
+        is_owner=is_owner(teacher),
+    )
+
+
+@app.route("/teacher/send_progress_report/<int:student_id>", methods=["GET", "POST"])
+def teacher_send_progress_report(student_id):
+    """Send automated progress report to parent."""
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect("/teacher/login")
+    
+    student = Student.query.get_or_404(student_id)
+    
+    # Check authorization
+    cls = Class.query.get(student.class_id)
+    if not cls or (not is_owner(teacher) and cls.teacher_id != teacher.id):
+        flash("Not authorized.", "error")
+        return redirect("/teacher/dashboard")
+    
+    if not student.parent_id:
+        flash("This student has no parent account.", "error")
+        return redirect("/teacher/dashboard")
+    
+    if request.method == "POST":
+        # Generate progress report
+        from modules.teacher_tools import build_progress_report
+        report_data = build_progress_report(student_id)
+        
+        # Create personalized message
+        avg = report_data.get("avg", 0)
+        subject = f"Progress Report for {student.student_name}"
+        body = f"""Dear Parent,
+
+Here is the latest progress report for {student.student_name}:
+
+Overall Average: {avg:.1f}%
+Ability Level: {student.ability_level or 'on_level'}
+
+Recent Performance:
+"""
+        for result in report_data.get("results", [])[:5]:
+            body += f"- {result['subject']}: {result['score']:.0f}% ({result['created_at'][:10]})\n"
+        
+        body += f"\n{request.form.get('additional_notes', '').strip()}\n\nBest regards,\n{teacher.name}"
+        
+        # Create message with progress report attached
+        message = Message(
+            sender_type='teacher',
+            sender_id=teacher.id,
+            recipient_type='parent',
+            recipient_id=student.parent_id,
+            student_id=student.id,
+            subject=subject,
+            body=body,
+            progress_report_json=json.dumps(report_data),
+        )
+        db.session.add(message)
+        db.session.commit()
+        
+        flash(f"Progress report sent to {student.student_name}'s parent!", "info")
+        return redirect("/teacher/messages")
+    
+    # GET - show confirm/customize form
+    from modules.teacher_tools import build_progress_report
+    report_data = build_progress_report(student_id)
+    
+    return render_template(
+        "send_progress_report.html",
+        teacher=teacher,
+        student=student,
+        report_data=report_data,
+        is_owner=is_owner(teacher),
+    )
+
+
+# ============================================================
 # TEACHER - TEACHER'S PET AI ASSISTANT (CONTINUED)
 # ============================================================
 
@@ -3219,6 +3447,159 @@ def parent_dashboard():
         level=session["level"],
         tokens=session["tokens"],
         character=session["character"],
+    )
+
+
+# ============================================================
+# PARENT - MESSAGING SYSTEM
+# ============================================================
+
+@app.route("/parent/messages")
+def parent_messages():
+    """Parent inbox - view all messages from teachers."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        flash("Please log in as a parent.", "error")
+        return redirect("/parent/login")
+    
+    parent = Parent.query.get(parent_id)
+    if not parent:
+        return redirect("/parent/login")
+    
+    # Get all messages where parent is recipient
+    received = Message.query.filter_by(
+        recipient_type='parent',
+        recipient_id=parent.id
+    ).order_by(Message.created_at.desc()).all()
+    
+    # Get all messages parent sent
+    sent = Message.query.filter_by(
+        sender_type='parent',
+        sender_id=parent.id
+    ).order_by(Message.created_at.desc()).all()
+    
+    # Count unread
+    unread_count = Message.query.filter_by(
+        recipient_type='parent',
+        recipient_id=parent.id,
+        is_read=False
+    ).count()
+    
+    return render_template(
+        "parent_messages.html",
+        parent=parent,
+        received=received,
+        sent=sent,
+        unread_count=unread_count,
+    )
+
+
+@app.route("/parent/messages/<int:message_id>")
+def parent_view_message(message_id):
+    """View a specific message."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        return redirect("/parent/login")
+    
+    parent = Parent.query.get(parent_id)
+    message = Message.query.get_or_404(message_id)
+    
+    # Check authorization
+    is_recipient = (message.recipient_type == 'parent' and message.recipient_id == parent.id)
+    is_sender = (message.sender_type == 'parent' and message.sender_id == parent.id)
+    
+    if not (is_recipient or is_sender):
+        flash("Not authorized to view this message.", "error")
+        return redirect("/parent/messages")
+    
+    # Mark as read if recipient
+    if is_recipient and not message.is_read:
+        message.is_read = True
+        db.session.commit()
+    
+    # Get student info
+    student = Student.query.get(message.student_id) if message.student_id else None
+    
+    # Get sender/recipient names
+    if message.sender_type == 'parent':
+        sender = Parent.query.get(message.sender_id)
+        sender_name = sender.name if sender else "Unknown Parent"
+    else:
+        sender = Teacher.query.get(message.sender_id)
+        sender_name = sender.name if sender else "Unknown Teacher"
+    
+    if message.recipient_type == 'parent':
+        recipient = Parent.query.get(message.recipient_id)
+        recipient_name = recipient.name if recipient else "Unknown Parent"
+    else:
+        recipient = Teacher.query.get(message.recipient_id)
+        recipient_name = recipient.name if recipient else "Unknown Teacher"
+    
+    # Parse progress report if exists
+    progress_report = None
+    if message.progress_report_json:
+        progress_report = json.loads(message.progress_report_json)
+    
+    return render_template(
+        "view_message.html",
+        parent=parent,
+        message=message,
+        student=student,
+        sender_name=sender_name,
+        recipient_name=recipient_name,
+        progress_report=progress_report,
+    )
+
+
+@app.route("/parent/messages/reply/<int:message_id>", methods=["GET", "POST"])
+def parent_reply_message(message_id):
+    """Reply to a teacher's message."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        return redirect("/parent/login")
+    
+    parent = Parent.query.get(parent_id)
+    original_message = Message.query.get_or_404(message_id)
+    
+    # Must be recipient of original message
+    if not (original_message.recipient_type == 'parent' and original_message.recipient_id == parent.id):
+        flash("Not authorized.", "error")
+        return redirect("/parent/messages")
+    
+    if request.method == "POST":
+        body = safe_text(request.form.get("body", ""), 5000)
+        
+        if not body:
+            flash("Message cannot be empty.", "error")
+            return redirect(f"/parent/messages/reply/{message_id}")
+        
+        # Create reply message
+        reply = Message(
+            sender_type='parent',
+            sender_id=parent.id,
+            recipient_type='teacher',
+            recipient_id=original_message.sender_id,
+            student_id=original_message.student_id,
+            subject=f"Re: {original_message.subject}",
+            body=body,
+            thread_id=original_message.thread_id or original_message.id,
+        )
+        db.session.add(reply)
+        db.session.commit()
+        
+        flash("Reply sent successfully!", "info")
+        return redirect("/parent/messages")
+    
+    # GET - show reply form
+    student = Student.query.get(original_message.student_id) if original_message.student_id else None
+    teacher = Teacher.query.get(original_message.sender_id)
+    
+    return render_template(
+        "reply_message.html",
+        parent=parent,
+        original_message=original_message,
+        student=student,
+        teacher=teacher,
     )
 
 
