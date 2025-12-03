@@ -1435,6 +1435,7 @@ def assignment_publish(assignment_id):
 # TEACHER — AI QUESTION ASSIGNMENT GENERATOR
 # ============================================================
 
+@csrf.exempt
 @app.route("/teacher/assign_questions", methods=["POST"])
 def teacher_assign_questions():
     """Generate AI questions and create assignment with AssignedQuestions."""
@@ -1530,6 +1531,7 @@ def teacher_assign_questions():
 # TEACHER — PREVIEW AI QUESTIONS (NO PERSISTENCE)
 # ============================================================
 
+@csrf.exempt
 @app.route("/teacher/preview_questions", methods=["POST"])
 def teacher_preview_questions():
     """Generate AI questions for preview only (no DB write)."""
