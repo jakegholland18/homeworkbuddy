@@ -288,7 +288,7 @@ from modules import (
 )
 from modules.practice_helper import generate_practice_session
 from modules.answer_formatter import parse_into_sections
-from modules.teacher_tools import assign_questions
+from modules.teacher_tools import assign_questions, generate_lesson_plan
 
 # ============================================================
 # SUBJECT → FUNCTION MAP (PLANETS)
@@ -1572,6 +1572,46 @@ def teacher_preview_questions():
             "grade": grade,
             "differentiation_mode": differentiation_mode,
             "student_ability": student_ability,
+        }
+    }), 200
+
+# ============================================================
+# TEACHER — GENERATE LESSON PLAN
+# ============================================================
+
+@csrf.exempt
+@app.route("/teacher/generate_lesson_plan", methods=["POST"])
+def teacher_generate_lesson_plan():
+    """Generate a six-section lesson plan for teachers."""
+    teacher = get_current_teacher()
+    if not teacher:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    data = request.get_json() or {}
+
+    subject = safe_text(data.get("subject", "terra_nova"), 50)
+    topic = safe_text(data.get("topic", ""), 500)
+    grade = safe_text(data.get("grade", "8"), 10)
+    character = safe_text(data.get("character", "everly"), 50)
+
+    if not topic:
+        return jsonify({"error": "Topic is required"}), 400
+
+    # Generate lesson plan using teacher_tools
+    lesson = generate_lesson_plan(
+        subject=subject,
+        topic=topic,
+        grade=grade,
+        character=character,
+    )
+
+    return jsonify({
+        "success": True,
+        "lesson_plan": lesson,
+        "metadata": {
+            "subject": subject,
+            "topic": topic,
+            "grade": grade,
         }
     }), 200
 

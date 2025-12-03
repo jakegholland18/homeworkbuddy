@@ -497,11 +497,105 @@
             </div>
         </div>
     </div>
+
+    <!-- ============ GENERATE LESSON PLAN ============ -->
+    <div class="card">
+        <h2>Generate Lesson Plan</h2>
+        <small>Create a six-section lesson plan for any topic.</small>
+
+        <form class="inline-form" id="lessonPlanForm" style="flex-direction: column; gap: 12px; margin-top: 16px;">
+            <input type="text" id="lessonTopic" placeholder="Lesson topic (required)" required>
+            
+            <select id="lessonSubject">
+                <option value="num_forge">NumForge (Math)</option>
+                <option value="atom_sphere">AtomSphere (Science)</option>
+                <option value="faith_realm">FaithRealm (Bible)</option>
+                <option value="chrono_core">ChronoCore (History)</option>
+                <option value="ink_haven">InkHaven (Writing)</option>
+                <option value="truth_forge">TruthForge (Apologetics)</option>
+                <option value="stock_star">StockStar (Investing)</option>
+                <option value="coin_quest">CoinQuest (Money)</option>
+                <option value="story_verse">StoryVerse (Reading)</option>
+                <option value="terra_nova">Terra Nova (General)</option>
+            </select>
+
+            <select id="lessonGrade">
+                <option value="1">Grade 1</option>
+                <option value="2">Grade 2</option>
+                <option value="3">Grade 3</option>
+                <option value="4">Grade 4</option>
+                <option value="5">Grade 5</option>
+                <option value="6">Grade 6</option>
+                <option value="7">Grade 7</option>
+                <option value="8" selected>Grade 8</option>
+                <option value="9">Grade 9</option>
+                <option value="10">Grade 10</option>
+                <option value="11">Grade 11</option>
+                <option value="12">Grade 12</option>
+            </select>
+
+            <button class="btn" type="button" onclick="generateLessonPlan()">Generate Lesson Plan</button>
+        </form>
+
+        <div id="lessonPlanResult" style="margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 0.85rem; color: var(--muted); display: none; max-height: 500px; overflow-y: auto;"></div>
+    </div>
 </div>
 
 </body>
 
 <script>
+async function generateLessonPlan() {
+    const resultDiv = document.getElementById('lessonPlanResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<p style="text-align: center;">Generating lesson plan...</p>';
+
+    const payload = {
+        topic: document.getElementById('lessonTopic').value.trim(),
+        subject: document.getElementById('lessonSubject').value,
+        grade: document.getElementById('lessonGrade').value,
+        character: 'everly',
+    };
+
+    try {
+        const res = await fetch('/teacher/generate_lesson_plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        
+        if (res.ok && data.lesson_plan) {
+            const lesson = data.lesson_plan;
+            let html = `<div style="margin-bottom: 16px; padding: 12px; background: rgba(0,242,255,0.1); border-radius: 8px;">
+                <strong>Topic:</strong> ${data.metadata.topic}<br>
+                <strong>Subject:</strong> ${data.metadata.subject}<br>
+                <strong>Grade:</strong> ${data.metadata.grade}
+            </div>`;
+            
+            // Display the raw lesson plan text with formatting
+            if (lesson.raw) {
+                html += `<div style="white-space: pre-wrap; line-height: 1.6; color: var(--text);">${lesson.raw}</div>`;
+            } else if (lesson.sections) {
+                // Alternative: render sections if available
+                const sections = lesson.sections;
+                if (sections.overview) html += `<div style="margin-bottom: 16px;"><strong>Overview:</strong><br>${sections.overview}</div>`;
+                if (sections.key_facts) html += `<div style="margin-bottom: 16px;"><strong>Key Facts:</strong><br>${sections.key_facts}</div>`;
+                if (sections.christian_view) html += `<div style="margin-bottom: 16px;"><strong>Christian View:</strong><br>${sections.christian_view}</div>`;
+                if (sections.agreement) html += `<div style="margin-bottom: 16px;"><strong>Agreement:</strong><br>${sections.agreement}</div>`;
+                if (sections.difference) html += `<div style="margin-bottom: 16px;"><strong>Difference:</strong><br>${sections.difference}</div>`;
+                if (sections.practice) html += `<div style="margin-bottom: 16px;"><strong>Practice:</strong><br>${sections.practice}</div>`;
+            }
+            
+            resultDiv.innerHTML = html;
+        } else {
+            resultDiv.innerHTML = `<p style="color: var(--warning);">Error: ${data.error || 'Failed to generate lesson plan'}</p>`;
+        }
+    } catch (err) {
+        resultDiv.innerHTML = `<p style="color: var(--warning);">Network Error: ${err.message}</p>`;
+    }
+}
+
 async function previewQuestions() {
     const modal = document.getElementById('previewModal');
     const content = document.getElementById('previewContent');
