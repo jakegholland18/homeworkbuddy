@@ -390,6 +390,21 @@ subject_map = {
     "power_grid": None,  # handled separately
 }
 
+# Human-friendly subject labels for UI switchers
+SUBJECT_LABELS = {
+    "chrono_core": "ChronoCore (History)",
+    "num_forge": "NumForge (Math)",
+    "atom_sphere": "AtomSphere (Science)",
+    "story_verse": "StoryVerse (Reading)",
+    "ink_haven": "InkHaven (Writing)",
+    "faith_realm": "FaithRealm (Bible)",
+    "coin_quest": "CoinQuest (Money)",
+    "stock_star": "StockStar (Investing)",
+    "terra_nova": "TerraNova (General)",
+    "power_grid": "PowerGrid (Deep Study)",
+    "truth_forge": "TruthForge (Apologetics)",
+}
+
 # ============================================================
 # HELPERS – TEACHER + OWNER
 # ============================================================
@@ -2765,6 +2780,7 @@ def ask_question():
         grade=request.args.get("grade"),
         character=session["character"],
         characters=get_all_characters(),
+        subjects=SUBJECT_LABELS,
     )
 
 
@@ -2808,6 +2824,7 @@ def subject_answer():
         character=character,
         conversation=session["conversation"],
         pdf_url=None,
+        subjects=SUBJECT_LABELS,
     )
 
 
@@ -2995,6 +3012,7 @@ def practice():
         topic=topic,
         character=character,
         grade=grade,
+        subjects=SUBJECT_LABELS,
     )
 
 
