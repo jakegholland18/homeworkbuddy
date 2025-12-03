@@ -429,10 +429,13 @@
     <div class="header-section">
         <div class="page-title">Choose Your Portal</div>
         <div class="page-subtitle">Select your role to begin your CozmicLearning journey</div>
+        <div id="planBadge" style="display:none;margin-top:12px;">
+            <span style="display:inline-block;padding:6px 12px;border-radius:999px;border:1px solid rgba(118,131,255,0.35);background:rgba(92,107,255,0.12);color:#cfe8ff;font-size:0.9rem;">Selected: <span id="planName"></span> — <span id="billingMode"></span></span>
+        </div>
     </div>
 
     <div class="role-grid">
-        <a href="/student/login">
+        <a id="studentLink" href="/student/login">
             <div class="role-card">
                 <div class="role-icon">🚀</div>
                 <div class="role-title">Student</div>
@@ -441,7 +444,7 @@
             </div>
         </a>
 
-        <a href="/parent/login">
+        <a id="parentLink" href="/parent/login">
             <div class="role-card">
                 <div class="role-icon">👨‍👩‍👧‍👦</div>
                 <div class="role-title">Parent</div>
@@ -450,7 +453,7 @@
             </div>
         </a>
 
-        <a href="/teacher/login">
+        <a id="teacherLink" href="/teacher/login">
             <div class="role-card">
                 <div class="role-icon">👩‍🏫</div>
                 <div class="role-title">Teacher</div>
@@ -510,6 +513,33 @@ function togglePassword(id) {
     const field = document.getElementById(id);
     field.type = field.type === "password" ? "text" : "password";
 }
+
+// Preselect plan & billing: append query params to role links and show badge
+(function initPlanSelection(){
+    const params = new URLSearchParams(window.location.search);
+    const plan = params.get('plan');
+    const billing = params.get('billing');
+    const validPlans = { basic: 'Basic', premium: 'Premium' };
+    const validBilling = { monthly: 'Monthly', yearly: 'Yearly' };
+    const planLabel = validPlans[plan];
+    const billingLabel = validBilling[billing];
+    if (planLabel && billingLabel) {
+        const badge = document.getElementById('planBadge');
+        const planNameEl = document.getElementById('planName');
+        const billingEl = document.getElementById('billingMode');
+        planNameEl.textContent = planLabel;
+        billingEl.textContent = billingLabel;
+        badge.style.display = 'block';
+        ['studentLink','parentLink','teacherLink'].forEach(id => {
+            const a = document.getElementById(id);
+            if (!a) return;
+            const url = new URL(a.href, window.location.origin);
+            url.searchParams.set('plan', plan);
+            url.searchParams.set('billing', billing);
+            a.href = url.pathname + '?' + url.searchParams.toString();
+        });
+    }
+})();
 </script>
 
 </body>
