@@ -650,46 +650,85 @@ function formatStudyGuide() {
     const container = document.getElementById('formattedContent');
     const lines = studyText.split('\n');
     let html = '';
-    let currentSection = '';
+    let inBulletList = false;
     
     lines.forEach(line => {
         line = line.trim();
         if (!line) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
             html += '<br>';
             return;
         }
         
-        // Detect section headers (ALL CAPS or numbered sections)
-        if (line === line.toUpperCase() && line.length > 3 && line.length < 100) {
-            html += `<h2 class="section-title">${line}</h2>`;
-            currentSection = line;
+        // PowerGrid section headers with decorative lines (e.g., ══════ ✦ TITLE ✦ ══════)
+        if (line.match(/^[═=\-]+\s*[✦◆⟡⌁✧⚠]\s*.+?\s*[✦◆⟡⌁✧⚠]\s*[═=\-]+$/)) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            // Extract just the title part
+            const titleMatch = line.match(/[✦◆⟡⌁✧⚠]\s*(.+?)\s*[✦◆⟡⌁✧⚠]/);
+            const title = titleMatch ? titleMatch[1].trim() : line;
+            html += `<h2 class="section-title" style="margin-top: 40px; margin-bottom: 20px;">${title}</h2>`;
         }
-        // Detect numbered sections like "1. OVERVIEW" or "SECTION 1 —"
-        else if (line.match(/^(SECTION\s+\d+|\d+\.)\s*—?\s*[A-Z]/)) {
-            html += `<h2 class="section-title">${line}</h2>`;
-            currentSection = line;
+        // Regular ALL CAPS headers or numbered sections
+        else if ((line === line.toUpperCase() && line.length > 3 && line.length < 100 && !line.includes('=')) || 
+                 line.match(/^(SECTION\s+\d+|\d+\.)\s*—?\s*[A-Z]/)) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            html += `<h2 class="section-title" style="margin-top: 35px; margin-bottom: 18px;">${line}</h2>`;
         }
         // Bullet points
-        else if (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')) {
-            html += `<div style="margin-left: 20px; margin-bottom: 8px; color: #c4d1ff;">⚡ ${line.substring(1).trim()}</div>`;
+        else if (line.match(/^[•\-\*]\s+/)) {
+            if (!inBulletList) {
+                html += '<ul style="margin: 15px 0; padding-left: 25px;">';
+                inBulletList = true;
+            }
+            html += `<li style="margin-bottom: 10px; color: #c4d1ff; line-height: 1.7;"><span style="color: #00f2ff;">⚡</span> ${line.substring(1).trim()}</li>`;
         }
         // Sub-bullets (indented)
-        else if (line.match(/^\s{2,}[-•*]/)) {
-            html += `<div style="margin-left: 40px; margin-bottom: 6px; color: #a8b9ff; font-size: 0.95rem;">→ ${line.trim().substring(1).trim()}</div>`;
+        else if (line.match(/^\s{2,}[•\-\*]/)) {
+            html += `<li style="margin-left: 30px; margin-bottom: 8px; color: #a8b9ff; font-size: 0.95rem; list-style: none;">→ ${line.trim().substring(1).trim()}</li>`;
         }
         // Questions (for Socratic mode)
-        else if (line.endsWith('?')) {
-            html += `<div style="margin: 15px 0; padding: 12px; background: rgba(0,242,255,0.1); border-left: 3px solid #00f2ff; border-radius: 8px; color: #00f2ff; font-weight: 600;">${line}</div>`;
+        else if (line.endsWith('?') && line.length > 10) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            html += `<div style="margin: 18px 0; padding: 14px; background: rgba(0,242,255,0.1); border-left: 4px solid #00f2ff; border-radius: 10px; color: #00f2ff; font-weight: 600; font-size: 1.05rem;">${line}</div>`;
         }
-        // Code or examples (lines with special chars)
-        else if (line.includes('```') || line.includes('===') || line.includes('---')) {
-            html += `<div style="margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.4); border-radius: 8px; font-family: monospace; color: #84ff00; font-size: 0.9rem;">${line.replace(/```/g, '')}</div>`;
+        // Decorative separators (skip them)
+        else if (line.match(/^[═=\-]+$/)) {
+            // Skip pure separator lines
+            return;
+        }
+        // Code or examples (lines with backticks)
+        else if (line.includes('```')) {
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            html += `<div style="margin: 12px 0; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,242,255,0.3); border-radius: 8px; font-family: 'Courier New', monospace; color: #84ff00; font-size: 0.9rem; overflow-x: auto;">${line.replace(/```/g, '')}</div>`;
         }
         // Regular paragraphs
         else {
-            html += `<p style="margin-bottom: 15px; line-height: 1.8; color: #c4d1ff; font-size: 1.05rem;">${line}</p>`;
+            if (inBulletList) {
+                html += '</ul>';
+                inBulletList = false;
+            }
+            html += `<p style="margin-bottom: 16px; line-height: 1.9; color: #c4d1ff; font-size: 1.05rem;">${line}</p>`;
         }
     });
+    
+    if (inBulletList) {
+        html += '</ul>';
+    }
     
     container.innerHTML = html;
 }

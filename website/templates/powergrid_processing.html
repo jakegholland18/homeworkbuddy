@@ -1,0 +1,198 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+/* PowerGrid Processing Animation */
+body {
+    background: linear-gradient(135deg, #0a0e1f 0%, #050813 100%);
+    overflow: hidden;
+}
+
+.processing-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    padding: 20px;
+    text-align: center;
+}
+
+.energy-logo {
+    font-size: 6rem;
+    margin-bottom: 20px;
+    animation: energyPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes energyPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.2); opacity: 1; }
+}
+
+.processing-title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #00f2ff, #00b8d4, #4facfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 15px;
+}
+
+.processing-message {
+    color: #6dd5ed;
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+.loading-bar {
+    width: 400px;
+    height: 8px;
+    background: rgba(0,0,0,0.5);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.loading-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00f2ff, #4facfe, #00f2ff);
+    width: 100%;
+    animation: loading 2s ease-in-out infinite;
+}
+
+@keyframes loading {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+.processing-tips {
+    margin-top: 40px;
+    padding: 20px;
+    background: rgba(0,242,255,0.05);
+    border: 2px solid rgba(0,242,255,0.2);
+    border-radius: 15px;
+    max-width: 500px;
+}
+
+.tip-title {
+    color: #00f2ff;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.tip-text {
+    color: #c4d1ff;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.status-text {
+    color: #84ff00;
+    font-size: 0.9rem;
+    margin-top: 15px;
+    font-family: monospace;
+}
+
+@media (max-width: 768px) {
+    .loading-bar {
+        width: 280px;
+    }
+    
+    .processing-title {
+        font-size: 2rem;
+    }
+}
+</style>
+
+<div class="processing-container">
+    <div class="energy-logo">⚡</div>
+    
+    <h1 class="processing-title">PowerGrid Activated</h1>
+    
+    <p class="processing-message">AI is generating your master study guide...</p>
+    
+    <div class="loading-bar">
+        <div class="loading-fill"></div>
+    </div>
+    
+    <p class="status-text" id="statusText">Processing your content...</p>
+    
+    <div class="processing-tips">
+        <div class="tip-title">💡 Did You Know?</div>
+        <div class="tip-text">
+            PowerGrid uses advanced AI to analyze your materials and create comprehensive study guides 
+            tailored to your grade level and learning style. This usually takes 15-30 seconds.
+        </div>
+    </div>
+</div>
+
+<script>
+// Poll for completion
+const statusMessages = [
+    "Analyzing content...",
+    "Extracting key concepts...",
+    "Organizing information...",
+    "Structuring study guide...",
+    "Adding examples...",
+    "Applying learning style preferences...",
+    "Finalizing guide...",
+    "Almost ready..."
+];
+
+let messageIndex = 0;
+const statusText = document.getElementById('statusText');
+
+// Rotate status messages
+const messageInterval = setInterval(() => {
+    messageIndex = (messageIndex + 1) % statusMessages.length;
+    statusText.textContent = statusMessages[messageIndex];
+}, 3000);
+
+// Poll server for completion (check session or database)
+let pollCount = 0;
+const maxPolls = 40; // 40 polls * 3 seconds = 2 minutes max
+
+const pollInterval = setInterval(async () => {
+    pollCount++;
+    
+    try {
+        const response = await fetch('/powergrid_status', {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === 'complete') {
+            clearInterval(pollInterval);
+            clearInterval(messageInterval);
+            statusText.textContent = "✓ Complete! Redirecting...";
+            setTimeout(() => {
+                window.location.href = data.redirect_url || '/powergrid';
+            }, 500);
+        } else if (data.status === 'error') {
+            clearInterval(pollInterval);
+            clearInterval(messageInterval);
+            statusText.textContent = "⚠ Error occurred. Redirecting...";
+            statusText.style.color = '#ff3f34';
+            setTimeout(() => {
+                window.location.href = '/ask-question?subject=power_grid';
+            }, 2000);
+        }
+        
+        // Timeout after 2 minutes
+        if (pollCount >= maxPolls) {
+            clearInterval(pollInterval);
+            clearInterval(messageInterval);
+            statusText.textContent = "⏱ Taking longer than expected. Please check back shortly.";
+            statusText.style.color = '#ff9f1c';
+        }
+    } catch (err) {
+        console.error('Poll error:', err);
+    }
+}, 3000); // Poll every 3 seconds
+</script>
+
+{% endblock %}
