@@ -556,6 +556,22 @@
       display: none;
     }
 
+    /* PNG planet styling */
+    .planet-img {
+      width: 110px;
+      height: 110px;
+      object-fit: contain;
+      image-rendering: -webkit-optimize-contrast;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.45));
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  filter 0.35s ease;
+    }
+    .planet-card:hover .planet-img {
+      transform: translateY(-6px) scale(1.06);
+      filter: drop-shadow(0 10px 26px rgba(0,0,0,0.55))
+              drop-shadow(0 0 12px rgba(92,107,255,0.45));
+    }
+
     @keyframes planetFloat {
       0%, 100% { transform: translateY(0) rotate(0deg); }
       50% { transform: translateY(-15px) rotate(5deg); }
@@ -1183,67 +1199,67 @@
 
       <div class="planets-grid">
         <div class="planet-card">
-          <div class="planet-visual planet-numforge"><span class="planet-haze"></span></div>
+          <img class="planet-img" src="/static/planets/numforge.png" alt="NumForge planet" />
           <div class="planet-name">NumForge</div>
           <div class="planet-subject">Math</div>
         </div>
 
         <div class="planet-card">
-          <div class="planet-visual planet-atomsphere planet-ring"><span class="planet-haze"></span><span class="planet-moon"></span></div>
+          <img class="planet-img" src="/static/planets/atomsphere.png" alt="AtomSphere planet" />
           <div class="planet-name">AtomSphere</div>
           <div class="planet-subject">Science</div>
         </div>
 
         <div class="planet-card">
-          <div class="planet-visual planet-inkhaven"><span class="planet-haze"></span></div>
+          <img class="planet-img" src="/static/planets/inkhaven.png" alt="InkHaven planet" />
           <div class="planet-name">InkHaven</div>
           <div class="planet-subject">Writing</div>
         </div>
 
         <div class="planet-card">
-          <div class="planet-visual planet-storyverse"><span class="planet-haze"></span></div>
+          <img class="planet-img" src="/static/planets/storyverse.png" alt="StoryVerse planet" />
           <div class="planet-name">StoryVerse</div>
           <div class="planet-subject">Reading</div>
         </div>
 
         <div class="planet-card">
-          <div class="planet-visual planet-chronocore"><span class="planet-haze"></span></div>
+          <img class="planet-img" src="/static/planets/chronocore.png" alt="ChronoCore planet" />
           <div class="planet-name">ChronoCore</div>
           <div class="planet-subject">History</div>
         </div>
 
         <div class="planet-card">
-          <div class="planet-visual planet-faithrealm"><span class="planet-haze"></span><span class="twinkle"></span></div>
+          <img class="planet-img" src="/static/planets/faithrealm.png" alt="FaithRealm planet" />
           <div class="planet-name">FaithRealm</div>
           <div class="planet-subject">Bible</div>
         </div>
 
         <div class="planet-card">
-          <div class="planet-visual planet-truthforge"><span class="planet-haze"></span></div>
+          <img class="planet-img" src="/static/planets/truthforge.png" alt="TruthForge planet" />
           <div class="planet-name">TruthForge</div>
           <div class="planet-subject">Apologetics</div>
         </div>
 
         <div class="planet-card">
-          <div class="planet-visual planet-coinquest"><span class="planet-haze"></span></div>
+          <img class="planet-img" src="/static/planets/coinquest.png" alt="CoinQuest planet" />
           <div class="planet-name">CoinQuest</div>
           <div class="planet-subject">Money</div>
         </div>
 
         <div class="planet-card">
-          <div class="planet-visual planet-stockstar planet-ring"><span class="planet-haze"></span><span class="planet-moon"></span></div>
+          <img class="planet-img" src="/static/planets/stockstar.png" alt="StockStar planet" />
           <div class="planet-name">StockStar</div>
           <div class="planet-subject">Investing</div>
         </div>
 
         <div class="planet-card">
-          <div class="planet-visual planet-terranova"><span class="planet-haze"></span><span class="planet-moon"></span></div>
+          <img class="planet-img" src="/static/planets/terranova.png" alt="TerraNova planet" />
           <div class="planet-name">TerraNova</div>
           <div class="planet-subject">General Knowledge</div>
         </div>
 
         <div class="planet-card">
-          <div class="planet-visual planet-powergrid planet-ring"><span class="planet-haze"></span></div>
+          <img class="planet-img" src="/static/planets/powergrid.png" alt="PowerGrid planet" />
           <div class="planet-name">PowerGrid</div>
           <div class="planet-subject">Deep Study</div>
         </div>
