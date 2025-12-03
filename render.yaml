@@ -15,7 +15,7 @@ services:
     healthCheckTimeout: 120
     rootDir: .
     runtime: python
-    pythonVersion: 3.11
+    pythonVersion: 3.11.0
     disk:
       name: persistent-db
       mountPath: /opt/render/project/src/persistent_db
