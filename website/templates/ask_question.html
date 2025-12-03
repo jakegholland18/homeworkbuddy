@@ -35,19 +35,17 @@
     }
 
     .ask-container {
-        margin: 50px auto 80px;
-        display: flex;
-        max-width: 1100px;
-        gap: 50px;
+        margin: 40px auto 60px;
+        display: grid;
+        grid-template-columns: 1fr;
+        max-width: 800px;
+        gap: 20px;
         justify-content: center;
         padding: 0 15px;
     }
 
     .character-panel {
-        width: 280px;
         text-align: center;
-        position: sticky;
-        top: 40px;
     }
 
     .character-avatar {
@@ -106,8 +104,8 @@
         );
         border: 1px solid rgba(118, 131, 255, 0.35);
         color: #f7fbff;
-        padding: 30px;
-        width: 520px;
+        padding: 22px;
+        width: 100%;
         border-radius: 18px;
         box-shadow: 
             0 12px 40px rgba(0, 0, 0, 0.3),
@@ -156,7 +154,7 @@
     }
 
     textarea {
-        height: 160px;
+        min-height: 140px;
     }
 
     textarea:focus, input[type="file"]:focus {
@@ -218,14 +216,14 @@
         );
         border: 1px solid rgba(118, 131, 255, 0.35);
         color: #c4d1ff;
-        padding: 14px 20px;
-        border-radius: 12px;
+        padding: 10px 14px;
+        border-radius: 10px;
         text-align: center;
-        margin: 15px auto;
-        font-size: 1.05rem;
+        margin: 8px auto 0;
+        font-size: 0.95rem;
         font-weight: 600;
         opacity: 0;
-        transition: all 0.35s ease;
+        transition: all 0.25s ease;
         width: fit-content;
         box-shadow: 0 8px 24px rgba(92, 107, 255, 0.2);
         backdrop-filter: blur(10px);
@@ -270,7 +268,7 @@
     </div>
 
     <!-- ⭐ THINKING MESSAGE -->
-    <div id="thinking-box">✨ Preparing your cosmic answer… ✨</div>
+    <div id="thinking-box" aria-live="polite" role="status">✨ Preparing your cosmic answer… ✨</div>
 
     <!-- MAIN FORM AREA -->
     {% if subject == "power_grid" %}
@@ -286,7 +284,7 @@
 
             <textarea id="question-1" name="question" placeholder="Ask anything you want to learn deeply..." required></textarea>
 
-            <button type="submit">Ask Buddy</button>
+            <button type="submit">Ask CozmicLearning</button>
         </form>
 
         <!-- MODE 2 -->
@@ -320,7 +318,7 @@
 
             <textarea id="question-2" name="question" placeholder="Type your question here..." required></textarea>
 
-            <button type="submit">Ask Buddy</button>
+            <button type="submit">Ask CozmicLearning</button>
         </form>
 
     {% endif %}
@@ -335,7 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const messages = [
         "✨ Thinking at warp speed...",
-        "🌌 Consultings stardust libraries...",
+        "🌌 Consulting stardust libraries...",
         "🔭 Looking through cosmic archives...",
         "🛸 Gathering interstellar wisdom...",
         "🌠 Asking the Galaxy Council..."
