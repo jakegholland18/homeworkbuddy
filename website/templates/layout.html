@@ -86,14 +86,69 @@
         }
 
         .sidebar-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            position: relative;
+        }
+        
+        .sidebar-title .rocket-icon {
+            font-size: 1.4rem;
+            filter: drop-shadow(0 0 8px rgba(79, 172, 254, 0.6));
+            animation: sidebarRocket 2s ease-in-out infinite;
+        }
+        
+        @keyframes sidebarRocket {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-3px) rotate(3deg); }
+        }
+        
+        .sidebar-title .logo-letters {
+            display: inline-flex;
+            gap: 1px;
+        }
+        
+        .sidebar-title .letter {
+            display: inline-block;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff6b9d, #ffa07a, #f9ca24, #6dd5ed, #4facfe, #a29bfe);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 20px;
-            text-align: center;
+            animation: letterBounce 3s ease-in-out infinite;
+        }
+        
+        @keyframes letterBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+        }
+        
+        .sidebar-title .letter-z-special {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #84ff00 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 2px;
+            position: relative;
+            filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.8));
+            animation: zGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes zGlow {
+            0%, 100% { 
+                filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.8));
+                transform: translateY(0) scale(1);
+            }
+            50% { 
+                filter: drop-shadow(0 0 15px rgba(0, 242, 254, 1)) drop-shadow(0 0 25px rgba(79, 172, 254, 0.6));
+                transform: translateY(-3px) scale(1.05);
+            }
         }
 
         .sidebar a {
@@ -136,7 +191,14 @@
 
     <!-- SIDEBAR -->
     <div class="sidebar">
-        <h2 class="sidebar-title">🌌 CozmicLearning</h2>
+        <h2 class="sidebar-title">
+            <span class="rocket-icon">🚀</span>
+            <span class="logo-letters">
+                <span class="letter">C</span><span class="letter">o</span><span class="letter letter-z-special">Z</span><span class="letter">m</span><span class="letter">i</span><span class="letter">c</span>
+                <span class="letter">L</span><span class="letter">e</span><span class="letter">a</span><span class="letter">r</span><span class="letter">n</span><span class="letter">i</span><span class="letter">n</span><span class="letter">g</span>
+            </span>
+            <span class="rocket-icon">🚀</span>
+        </h2>
 
         <a href="/">🏠 Home</a>
 
