@@ -688,7 +688,7 @@ def check_subscription_access(user_role):
     ADMIN USERS BYPASS ALL SUBSCRIPTION CHECKS.
     """
     # Admin mode: bypass all subscription checks
-    if is_admin():
+    if session.get("admin_authenticated") or session.get("bypass_auth") or is_admin():
         return True
     
     user = None
@@ -969,58 +969,112 @@ def trial_expired():
     return render_template("trial_expired.html", role=role)
 
 
-@app.route("/admin")
-def admin_dashboard():
-    """Admin-only dashboard to navigate all modes - HIDDEN FROM REGULAR USERS"""
-    # Debug: Check what's in session
-    print(f"DEBUG: Session keys: {list(session.keys())}")
-    print(f"DEBUG: is_admin() result: {is_admin()}")
-    
-    if not is_admin():
-        # Provide more helpful error message
-        if session.get("teacher_id"):
-            teacher = Teacher.query.get(session["teacher_id"])
-            flash(f"Admin access denied. Your email: {teacher.email if teacher else 'unknown'}. Owner email: {OWNER_EMAIL}", "error")
-        elif session.get("student_id"):
-            student = Student.query.get(session["student_id"])
-            flash(f"Admin access denied. Your email: {student.student_email if student else 'unknown'}. Owner email: {OWNER_EMAIL}", "error")
-        elif session.get("parent_id"):
-            parent = Parent.query.get(session["parent_id"])
-            flash(f"Admin access denied. Your email: {parent.email if parent else 'unknown'}. Owner email: {OWNER_EMAIL}", "error")
+@app.route("/secret_admin_login", methods=["GET", "POST"])
+def secret_admin_login():
+    """Hidden admin login - accessed via secret button on landing page"""
+    if request.method == "POST":
+        admin_id = request.form.get("admin_id", "").strip()
+        password = request.form.get("password", "").strip()
+        
+        # Simple check: ID = "admin" and password matches
+        if admin_id.lower() == "admin" and password == ADMIN_PASSWORD:
+            session["admin_authenticated"] = True
+            session["admin_mode"] = "portal"  # Start at portal selection
+            flash("🔧 Admin access granted. Welcome!", "success")
+            return redirect("/admin_portal")
         else:
-            flash("Admin access denied. Please log in first.", "error")
-        return redirect("/")
+            flash("Invalid admin credentials.", "error")
     
-    # Get all users for switching
-    students = Student.query.all()
-    parents = Parent.query.all()
-    teachers = Teacher.query.all()
+    return render_template("secret_admin_login.html")
+
+
+@app.route("/admin_portal")
+def admin_portal():
+    """Main admin portal - select Student, Parent, Teacher, or Homeschool mode"""
+    if not session.get("admin_authenticated"):
+        flash("Admin authentication required.", "error")
+        return redirect("/secret_admin_login")
     
-    # Get current mode info
-    current_mode = None
-    current_user_info = None
+    # Show portal with 4 mode options
+    return render_template("admin_portal.html")
+
+
+@app.route("/admin_mode/<mode>")
+def admin_set_mode(mode):
+    """Set admin mode and redirect to appropriate view"""
+    if not session.get("admin_authenticated"):
+        flash("Admin authentication required.", "error")
+        return redirect("/secret_admin_login")
     
-    if session.get("student_id"):
-        student = Student.query.get(session["student_id"])
-        current_mode = "Student"
-        current_user_info = f"{student.student_name} ({student.student_email})" if student else "Unknown"
-    elif session.get("parent_id"):
-        parent = Parent.query.get(session["parent_id"])
-        current_mode = "Parent"
-        current_user_info = f"{parent.name} ({parent.email})" if parent else "Unknown"
-    elif session.get("teacher_id"):
-        teacher = Teacher.query.get(session["teacher_id"])
-        current_mode = "Teacher"
-        current_user_info = f"{teacher.name} ({teacher.email})" if teacher else "Unknown"
+    valid_modes = ["student", "parent", "teacher", "homeschool"]
+    if mode not in valid_modes:
+        flash("Invalid mode.", "error")
+        return redirect("/admin_portal")
     
-    return render_template(
-        "admin_mode.html",
-        current_mode=current_mode,
-        current_user_info=current_user_info,
-        students=students,
-        parents=parents,
-        teachers=teachers
-    )
+    # Clear any existing user sessions
+    session.pop("student_id", None)
+    session.pop("parent_id", None)
+    session.pop("teacher_id", None)
+    
+    # Set admin mode
+    session["admin_mode"] = mode
+    session["bypass_auth"] = True  # Flag to bypass all auth checks
+    
+    # Create mock user IDs for browsing
+    if mode == "student":
+        # Get first student or create demo
+        student = Student.query.first()
+        if student:
+            session["student_id"] = student.id
+            init_user()
+            flash(f"🔧 Admin mode: Viewing as Student ({student.student_name})", "info")
+            return redirect("/dashboard")
+        else:
+            flash("No students in database. Please create one first.", "error")
+            return redirect("/admin_portal")
+    
+    elif mode == "parent":
+        parent = Parent.query.first()
+        if parent:
+            session["parent_id"] = parent.id
+            flash(f"🔧 Admin mode: Viewing as Parent ({parent.name})", "info")
+            return redirect("/parent_dashboard")
+        else:
+            flash("No parents in database. Please create one first.", "error")
+            return redirect("/admin_portal")
+    
+    elif mode == "teacher":
+        teacher = Teacher.query.first()
+        if teacher:
+            session["teacher_id"] = teacher.id
+            session["is_owner"] = True
+            flash(f"🔧 Admin mode: Viewing as Teacher ({teacher.name})", "info")
+            return redirect("/teacher/dashboard")
+        else:
+            flash("No teachers in database. Please create one first.", "error")
+            return redirect("/admin_portal")
+    
+    elif mode == "homeschool":
+        # Homeschool is parent mode with special flag
+        parent = Parent.query.first()
+        if parent:
+            session["parent_id"] = parent.id
+            session["homeschool_mode"] = True
+            flash(f"🔧 Admin mode: Viewing as Homeschool Parent ({parent.name})", "info")
+            return redirect("/parent_dashboard")
+        else:
+            flash("No parents in database. Please create one first.", "error")
+            return redirect("/admin_portal")
+    
+    return redirect("/admin_portal")
+
+
+@app.route("/admin_logout")
+def admin_logout():
+    """Logout from admin mode"""
+    session.clear()
+    flash("Admin logged out.", "info")
+    return redirect("/")
 
 
 @app.route("/admin/switch_to_student/<int:student_id>")

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Portal - CozmicLearning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            background: radial-gradient(circle at top left, #1e3cff, #050816 40%, #02020a 100%);
+            padding: 40px 20px;
+            color: #fff;
+        }
+        
+        .portal-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .portal-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        
+        .portal-header h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ff6b9d, #4facfe, #00f2fe, #84ff00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            letter-spacing: -0.02em;
+        }
+        
+        .portal-header p {
+            color: #a0aec0;
+            font-size: 1.1rem;
+        }
+        
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .mode-card {
+            background: rgba(20, 20, 60, 0.6);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mode-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.05));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .mode-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(79,172,254,0.5);
+            box-shadow: 0 20px 60px rgba(79,172,254,0.3);
+        }
+        
+        .mode-card:hover::before {
+            opacity: 1;
+        }
+        
+        .mode-card.student {
+            border-color: rgba(79,172,254,0.3);
+        }
+        
+        .mode-card.student:hover {
+            border-color: rgba(79,172,254,0.8);
+            box-shadow: 0 20px 60px rgba(79,172,254,0.4);
+        }
+        
+        .mode-card.parent {
+            border-color: rgba(132,255,0,0.3);
+        }
+        
+        .mode-card.parent:hover {
+            border-color: rgba(132,255,0,0.8);
+            box-shadow: 0 20px 60px rgba(132,255,0,0.4);
+        }
+        
+        .mode-card.teacher {
+            border-color: rgba(255,193,7,0.3);
+        }
+        
+        .mode-card.teacher:hover {
+            border-color: rgba(255,193,7,0.8);
+            box-shadow: 0 20px 60px rgba(255,193,7,0.4);
+        }
+        
+        .mode-card.homeschool {
+            border-color: rgba(255,107,157,0.3);
+        }
+        
+        .mode-card.homeschool:hover {
+            border-color: rgba(255,107,157,0.8);
+            box-shadow: 0 20px 60px rgba(255,107,157,0.4);
+        }
+        
+        .mode-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            display: block;
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
+        }
+        
+        .mode-card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .mode-card p {
+            color: #a0aec0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .mode-card .enter-btn {
+            display: inline-block;
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: #fff;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .mode-card.student .enter-btn {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+        
+        .mode-card.parent .enter-btn {
+            background: linear-gradient(135deg, #84ff00, #00c853);
+        }
+        
+        .mode-card.teacher .enter-btn {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+        }
+        
+        .mode-card.homeschool .enter-btn {
+            background: linear-gradient(135deg, #ff6b9d, #c44569);
+        }
+        
+        .mode-card .enter-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(255,255,255,0.3);
+        }
+        
+        .logout-btn {
+            display: block;
+            width: fit-content;
+            margin: 40px auto 0;
+            padding: 12px 28px;
+            background: rgba(255,107,157,0.2);
+            border: 1px solid rgba(255,107,157,0.5);
+            border-radius: 10px;
+            color: #ff6b9d;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,107,157,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .flash-messages {
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+        
+        .alert {
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .alert-info {
+            background: rgba(79,172,254,0.15);
+            border: 1px solid rgba(79,172,254,0.4);
+            color: #4facfe;
+        }
+        
+        .alert-error {
+            background: rgba(255,107,157,0.15);
+            border: 1px solid rgba(255,107,157,0.4);
+            color: #ff6b9d;
+        }
+        
+        .alert-success {
+            background: rgba(132,255,0,0.15);
+            border: 1px solid rgba(132,255,0,0.4);
+            color: #84ff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="portal-container">
+        <div class="portal-header">
+            <h1>🔧 Admin Portal</h1>
+            <p>Select a mode to access full features without login restrictions</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="mode-grid">
+            <!-- Student Mode -->
+            <div class="mode-card student">
+                <span class="mode-icon">👨‍🚀</span>
+                <h2>Student Mode</h2>
+                <p>Access student dashboard, planets, AI tutoring, practice missions, and all learning features</p>
+                <a href="/admin_mode/student" class="enter-btn">Enter Student View →</a>
+            </div>
+            
+            <!-- Parent Mode -->
+            <div class="mode-card parent">
+                <span class="mode-icon">👨‍👩‍👧‍👦</span>
+                <h2>Parent Mode</h2>
+                <p>View parent dashboard, student reports, analytics, time limits, and messaging features</p>
+                <a href="/admin_mode/parent" class="enter-btn">Enter Parent View →</a>
+            </div>
+            
+            <!-- Teacher Mode -->
+            <div class="mode-card teacher">
+                <span class="mode-icon">👩‍🏫</span>
+                <h2>Teacher Mode</h2>
+                <p>Access teacher dashboard, class management, assignments, lesson plans, and analytics</p>
+                <a href="/admin_mode/teacher" class="enter-btn">Enter Teacher View →</a>
+            </div>
+            
+            <!-- Homeschool Mode -->
+            <div class="mode-card homeschool">
+                <span class="mode-icon">🏠</span>
+                <h2>Homeschool Mode</h2>
+                <p>Combined parent features with homeschool-specific tools and curriculum planning</p>
+                <a href="/admin_mode/homeschool" class="enter-btn">Enter Homeschool View →</a>
+            </div>
+        </div>
+        
+        <a href="/admin_logout" class="logout-btn">🚪 Logout from Admin</a>
+    </div>
+</body>
+</html>

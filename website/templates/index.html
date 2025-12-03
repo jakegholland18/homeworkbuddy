@@ -258,5 +258,35 @@
     </section>
 
   </main>
+  
+  <!-- Hidden Admin Access Button - Triple click logo to reveal -->
+  <div id="adminAccess" style="position: fixed; bottom: 10px; right: 10px; opacity: 0; transition: opacity 0.3s;">
+    <a href="/secret_admin_login" style="display: inline-block; padding: 8px 16px; background: rgba(255,107,157,0.2); border: 1px solid rgba(255,107,157,0.5); border-radius: 8px; color: #ff6b9d; text-decoration: none; font-size: 0.85rem;">
+      🔧 Admin Access
+    </a>
+  </div>
+  
+  <script>
+    // Triple-click the page title to reveal admin button
+    let clickCount = 0;
+    let clickTimer = null;
+    
+    document.querySelector('.page-title').addEventListener('click', function() {
+      clickCount++;
+      if (clickCount === 1) {
+        clickTimer = setTimeout(function() {
+          clickCount = 0;
+        }, 1000);
+      } else if (clickCount === 3) {
+        clearTimeout(clickTimer);
+        clickCount = 0;
+        document.getElementById('adminAccess').style.opacity = '1';
+        setTimeout(function() {
+          document.getElementById('adminAccess').style.opacity = '0';
+        }, 5000);
+      }
+    });
+  </script>
 </body>
 </html>
+
