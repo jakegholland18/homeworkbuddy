@@ -1297,31 +1297,58 @@
       <div class="section-header" style="margin-bottom:40px;">
         <div class="section-badge">Pricing</div>
         <h2 class="section-title">Simple, Transparent, and Generous</h2>
-        <p class="section-subtitle">CozmicLearning is free while we grow. Paid plans will arrive later with team features.</p>
+        <p class="section-subtitle">Free for families while we grow. Classroom and school tiers arrive later — no hidden fees.</p>
       </div>
-      <div class="cta-box" style="max-width:1000px;">
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;">
-          <div style="padding:24px;border-radius:16px;border:1px solid rgba(118,131,255,0.3);background:rgba(92,107,255,0.08);">
+      <div class="cta-box" style="max-width:1100px;">
+        <!-- Toggle -->
+        <div style="display:flex;justify-content:center;gap:12px;margin-bottom:18px;">
+          <button id="price-monthly" class="btn btn-secondary" style="padding:10px 16px;">Monthly</button>
+          <button id="price-yearly" class="btn btn-secondary" style="padding:10px 16px;opacity:0.8;">Yearly (Save 20%)</button>
+        </div>
+
+        <div class="pricing-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;align-items:stretch;">
+          <!-- Free -->
+          <div style="padding:24px;border-radius:16px;border:1px solid var(--border-soft);background:var(--glass-1);position:relative;overflow:hidden;">
+            <span style="position:absolute;right:14px;top:14px;padding:6px 10px;border-radius:999px;border:1px solid var(--border-soft);background:rgba(132,255,0,0.12);color:#9fffa1;font-size:0.8rem;font-weight:700;">Most Popular</span>
             <h3 style="font-size:1.4rem;font-weight:800;margin-bottom:8px;">Free</h3>
-            <p style="color:#c4d1ff;margin-bottom:16px;">Students & Parents</p>
+            <p style="color:var(--muted);margin-bottom:16px;">Students & Parents</p>
             <p style="font-size:2rem;font-weight:800;margin-bottom:12px;">$0</p>
-            <p style="color:#b3c0ff;">AI tutors, missions, streaks, and progress tracking.</p>
+            <ul style="list-style:none;padding:0;margin:0 0 14px 0;color:var(--muted-2);line-height:1.7;">
+              <li>• AI tutors across 11 subjects</li>
+              <li>• Practice missions & streaks</li>
+              <li>• Progress tracking & reports</li>
+            </ul>
+            <a href="/choose_login_role" class="btn btn-primary" style="width:100%;text-align:center;">Start Free</a>
           </div>
-          <div style="padding:24px;border-radius:16px;border:1px solid rgba(118,131,255,0.3);background:rgba(0,242,255,0.08);">
-            <h3 style="font-size:1.4rem;font-weight:800;margin-bottom:8px;">Classroom (Soon)</h3>
-            <p style="color:#c4d1ff;margin-bottom:16px;">Teachers</p>
-            <p style="font-size:2rem;font-weight:800;margin-bottom:12px;">TBD</p>
-            <p style="color:#b3c0ff;">Assignments, analytics, differentiation modes, class management.</p>
+          <!-- Classroom -->
+          <div style="padding:24px;border-radius:16px;border:1px solid var(--border-soft);background:var(--glass-2);position:relative;overflow:hidden;">
+            <span style="position:absolute;right:14px;top:14px;padding:6px 10px;border-radius:999px;border:1px solid var(--border-soft);background:rgba(0,242,255,0.12);color:#7beaff;font-size:0.8rem;font-weight:700;">Soon</span>
+            <h3 style="font-size:1.4rem;font-weight:800;margin-bottom:8px;">Classroom</h3>
+            <p style="color:var(--muted);margin-bottom:16px;">Teachers</p>
+            <p class="price" data-monthly="$12/mo" data-yearly="$9.60/mo" style="font-size:2rem;font-weight:800;margin-bottom:12px;">$12/mo</p>
+            <ul style="list-style:none;padding:0;margin:0 0 14px 0;color:var(--muted-2);line-height:1.7;">
+              <li>• Assignments & differentiation</li>
+              <li>• Class analytics & mastery</li>
+              <li>• Teacher dashboards</li>
+            </ul>
+            <a href="#faq" class="btn btn-secondary" style="width:100%;text-align:center;">Learn More</a>
           </div>
-          <div style="padding:24px;border-radius:16px;border:1px solid rgba(118,131,255,0.3);background:rgba(132,255,0,0.08);">
-            <h3 style="font-size:1.4rem;font-weight:800;margin-bottom:8px;">Schools (Later)</h3>
-            <p style="color:#c4d1ff;margin-bottom:16px;">Teams</p>
-            <p style="font-size:2rem;font-weight:800;margin-bottom:12px;">TBD</p>
-            <p style="color:#b3c0ff;">Bulk admin, SSO, reporting, and support.</p>
+          <!-- Schools -->
+          <div style="padding:24px;border-radius:16px;border:1px solid var(--border-soft);background:var(--glass-3);position:relative;overflow:hidden;">
+            <span style="position:absolute;right:14px;top:14px;padding:6px 10px;border-radius:999px;border:1px solid var(--border-soft);background:rgba(132,255,0,0.12);color:#aafc7b;font-size:0.8rem;font-weight:700;">Later</span>
+            <h3 style="font-size:1.4rem;font-weight:800;margin-bottom:8px;">Schools</h3>
+            <p style="color:var(--muted);margin-bottom:16px;">Teams</p>
+            <p class="price" data-monthly="$49/mo" data-yearly="$39.20/mo" style="font-size:2rem;font-weight:800;margin-bottom:12px;">$49/mo</p>
+            <ul style="list-style:none;padding:0;margin:0 0 14px 0;color:var(--muted-2);line-height:1.7;">
+              <li>• Bulk admin & SSO</li>
+              <li>• Reports & support</li>
+              <li>• Org management</li>
+            </ul>
+            <a href="#faq" class="btn btn-secondary" style="width:100%;text-align:center;">Learn More</a>
           </div>
         </div>
         <div class="cta-buttons" style="margin-top:24px;">
-          <a href="/choose_login_role" class="btn btn-primary">Start Free</a>
+          <a href="/choose_login_role" class="btn btn-primary">Get Started</a>
           <a href="#faq" class="btn btn-secondary">Read FAQ</a>
         </div>
       </div>
@@ -1371,6 +1398,25 @@
   </main>
 
   <script>
+    // Pricing toggle
+    (function initPricingToggle(){
+      const monthlyBtn = document.getElementById('price-monthly');
+      const yearlyBtn = document.getElementById('price-yearly');
+      const prices = document.querySelectorAll('#pricing .price');
+      function setMode(mode){
+        prices.forEach(p => {
+          const text = p.getAttribute(mode === 'yearly' ? 'data-yearly' : 'data-monthly');
+          if (text) p.textContent = text;
+        });
+        monthlyBtn.style.opacity = mode === 'monthly' ? '1' : '0.8';
+        yearlyBtn.style.opacity = mode === 'yearly' ? '1' : '0.8';
+      }
+      if (monthlyBtn && yearlyBtn) {
+        monthlyBtn.addEventListener('click', () => setMode('monthly'));
+        yearlyBtn.addEventListener('click', () => setMode('yearly'));
+      }
+      setMode('monthly');
+    })();
     // Stats count-up animation when visible
     (function initStatCounters(){
       const counters = document.querySelectorAll('.stat-number[data-target]');
