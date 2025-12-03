@@ -2521,9 +2521,9 @@ def teacher_analytics_overview():
 
     # Get all teacher's classes
     if is_owner(teacher):
-        classes = Class.query.order_by(Class.name).all()
+        classes = Class.query.order_by(Class.class_name).all()
     else:
-        classes = Class.query.filter_by(teacher_id=teacher.id).order_by(Class.name).all()
+        classes = Class.query.filter_by(teacher_id=teacher.id).order_by(Class.class_name).all()
 
     # Build summary stats for each class
     class_summaries = []
