@@ -746,12 +746,10 @@ def student_signup():
         
         # Check parent's subscription limits
         current_student_count = len(parent.students)
-        if parent.plan == "free" and current_student_count >= 1:
-            flash("Your parent's Free plan only allows 1 student. They need to upgrade.", "error")
-            return redirect("/student/signup")
-        elif parent.plan == "basic" and current_student_count >= 3:
+        if parent.plan == "basic" and current_student_count >= 3:
             flash("Your parent's Basic plan only allows 3 students. They need to upgrade to Premium.", "error")
             return redirect("/student/signup")
+        # Premium plan has unlimited students, no check needed
 
         # Student inherits parent's subscription plan
         new_student = Student(
@@ -814,7 +812,7 @@ def parent_signup():
     init_user()
     
     # Get plan from query string (from plans page)
-    selected_plan = request.args.get("plan", "free")
+    selected_plan = request.args.get("plan", "basic")
     
     if request.method == "POST":
         name = safe_text(request.form.get("name", ""), 100)
@@ -849,7 +847,7 @@ def parent_signup():
             billing=billing,
             trial_start=trial_start,
             trial_end=trial_end,
-            subscription_active=True if plan != "free" else False,
+            subscription_active=True,  # All plans are paid
         )
         db.session.add(parent)
         db.session.commit()

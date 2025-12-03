@@ -18,24 +18,15 @@
 <div class="auth-box">
 
     <h2 class="auth-title">Create Parent Account</h2>
-    <p class="auth-subtitle">Link to your student for progress, practice, and reports.</p>
+    <p class="auth-subtitle">Link to your students for progress, practice, and reports.</p>
     
-    {% if selected_plan and selected_plan != 'free' %}
+    {% if selected_plan %}
     <div style="margin:12px 0 18px; padding: 14px; border-radius:12px; border:2px solid #ffd54f; background:rgba(255,213,79,0.1);">
         <div style="color:#ffd54f; font-weight:700; font-size:1.05rem; margin-bottom:6px;">
             ✨ Selected: {{ selected_plan.title() }} Plan
         </div>
         <div style="color:#c4d1ff; font-size:0.9rem;">
             Includes 7-day free trial • Cancel anytime
-        </div>
-    </div>
-    {% elif selected_plan == 'free' %}
-    <div style="margin:12px 0 18px; padding: 14px; border-radius:12px; border:2px solid rgba(118,131,255,0.3); background:rgba(92,107,255,0.08);">
-        <div style="color:#00f2ff; font-weight:700; font-size:1.05rem; margin-bottom:6px;">
-            🎯 Free Plan Selected
-        </div>
-        <div style="color:#c4d1ff; font-size:0.9rem;">
-            Get started with 1 student • Upgrade anytime
         </div>
     </div>
     {% endif %}

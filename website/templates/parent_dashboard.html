@@ -231,15 +231,13 @@
     <div style="display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
         <div style="padding: 8px 16px; background: var(--glass-1); border: 1px solid var(--border-soft); border-radius: 8px;">
             <span style="color: var(--muted-3); font-size: 0.8rem;">Plan:</span>
-            <strong style="color: var(--accent); margin-left: 6px;">{{ parent.plan.title() if parent.plan else 'Free' }}</strong>
+            <strong style="color: var(--accent); margin-left: 6px;">{{ parent.plan.title() if parent.plan else 'Basic' }}</strong>
         </div>
         <div style="padding: 8px 16px; background: var(--glass-1); border: 1px solid var(--border-soft); border-radius: 8px;">
             <span style="color: var(--muted-3); font-size: 0.8rem;">Students:</span>
             <strong style="color: var(--success); margin-left: 6px;">{{ parent.students|length }}</strong>
             <span style="color: var(--muted-3); font-size: 0.75rem;">
-                {% if parent.plan == 'free' %}
-                    / 1
-                {% elif parent.plan == 'basic' %}
+                {% if parent.plan == 'basic' %}
                     / 3
                 {% else %}
                     / unlimited

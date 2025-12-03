@@ -216,6 +216,7 @@ body {
     
     .plans-container {
         grid-template-columns: 1fr;
+        gap: 30px;
     }
     
     .plan-card.featured {
@@ -230,30 +231,7 @@ body {
 </div>
 
 <div class="plans-container">
-    <!-- Free Plan -->
-    <div class="plan-card">
-        <div class="plan-name">Free</div>
-        <div class="plan-price">$0<span>/month</span></div>
-        <div class="plan-trial">Try all features for 7 days!</div>
-        
-        <ul class="plan-features">
-            <li>1 student account</li>
-            <li>All 11 subject planets</li>
-            <li>AI tutor assistance</li>
-            <li>Basic progress tracking</li>
-            <li>20 questions/day limit</li>
-            <li class="disabled">Teacher messaging</li>
-            <li class="disabled">Detailed analytics</li>
-            <li class="disabled">Custom lesson plans</li>
-        </ul>
-        
-        <form action="/parent/signup" method="GET">
-            <input type="hidden" name="plan" value="free">
-            <button type="submit" class="plan-btn">Get Started Free</button>
-        </form>
-    </div>
-
-    <!-- Basic Plan -->
+    <!-- Basic Plan - Most Popular -->
     <div class="plan-card featured">
         <div class="plan-badge">⭐ MOST POPULAR</div>
         <div class="plan-name">Basic</div>
@@ -268,8 +246,8 @@ body {
             <li>Unlimited questions</li>
             <li>Teacher messaging</li>
             <li>Weekly progress reports</li>
-            <li class="disabled">Custom lesson plans</li>
-            <li class="disabled">Priority AI support</li>
+            <li>Subject performance analytics</li>
+            <li>Time tracking & controls</li>
         </ul>
         
         <form action="/parent/signup" method="GET">
@@ -286,15 +264,15 @@ body {
         
         <ul class="plan-features">
             <li>Unlimited student accounts</li>
-            <li>All 11 subject planets</li>
-            <li>AI tutor assistance</li>
+            <li>Everything in Basic, plus:</li>
             <li>Advanced analytics dashboard</li>
-            <li>Unlimited questions</li>
-            <li>Teacher messaging</li>
+            <li>Custom learning goals</li>
+            <li>AI gap analysis & suggestions</li>
+            <li>Priority teacher support</li>
+            <li>Export PDF reports (homeschool)</li>
             <li>Daily progress reports</li>
-            <li>Custom lesson plans</li>
-            <li>Priority AI support</li>
-            <li>Multi-device access</li>
+            <li>Reward system controls</li>
+            <li>API access (coming soon)</li>
         </ul>
         
         <form action="/parent/signup" method="GET">
