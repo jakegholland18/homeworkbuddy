@@ -32,7 +32,17 @@
 
     <div class="nav-right">
 
-        {% if session.teacher_id %}
+        {% if landing %}
+            <!-- Landing page: public anchors + auth CTA -->
+            <a href="#features" class="sparkle-a"><span class="nav-emoji">🛰️</span> Features</a>
+            <a href="#pricing" class="sparkle-b"><span class="nav-emoji">💫</span> Pricing</a>
+            <a href="#faq" class="sparkle-c"><span class="nav-emoji">🌌</span> FAQ</a>
+            <a href="#" onclick="openCharacterPreview(); return false;" class="sparkle-d"><span class="nav-emoji">👩‍🚀</span> Preview Characters</a>
+            <a href="/choose_login_role" class="sparkle-e" style="margin-left:24px;padding:8px 14px;border-radius:10px;border:1px solid rgba(118,131,255,0.35);background:rgba(92,107,255,0.12);color:#fff;">
+                <span class="nav-emoji">🔑</span> Login / Sign Up
+            </a>
+
+        {% elif session.teacher_id %}
             <!-- TEACHER OR OWNER -->
             <a href="/teacher/dashboard">Teacher Dashboard</a>
             <a href="/teacher/logout">Logout</a>
@@ -60,7 +70,7 @@
             {% endif %}
 
         {% else %}
-            <!-- PUBLIC VISITOR: keep landing self-contained -->
+            <!-- PUBLIC VISITOR (non-landing pages can still show anchors) -->
             <a href="#features" class="sparkle-a"><span class="nav-emoji">🛰️</span> Features</a>
             <a href="#pricing" class="sparkle-b"><span class="nav-emoji">💫</span> Pricing</a>
             <a href="#faq" class="sparkle-c"><span class="nav-emoji">🌌</span> FAQ</a>
@@ -305,6 +315,7 @@
 .sparkle-b::after { content: '✧ ✦ ✧'; }
 .sparkle-c::after { content: '✦ ✦ ✧'; }
 .sparkle-d::after { content: '✧ ✧ ✦'; }
+.sparkle-e::after { content: '✦ ✧ ✧'; }
 .nav-right a:hover::after {
     opacity: 1;
     animation: sparkleTrail 0.9s ease-in-out;
