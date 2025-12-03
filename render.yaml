@@ -4,9 +4,8 @@ services:
     env: python
     autoDeploy: true
     branch: main
-    plan: standard
-    regions:
-      - oregon
+    plan: starter
+    region: oregon
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
@@ -19,7 +18,8 @@ services:
     pythonVersion: 3.11
     disk:
       name: persistent-db
-      mountPath: persistent_db
+      mountPath: /opt/render/project/src/persistent_db
+      sizeGB: 1
     autoDeployOnPaths:
       - app.py
       - requirements.txt

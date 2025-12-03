@@ -1190,6 +1190,69 @@ def add_student(class_id):
     return redirect("/teacher/dashboard")
 
 
+@app.route("/teacher/delete_class/<int:class_id>", methods=["POST"])
+def delete_class(class_id):
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect("/teacher/login")
+
+    cls = Class.query.get(class_id)
+    if not cls or (not is_owner(teacher) and cls.teacher_id != teacher.id):
+        flash("Class not found or not authorized.", "error")
+        return redirect("/teacher/dashboard")
+
+    class_name = cls.name
+    
+    # Delete all students in the class (cascade should handle this, but explicit is safer)
+    Student.query.filter_by(class_id=class_id).delete()
+    
+    # Delete all assignments for this class
+    AssignedPractice.query.filter_by(class_id=class_id).delete()
+    
+    # Delete the class
+    db.session.delete(cls)
+    db.session.commit()
+    
+    # Update backup
+    backup_classes_to_json()
+    
+    flash(f"Class '{class_name}' and all its students have been deleted.", "info")
+    return redirect("/teacher/dashboard")
+
+
+@app.route("/teacher/delete_student/<int:student_id>", methods=["POST"])
+def delete_student(student_id):
+    teacher = get_current_teacher()
+    if not teacher:
+        return redirect("/teacher/login")
+
+    student = Student.query.get(student_id)
+    if not student:
+        flash("Student not found.", "error")
+        return redirect("/teacher/dashboard")
+    
+    # Check if teacher owns the class this student belongs to
+    cls = Class.query.get(student.class_id)
+    if not cls or (not is_owner(teacher) and cls.teacher_id != teacher.id):
+        flash("Not authorized to delete this student.", "error")
+        return redirect("/teacher/dashboard")
+    
+    student_name = student.student_name
+    
+    # Delete all assessment results for this student
+    AssessmentResult.query.filter_by(student_id=student_id).delete()
+    
+    # Delete the student
+    db.session.delete(student)
+    db.session.commit()
+    
+    # Update backup
+    backup_classes_to_json()
+    
+    flash(f"Student '{student_name}' has been deleted.", "info")
+    return redirect("/teacher/dashboard")
+
+
 # ============================================================
 # TEACHER – ASSIGNMENTS (CREATE + MANAGE)
 # ============================================================
