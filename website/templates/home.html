@@ -1297,7 +1297,7 @@
       <div class="section-header" style="margin-bottom:40px;">
         <div class="section-badge">Pricing</div>
         <h2 class="section-title">Simple, Transparent Pricing</h2>
-        <p class="section-subtitle">🎁 All plans include a FREE 7-day trial — no credit card required!</p>
+        <p class="section-subtitle">🎁 All plans include a FREE 7-day trial!</p>
       </div>
       <div class="cta-box" style="max-width:1200px;">
         
@@ -1462,57 +1462,68 @@
     </section>
 
     <script>
-      // Role Tab Switching
-      document.querySelectorAll('.role-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-          const role = this.dataset.role;
-          
-          // Update tab styles
-          document.querySelectorAll('.role-tab').forEach(t => {
-            t.classList.remove('active');
-            t.style.background = 'rgba(255,255,255,0.05)';
-            t.style.color = 'var(--muted)';
-            t.style.borderColor = 'var(--border-soft)';
+      // Wait for DOM to be fully loaded
+      document.addEventListener('DOMContentLoaded', function() {
+        // Role Tab Switching
+        document.querySelectorAll('.role-tab').forEach(tab => {
+          tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const role = this.dataset.role;
+            
+            // Update tab styles
+            document.querySelectorAll('.role-tab').forEach(t => {
+              t.classList.remove('active');
+              t.style.background = 'rgba(255,255,255,0.05)';
+              t.style.color = 'var(--muted)';
+              t.style.borderColor = 'var(--border-soft)';
+            });
+            this.classList.add('active');
+            this.style.background = 'rgba(79,172,254,0.2)';
+            this.style.color = '#fff';
+            this.style.borderColor = 'rgba(79,172,254,0.5)';
+            
+            // Show corresponding pricing
+            document.querySelectorAll('.role-pricing').forEach(pricing => {
+              pricing.style.display = 'none';
+            });
+            const targetPricing = document.querySelector(`.role-pricing[data-role="${role}"]`);
+            if (targetPricing) {
+              targetPricing.style.display = 'grid';
+            }
           });
-          this.classList.add('active');
-          this.style.background = 'rgba(79,172,254,0.2)';
-          this.style.color = '#fff';
-          this.style.borderColor = 'rgba(79,172,254,0.5)';
-          
-          // Show corresponding pricing
-          document.querySelectorAll('.role-pricing').forEach(pricing => {
-            pricing.style.display = 'none';
+        });
+        
+        // Monthly/Yearly Toggle
+        const monthlyBtn = document.getElementById('price-monthly');
+        const yearlyBtn = document.getElementById('price-yearly');
+        
+        if (monthlyBtn) {
+          monthlyBtn.addEventListener('click', function() {
+            document.querySelectorAll('.price').forEach(p => {
+              p.textContent = p.dataset.monthly;
+            });
+            monthlyBtn.style.opacity = '1';
+            yearlyBtn.style.opacity = '0.8';
+            // Update all links to monthly billing
+            document.querySelectorAll('a[href*="billing=yearly"]').forEach(link => {
+              link.href = link.href.replace('billing=yearly', 'billing=monthly');
+            });
           });
-          document.querySelector(`.role-pricing[data-role="${role}"]`).style.display = 'grid';
-        });
-      });
-      
-      // Monthly/Yearly Toggle
-      const monthlyBtn = document.getElementById('price-monthly');
-      const yearlyBtn = document.getElementById('price-yearly');
-      
-      monthlyBtn.addEventListener('click', function() {
-        document.querySelectorAll('.price').forEach(p => {
-          p.textContent = p.dataset.monthly;
-        });
-        monthlyBtn.style.opacity = '1';
-        yearlyBtn.style.opacity = '0.8';
-        // Update all links to monthly billing
-        document.querySelectorAll('a[href*="billing=yearly"]').forEach(link => {
-          link.href = link.href.replace('billing=yearly', 'billing=monthly');
-        });
-      });
-      
-      yearlyBtn.addEventListener('click', function() {
-        document.querySelectorAll('.price').forEach(p => {
-          p.textContent = p.dataset.yearly;
-        });
-        yearlyBtn.style.opacity = '1';
-        monthlyBtn.style.opacity = '0.8';
-        // Update all links to yearly billing
-        document.querySelectorAll('a[href*="billing=monthly"]').forEach(link => {
-          link.href = link.href.replace('billing=monthly', 'billing=yearly');
-        });
+        }
+        
+        if (yearlyBtn) {
+          yearlyBtn.addEventListener('click', function() {
+            document.querySelectorAll('.price').forEach(p => {
+              p.textContent = p.dataset.yearly;
+            });
+            yearlyBtn.style.opacity = '1';
+            monthlyBtn.style.opacity = '0.8';
+            // Update all links to yearly billing
+            document.querySelectorAll('a[href*="billing=monthly"]').forEach(link => {
+              link.href = link.href.replace('billing=monthly', 'billing=yearly');
+            });
+          });
+        }
       });
     </script>
 
