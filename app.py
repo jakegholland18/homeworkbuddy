@@ -3613,6 +3613,45 @@ def parent_dashboard():
 # PARENT - MESSAGING SYSTEM
 # ============================================================
 
+@app.route("/parent/students")
+def parent_students():
+    """Parent student management page - view and remove students."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        flash("Please log in as a parent.", "error")
+        return redirect("/parent/login")
+    
+    parent = Parent.query.get(parent_id)
+    if not parent:
+        return redirect("/parent/login")
+    
+    return render_template("parent_students.html", parent=parent)
+
+
+@app.route("/parent/students/<int:student_id>/remove", methods=["POST"])
+def parent_remove_student(student_id):
+    """Unlink a student from parent account."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        flash("Please log in as a parent.", "error")
+        return redirect("/parent/login")
+    
+    parent = Parent.query.get(parent_id)
+    student = Student.query.get_or_404(student_id)
+    
+    # Verify parent owns this student
+    if student.parent_id != parent.id:
+        flash("Not authorized.", "error")
+        return redirect("/parent/students")
+    
+    # Unlink student (set parent_id to None)
+    student.parent_id = None
+    db.session.commit()
+    
+    flash(f"{student.student_name} has been unlinked from your account.", "success")
+    return redirect("/parent/students")
+
+
 @app.route("/parent/messages")
 def parent_messages():
     """Parent inbox - view all messages from teachers."""
