@@ -1,73 +1,377 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Preview Mission – {{ assignment.title }}</title>
+    <title>Preview & Edit Questions – {{ assignment.title }}</title>
     <link rel="stylesheet" href="/static/style.css?v=20251202">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --primary: #5c6bff;
+            --accent: #00f2ff;
+            --success: #84ff00;
+            --warning: #ff9f1c;
+            --text: #ffffff;
+            --muted: #c4d1ff;
+            --muted-2: #8a92b3;
+        }
+
+        body {
+            font-family: "Poppins", sans-serif;
+            min-height: 100vh;
+            background: #02020a;
+            color: #ffffff;
+            overflow-x: hidden;
+            padding: 20px;
+            margin: 0;
+        }
+
         .preview-container {
-            width: 90%;
-            max-width: 800px;
-            margin: 40px auto;
-            background: rgba(255,255,255,0.06);
-            padding: 25px;
+            width: 95%;
+            max-width: 1200px;
+            margin: 20px auto;
+            background: linear-gradient(135deg, rgba(92,107,255,0.12), rgba(71,200,255,0.08));
+            padding: 30px;
             border-radius: 18px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.4);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            border: 1px solid rgba(118,131,255,0.35);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffdd55, #ff9500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #c4d1ff;
+            font-size: 1rem;
+            margin: 4px 0;
+        }
+
+        /* Question Navigation */
+        .question-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .question-nav-btn {
+            padding: 10px 16px;
+            background: rgba(92,107,255,0.2);
+            border: 1px solid rgba(118,131,255,0.4);
+            color: var(--muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .question-nav-btn:hover {
+            background: rgba(92,107,255,0.4);
+            color: var(--text);
+        }
+
+        .question-nav-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: var(--text);
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(0,242,255,0.3);
+        }
+
+        .question-container {
+            display: none;
+        }
+
+        .question-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .step-box {
             background: rgba(255,255,255,0.08);
-            padding: 18px;
-            border-radius: 12px;
+            padding: 25px;
+            border-radius: 14px;
             margin-bottom: 20px;
             border: 1px solid rgba(255,255,255,0.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
         .step-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #00f2ff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .step-prompt {
+            font-size: 1.15rem;
+            line-height: 1.7;
+            margin-bottom: 16px;
+            color: #ffffff;
+            background: rgba(0,0,0,0.2);
+            padding: 16px;
+            border-radius: 10px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .editable-prompt {
+            width: 100%;
+            min-height: 100px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(118,131,255,0.3);
+            color: var(--text);
+            padding: 12px;
+            border-radius: 8px;
+            font-family: "Poppins", sans-serif;
+            font-size: 1rem;
+            resize: vertical;
         }
 
         .choice {
-            margin-left: 18px;
-            margin-bottom: 4px;
+            background: rgba(0,242,255,0.1);
+            margin: 8px 0;
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left: 3px solid rgba(0,242,255,0.4);
+            color: #c4d1ff;
+            font-size: 1rem;
+        }
+
+        .choice-input {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(118,131,255,0.3);
+            color: var(--text);
+            padding: 10px;
+            border-radius: 6px;
+            font-family: "Poppins", sans-serif;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .info-box {
+            background: rgba(0,0,0,0.3);
+            padding: 14px;
+            border-radius: 8px;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #8a92b3;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .info-value {
+            font-size: 0.95rem;
+            color: #ffffff;
+        }
+
+        /* Controls */
+        .question-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(118,131,255,0.2);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            font-size: 0.85rem;
+            color: var(--muted-2);
+            font-weight: 600;
+        }
+
+        .control-select {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(118,131,255,0.3);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: "Poppins", sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, var(--accent), #4facfe);
+            color: #0b0f1a;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,242,255,0.4);
+        }
+
+        .btn-regenerate {
+            background: linear-gradient(135deg, var(--warning), #ff6b35);
+            color: white;
+        }
+
+        .btn-regenerate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255,159,28,0.4);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, var(--success), #4caf50);
+            color: #0b0f1a;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(132,255,0,0.4);
+        }
+
+        .btn-cancel {
+            background: rgba(100,100,120,0.4);
+            color: var(--text);
+            border: 1px solid rgba(140,140,160,0.3);
+        }
+
+        .btn-cancel:hover {
+            background: rgba(100,100,120,0.6);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .final-message {
+            background: linear-gradient(135deg, rgba(132,255,0,0.15), rgba(76,175,80,0.1));
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border: 1px solid rgba(132,255,0,0.3);
+        }
+
+        .final-message h3 {
+            color: #84ff00;
+            margin-bottom: 10px;
+        }
+
+        .main-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid rgba(118,131,255,0.3);
         }
 
         .publish-btn {
             display: block;
             width: 100%;
-            padding: 14px;
+            padding: 18px;
             background: linear-gradient(135deg, #84ff00, #4caf50);
             color: #0b0f1a;
             font-size: 1.2rem;
             text-align: center;
-            border-radius: 10px;
-            margin-top: 25px;
+            border-radius: 12px;
             text-decoration: none;
-            transition: 0.2s;
-            font-weight: 600;
+            transition: 0.3s;
+            font-weight: 700;
             box-shadow: 0 6px 16px rgba(132, 255, 0, 0.3);
+            border: none;
+            cursor: pointer;
         }
 
         .publish-btn:hover {
             background: linear-gradient(135deg, #96ff1a, #5cbe5f);
             box-shadow: 0 8px 20px rgba(132, 255, 0, 0.5);
+            transform: translateY(-2px);
         }
 
-        .cancel-btn {
+        .back-btn {
             display: block;
             width: 100%;
-            padding: 14px;
-            background: #444;
+            padding: 18px;
+            background: rgba(100,100,120,0.6);
             color: white;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             text-align: center;
-            border-radius: 10px;
-            margin-top: 12px;
+            border-radius: 12px;
             text-decoration: none;
+            border: 1px solid rgba(140,140,160,0.4);
+            transition: 0.3s;
+            font-weight: 700;
         }
 
+        .back-btn:hover {
+            background: rgba(100,100,120,0.8);
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: inline-block;
+            color: var(--accent);
+            font-style: italic;
+        }
+
+        .edit-mode {
+            background: rgba(0,242,255,0.1);
+            border-color: var(--accent);
+        }
+
+        .progress-indicator {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            color: var(--muted-2);
+        }
     </style>
 </head>
 
@@ -75,44 +379,377 @@
 
 <div class="preview-container">
 
-    <h1>Mission Preview</h1>
-    <p><strong>Title:</strong> {{ assignment.title }}</p>
-    <p><strong>Subject:</strong> {{ assignment.subject|title }}</p>
-    <p><strong>Topic:</strong> {{ assignment.topic }}</p>
-
-    <hr><br>
-
-    {% for step in mission.steps %}
-    <div class="step-box">
-        <div class="step-title">Step {{ loop.index }}</div>
-
-        <p>{{ step.prompt }}</p>
-
-        {% if step.type == "multiple_choice" %}
-            <div class="choice">{{ step.choices[0] }}</div>
-            <div class="choice">{{ step.choices[1] }}</div>
-            <div class="choice">{{ step.choices[2] }}</div>
-            <div class="choice">{{ step.choices[3] }}</div>
-        {% endif %}
-
-        <p><strong>Expected:</strong> {{ step.expected }}</p>
-        <p><strong>Hint:</strong> {{ step.hint }}</p>
-        <p><strong>Explanation:</strong> {{ step.explanation }}</p>
+    <div class="header">
+        <h1>🚀 Review & Edit Questions</h1>
+        <p><strong>{{ assignment.title }}</strong></p>
+        <p>{{ assignment.subject|replace('_', ' ')|title }} · {{ assignment.topic }}</p>
     </div>
-    {% endfor %}
 
-    <h3>Final Mission Message</h3>
-    <p>{{ mission.final_message }}</p>
+    <div class="progress-indicator">
+        <span id="questionCounter">Question 1 of {{ mission.steps|length }}</span>
+    </div>
 
-    <a class="publish-btn" href="/teacher/assignments/{{ assignment.id }}/publish">
-        ✅ Approve & Publish Mission
-    </a>
+    <!-- Question Navigation Pills -->
+    <div class="question-nav" id="questionNav">
+        {% for step in mission.steps %}
+        <button class="question-nav-btn {% if loop.first %}active{% endif %}" 
+                onclick="showQuestion({{ loop.index0 }})" 
+                data-question="{{ loop.index0 }}">
+            Q{{ loop.index }}
+        </button>
+        {% endfor %}
+    </div>
 
-    <a class="cancel-btn" href="/teacher/assignments/{{ assignment.id }}">
-        Cancel / Back
-    </a>
+    <hr style="border: none; height: 1px; background: linear-gradient(90deg, transparent, rgba(118,131,255,0.5), transparent); margin: 25px 0;">
+
+    {% if mission.steps %}
+        {% for step in mission.steps %}
+        <div class="question-container {% if loop.first %}active{% endif %}" id="question-{{ loop.index0 }}" data-index="{{ loop.index0 }}">
+            <div class="step-box" id="step-box-{{ loop.index0 }}">
+                <div class="step-title">
+                    <span>Question {{ loop.index }}</span>
+                    <button class="btn btn-edit" onclick="toggleEdit({{ loop.index0 }})">
+                        ✏️ Edit
+                    </button>
+                </div>
+
+                <!-- Display Mode -->
+                <div class="display-mode" id="display-{{ loop.index0 }}">
+                    <div class="step-prompt" id="prompt-display-{{ loop.index0 }}">{{ step.prompt }}</div>
+
+                    {% if step.type == "multiple_choice" and step.choices %}
+                        <div style="margin-top: 12px;" id="choices-display-{{ loop.index0 }}">
+                            {% for choice in step.choices %}
+                            <div class="choice">{{ choice }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="info-row">
+                        <div class="info-box">
+                            <div class="info-label">Question Type</div>
+                            <div class="info-value" id="type-display-{{ loop.index0 }}">{{ 'Multiple Choice' if step.type == 'multiple_choice' else 'Free Response' }}</div>
+                        </div>
+                        
+                        <div class="info-box">
+                            <div class="info-label">Expected Answer</div>
+                            <div class="info-value" id="answer-display-{{ loop.index0 }}">{{ step.expected if step.expected is string else (step.expected|join(', ') if step.expected else 'N/A') }}</div>
+                        </div>
+                        
+                        {% if step.hint %}
+                        <div class="info-box">
+                            <div class="info-label">Hint</div>
+                            <div class="info-value" id="hint-display-{{ loop.index0 }}">{{ step.hint }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    {% if step.explanation %}
+                    <div class="info-box" style="margin-top: 12px;">
+                        <div class="info-label">Explanation</div>
+                        <div class="info-value" id="explanation-display-{{ loop.index0 }}">{{ step.explanation }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Edit Mode -->
+                <div class="edit-mode" id="edit-{{ loop.index0 }}" style="display: none;">
+                    <div style="margin-bottom: 16px;">
+                        <label class="control-label">Question Text</label>
+                        <textarea class="editable-prompt" id="prompt-edit-{{ loop.index0 }}">{{ step.prompt }}</textarea>
+                    </div>
+
+                    <div class="question-controls">
+                        <div class="control-group">
+                            <label class="control-label">Question Type</label>
+                            <select class="control-select" id="type-edit-{{ loop.index0 }}" onchange="toggleChoices({{ loop.index0 }})">
+                                <option value="free" {% if step.type != 'multiple_choice' %}selected{% endif %}>Free Response</option>
+                                <option value="multiple_choice" {% if step.type == 'multiple_choice' %}selected{% endif %}>Multiple Choice</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label class="control-label">Expected Answer</label>
+                            <input type="text" class="choice-input" id="answer-edit-{{ loop.index0 }}" value="{{ step.expected if step.expected is string else (step.expected|join(', ') if step.expected else '') }}" placeholder="e.g., A or 42">
+                        </div>
+                    </div>
+
+                    <div id="choices-edit-{{ loop.index0 }}" style="margin-top: 16px; {% if step.type != 'multiple_choice' %}display: none;{% endif %}">
+                        <label class="control-label">Answer Choices</label>
+                        {% if step.type == 'multiple_choice' and step.choices %}
+                            {% for choice in step.choices %}
+                            <input type="text" class="choice-input" id="choice-{{ loop.index0 }}-{{ loop.index0 }}" value="{{ choice }}" placeholder="Choice {{ 'ABCD'[loop.index0] }}">
+                            {% endfor %}
+                        {% else %}
+                            <input type="text" class="choice-input" id="choice-{{ loop.index0 }}-0" placeholder="Choice A">
+                            <input type="text" class="choice-input" id="choice-{{ loop.index0 }}-1" placeholder="Choice B">
+                            <input type="text" class="choice-input" id="choice-{{ loop.index0 }}-2" placeholder="Choice C">
+                            <input type="text" class="choice-input" id="choice-{{ loop.index0 }}-3" placeholder="Choice D">
+                        {% endif %}
+                    </div>
+
+                    <div style="margin-top: 16px;">
+                        <label class="control-label">Hint (Optional)</label>
+                        <input type="text" class="choice-input" id="hint-edit-{{ loop.index0 }}" value="{{ step.hint or '' }}" placeholder="Helpful hint for students">
+                    </div>
+
+                    <div style="margin-top: 16px;">
+                        <label class="control-label">Explanation</label>
+                        <textarea class="editable-prompt" id="explanation-edit-{{ loop.index0 }}" rows="3">{{ step.explanation or '' }}</textarea>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-save" onclick="saveQuestion({{ loop.index0 }})">💾 Save Changes</button>
+                        <button class="btn btn-cancel" onclick="cancelEdit({{ loop.index0 }})">✖️ Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Regenerate Section -->
+                <div class="question-controls" style="margin-top: 20px;">
+                    <button class="btn btn-regenerate" onclick="regenerateQuestion({{ loop.index0 }})" style="grid-column: 1 / -1;">
+                        🔄 Regenerate This Question with AI
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center; color: #8a92b3; padding: 40px;">No questions available in this preview.</p>
+    {% endif %}
+
+    <div class="main-actions">
+        <button class="publish-btn" onclick="publishAssignment()">
+            ✅ Approve & Publish All
+        </button>
+
+        <a class="back-btn" href="/teacher/assignments/{{ assignment.id }}/edit">
+            ← Back to Edit
+        </a>
+    </div>
 
 </div>
+
+<script>
+let questionsData = {{ mission.steps | tojson }};
+let currentQuestion = 0;
+
+function showQuestion(index) {
+    // Hide all questions
+    document.querySelectorAll('.question-container').forEach(container => {
+        container.classList.remove('active');
+    });
+    
+    // Remove active from all nav buttons
+    document.querySelectorAll('.question-nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected question
+    document.getElementById('question-' + index).classList.add('active');
+    document.querySelector(`[data-question="${index}"]`).classList.add('active');
+    
+    currentQuestion = index;
+    document.getElementById('questionCounter').textContent = `Question ${index + 1} of ${questionsData.length}`;
+}
+
+function toggleEdit(index) {
+    const displayMode = document.getElementById('display-' + index);
+    const editMode = document.getElementById('edit-' + index);
+    const stepBox = document.getElementById('step-box-' + index);
+    
+    if (editMode.style.display === 'none') {
+        displayMode.style.display = 'none';
+        editMode.style.display = 'block';
+        stepBox.classList.add('edit-mode');
+    } else {
+        displayMode.style.display = 'block';
+        editMode.style.display = 'none';
+        stepBox.classList.remove('edit-mode');
+    }
+}
+
+function toggleChoices(index) {
+    const typeSelect = document.getElementById('type-edit-' + index);
+    const choicesDiv = document.getElementById('choices-edit-' + index);
+    
+    if (typeSelect.value === 'multiple_choice') {
+        choicesDiv.style.display = 'block';
+    } else {
+        choicesDiv.style.display = 'none';
+    }
+}
+
+function saveQuestion(index) {
+    const prompt = document.getElementById('prompt-edit-' + index).value;
+    const type = document.getElementById('type-edit-' + index).value;
+    const answer = document.getElementById('answer-edit-' + index).value;
+    const hint = document.getElementById('hint-edit-' + index).value;
+    const explanation = document.getElementById('explanation-edit-' + index).value;
+    
+    let choices = [];
+    if (type === 'multiple_choice') {
+        for (let i = 0; i < 4; i++) {
+            const choiceInput = document.getElementById(`choice-${index}-${i}`);
+            if (choiceInput) {
+                choices.push(choiceInput.value);
+            }
+        }
+    }
+    
+    // Update the display
+    document.getElementById('prompt-display-' + index).textContent = prompt;
+    document.getElementById('type-display-' + index).textContent = type === 'multiple_choice' ? 'Multiple Choice' : 'Free Response';
+    document.getElementById('answer-display-' + index).textContent = answer;
+    
+    if (hint) {
+        document.getElementById('hint-display-' + index).textContent = hint;
+    }
+    if (explanation) {
+        document.getElementById('explanation-display-' + index).textContent = explanation;
+    }
+    
+    // Update choices display
+    if (type === 'multiple_choice') {
+        const choicesDisplay = document.getElementById('choices-display-' + index);
+        if (choicesDisplay) {
+            choicesDisplay.innerHTML = choices.map(c => `<div class="choice">${c}</div>`).join('');
+        }
+    }
+    
+    // Update questionsData
+    questionsData[index] = {
+        prompt: prompt,
+        type: type,
+        choices: choices,
+        expected: answer,
+        hint: hint,
+        explanation: explanation
+    };
+    
+    // Close edit mode
+    toggleEdit(index);
+    
+    // Show success message
+    alert('✓ Question saved! Changes will be applied when you publish.');
+}
+
+function cancelEdit(index) {
+    toggleEdit(index);
+}
+
+async function regenerateQuestion(index) {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = '⏳ Regenerating...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch('/teacher/preview_questions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                subject: '{{ assignment.subject }}',
+                topic: '{{ assignment.topic }}',
+                grade: '{{ assignment.class_ref.students[0].grade_level if assignment.class_ref.students else "8" }}',
+                character: 'everly',
+                differentiation_mode: '{{ assignment.differentiation_mode }}',
+                student_ability: 'on_level',
+                num_questions: 1
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.questions && data.questions.length > 0) {
+            const newQuestion = data.questions[0];
+            
+            // Update the question data
+            questionsData[index] = newQuestion;
+            
+            // Update display
+            document.getElementById('prompt-display-' + index).textContent = newQuestion.prompt;
+            document.getElementById('type-display-' + index).textContent = newQuestion.type === 'multiple_choice' ? 'Multiple Choice' : 'Free Response';
+            document.getElementById('answer-display-' + index).textContent = Array.isArray(newQuestion.expected) ? newQuestion.expected.join(', ') : newQuestion.expected;
+            
+            if (newQuestion.hint) {
+                document.getElementById('hint-display-' + index).textContent = newQuestion.hint;
+            }
+            if (newQuestion.explanation) {
+                document.getElementById('explanation-display-' + index).textContent = newQuestion.explanation;
+            }
+            
+            // Update choices if MC
+            if (newQuestion.type === 'multiple_choice' && newQuestion.choices) {
+                const choicesDisplay = document.getElementById('choices-display-' + index);
+                if (choicesDisplay) {
+                    choicesDisplay.innerHTML = newQuestion.choices.map(c => `<div class="choice">${c}</div>`).join('');
+                    choicesDisplay.style.display = 'block';
+                }
+            } else {
+                const choicesDisplay = document.getElementById('choices-display-' + index);
+                if (choicesDisplay) {
+                    choicesDisplay.style.display = 'none';
+                }
+            }
+            
+            // Update edit mode fields
+            document.getElementById('prompt-edit-' + index).value = newQuestion.prompt;
+            document.getElementById('type-edit-' + index).value = newQuestion.type || 'free';
+            document.getElementById('answer-edit-' + index).value = Array.isArray(newQuestion.expected) ? newQuestion.expected.join(', ') : newQuestion.expected;
+            document.getElementById('hint-edit-' + index).value = newQuestion.hint || '';
+            document.getElementById('explanation-edit-' + index).value = newQuestion.explanation || '';
+            
+            alert('✓ Question regenerated successfully!');
+        } else {
+            alert('✗ Failed to regenerate question. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error regenerating question:', error);
+        alert('✗ Network error. Please try again.');
+    } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+async function publishAssignment() {
+    if (!confirm('Are you ready to publish this assignment? Students will be able to access it.')) {
+        return;
+    }
+    
+    const btn = event.target;
+    btn.textContent = '⏳ Publishing...';
+    btn.disabled = true;
+    
+    try {
+        // Save the updated questions data
+        const response = await fetch('/teacher/assignments/{{ assignment.id }}/update_preview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                steps: questionsData,
+                final_message: "Great work! Review your answers and submit when ready."
+            })
+        });
+        
+        if (response.ok) {
+            // Now publish
+            window.location.href = '/teacher/assignments/{{ assignment.id }}/publish';
+        } else {
+            alert('✗ Failed to save changes. Please try again.');
+            btn.textContent = '✅ Approve & Publish All';
+            btn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('✗ Network error. Please try again.');
+        btn.textContent = '✅ Approve & Publish All';
+        btn.disabled = false;
+    }
+}
+</script>
 
 </body>
 </html>

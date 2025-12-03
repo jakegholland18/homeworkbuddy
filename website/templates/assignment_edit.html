@@ -13,6 +13,14 @@
   </style>
   <h2 style="margin-bottom: 8px;">Edit Assignment: {{ assignment.title }}</h2>
   <small style="color:#8a92b3;">Subject: {{ assignment.subject }} · Class: {{ assignment.class_ref.class_name }}</small>
+  
+  {% if assignment.preview_json %}
+  <div style="margin: 12px 0;">
+    <a href="/teacher/assignments/{{ assignment.id }}/preview" class="btn" style="display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); text-decoration: none; border-radius: 8px; font-size: 0.9rem;">
+      👁️ Preview AI Mission
+    </a>
+  </div>
+  {% endif %}
 
   <form method="POST" style="margin-top: 16px;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

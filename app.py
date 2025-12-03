@@ -2297,6 +2297,40 @@ def assignment_preview(practice_id):
     )
 
 # ============================================================
+# TEACHER - UPDATE PREVIEW JSON (FROM INTERACTIVE PREVIEW)
+# ============================================================
+
+@csrf.exempt
+@app.route("/teacher/assignments/<int:assignment_id>/update_preview", methods=["POST"])
+def update_assignment_preview(assignment_id):
+    """Update the preview JSON for an assignment after teacher edits."""
+    teacher = get_current_teacher()
+    if not teacher:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    assignment = AssignedPractice.query.get_or_404(assignment_id)
+
+    # Only teacher who created it can update
+    if assignment.teacher_id != teacher.id:
+        return jsonify({"error": "Not authorized"}), 403
+
+    data = request.get_json() or {}
+    steps = data.get("steps", [])
+    final_message = data.get("final_message", "Great work!")
+
+    # Build updated mission JSON
+    mission_json = {
+        "steps": steps,
+        "final_message": final_message
+    }
+
+    # Update the preview_json field
+    assignment.preview_json = json.dumps(mission_json)
+    db.session.commit()
+
+    return jsonify({"success": True, "message": "Preview updated successfully"}), 200
+
+# ============================================================
 # TEACHER - PUBLISH AI-GENERATED MISSION
 # ============================================================
 
