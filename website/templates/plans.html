@@ -1,0 +1,629 @@
+{% set landing = True %}
+{% include "_navbar.html" %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CozmicLearning – Pricing Plans</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #02020a;
+      --text: #ffffff;
+      --muted: #c4d1ff;
+      --muted-2: #b3c0ff;
+      --muted-3: #8a92b3;
+      --primary: #5c6bff;
+      --primary-2: #7683ff;
+      --accent: #00f2ff;
+      --success: #84ff00;
+      --gold: #ffd54f;
+      --shadow-strong: rgba(92, 107, 255, 0.5);
+      --shadow-soft: rgba(92, 107, 255, 0.3);
+      --border-soft: rgba(118, 131, 255, 0.3);
+      --border-mid: rgba(118, 131, 255, 0.4);
+      --glass-1: rgba(92, 107, 255, 0.08);
+      --glass-2: rgba(0, 242, 255, 0.08);
+      --glass-3: rgba(132, 255, 0, 0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+      padding: 80px 2rem 60px;
+    }
+
+    .stars {
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(2px 2px at 20% 30%, white, transparent),
+        radial-gradient(2px 2px at 60% 70%, white, transparent),
+        radial-gradient(1px 1px at 50% 50%, white, transparent),
+        radial-gradient(1px 1px at 80% 10%, white, transparent);
+      background-size: 200% 200%;
+      animation: twinkle 20s ease-in-out infinite;
+      opacity: 0.4;
+      z-index: 0;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
+    }
+
+    .page { 
+      max-width: 1400px; 
+      margin: 0 auto; 
+      position: relative;
+      z-index: 1;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .section-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      background: rgba(92, 107, 255, 0.15);
+      border: 1px solid var(--border-soft);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 16px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .section-title {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--text), var(--muted));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section-subtitle {
+      font-size: 1.2rem;
+      color: var(--muted-3);
+      max-width: 700px;
+      margin: 0 auto 30px;
+      line-height: 1.7;
+    }
+
+    /* Billing Toggle */
+    .billing-toggle {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 50px;
+    }
+
+    .toggle-btn {
+      padding: 12px 30px;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border: 2px solid rgba(118, 131, 255, 0.3);
+      background: rgba(92, 107, 255, 0.08);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-btn.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: var(--text);
+      border-color: var(--primary);
+      box-shadow: 0 8px 20px var(--shadow-soft);
+    }
+
+    .toggle-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: rgba(132, 255, 0, 0.2);
+      color: var(--success);
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+
+    /* Pricing Grid */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 35px;
+      max-width: 1100px;
+      margin: 0 auto 60px;
+    }
+
+    .plan-card {
+      padding: 40px 32px;
+      border-radius: 20px;
+      border: 2px solid var(--border-soft);
+      background: linear-gradient(135deg,
+        var(--glass-1),
+        rgba(71, 200, 255, 0.05)
+      );
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .plan-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(92, 107, 255, 0.2), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .plan-card:hover::before {
+      opacity: 1;
+    }
+
+    .plan-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      border-color: rgba(92, 107, 255, 0.6);
+      box-shadow: 0 25px 60px rgba(92, 107, 255, 0.35);
+    }
+
+    .plan-card.featured {
+      border-color: var(--success);
+      background: linear-gradient(135deg,
+        rgba(132, 255, 0, 0.12),
+        rgba(0, 242, 255, 0.08)
+      );
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .plan-badge.basic {
+      background: rgba(0, 242, 255, 0.15);
+      color: #7beaff;
+      border: 1px solid rgba(0, 242, 255, 0.3);
+    }
+
+    .plan-badge.premium {
+      background: rgba(132, 255, 0, 0.15);
+      color: #aafc7b;
+      border: 1px solid rgba(132, 255, 0, 0.3);
+    }
+
+    .plan-name {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .plan-desc {
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-size: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .plan-trial {
+      color: var(--muted-2);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .plan-price {
+      font-size: 3rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .plan-price .currency {
+      font-size: 1.8rem;
+    }
+
+    .plan-price .period {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--muted-3);
+    }
+
+    .plan-savings {
+      color: var(--success);
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 25px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .plan-features {
+      list-style: none;
+      padding: 0;
+      margin: 25px 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .plan-features li {
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(118, 131, 255, 0.15);
+      color: var(--muted-2);
+      font-size: 0.95rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .plan-features li:last-child {
+      border-bottom: none;
+    }
+
+    .plan-features li::before {
+      content: "✓";
+      color: var(--success);
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .plan-cta {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      text-decoration: none;
+      display: inline-block;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .plan-cta.primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      color: var(--text);
+      box-shadow: 0 12px 30px var(--shadow-strong);
+    }
+
+    .plan-cta.primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(92, 107, 255, 0.7);
+    }
+
+    .plan-cta.secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .plan-cta.secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* FAQ Section */
+    .faq-section {
+      max-width: 900px;
+      margin: 80px auto 0;
+    }
+
+    .faq-item {
+      margin-bottom: 15px;
+    }
+
+    .faq-question {
+      width: 100%;
+      text-align: left;
+      padding: 18px 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(118, 131, 255, 0.3);
+      background: rgba(92, 107, 255, 0.08);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .faq-question:hover {
+      background: rgba(92, 107, 255, 0.15);
+      border-color: rgba(118, 131, 255, 0.5);
+    }
+
+    .faq-question::after {
+      content: "+";
+      font-size: 1.5rem;
+      transition: transform 0.3s ease;
+    }
+
+    .faq-question.active::after {
+      transform: rotate(45deg);
+    }
+
+    .faq-answer {
+      display: none;
+      padding: 18px 20px;
+      color: var(--muted-2);
+      line-height: 1.7;
+      border-left: 3px solid var(--primary);
+      margin-left: 10px;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .billing-toggle {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .toggle-btn {
+        width: 100%;
+        max-width: 300px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="stars"></div>
+  
+  <main class="page">
+    
+    <div class="section-header">
+      <div class="section-badge">Pricing</div>
+      <h1 class="section-title">Choose Your Plan</h1>
+      <p class="section-subtitle">
+        Start with a free 1-week trial. No credit card required. Cancel anytime.
+      </p>
+    </div>
+
+    <!-- Billing Toggle -->
+    <div class="billing-toggle">
+      <button id="monthly-toggle" class="toggle-btn active">Monthly</button>
+      <button id="yearly-toggle" class="toggle-btn">
+        Yearly
+        <span class="toggle-badge">Save 15%+</span>
+      </button>
+    </div>
+
+    <!-- Pricing Grid -->
+    <div class="pricing-grid">
+      
+      <!-- Basic Plan -->
+      <div class="plan-card">
+        <span class="plan-badge basic">Basic</span>
+        <h2 class="plan-name">Basic Plan</h2>
+        <p class="plan-desc">Perfect for individual learners</p>
+        <p class="plan-trial">Includes free 1-week trial</p>
+        
+        <div class="plan-price">
+          <span class="currency">$</span><span class="monthly-price">9.99</span><span class="yearly-price" style="display:none;">75</span><span class="period monthly-period">/mo</span><span class="period yearly-period" style="display:none;">/yr</span>
+        </div>
+        <div class="plan-savings yearly-savings" style="display:none;">Save $45/year</div>
+        
+        <ul class="plan-features">
+          <li>Access to all 11 subject planets</li>
+          <li>Limited monthly Q&A quota</li>
+          <li>Practice missions with hints</li>
+          <li>Gamification: tokens, XP, streaks</li>
+          <li>Progress tracking</li>
+          <li>Up to 3 students per parent account</li>
+          <li>Email support</li>
+        </ul>
+        
+        <a href="/choose_login_role?plan=basic&billing=monthly" class="plan-cta basic-cta primary">Start Free Trial</a>
+      </div>
+
+      <!-- Premium Plan -->
+      <div class="plan-card featured">
+        <span class="plan-badge premium">Most Popular</span>
+        <h2 class="plan-name">Premium Plan</h2>
+        <p class="plan-desc">Full access for serious learners</p>
+        <p class="plan-trial">Includes free 1-week trial</p>
+        
+        <div class="plan-price">
+          <span class="currency">$</span><span class="monthly-price">15.99</span><span class="yearly-price" style="display:none;">160</span><span class="period monthly-period">/mo</span><span class="period yearly-period" style="display:none;">/yr</span>
+        </div>
+        <div class="plan-savings yearly-savings" style="display:none;">Save $32/year</div>
+        
+        <ul class="plan-features">
+          <li><strong>Everything in Basic, plus:</strong></li>
+          <li>Unlimited questions and responses</li>
+          <li>All differentiation modes (scaffold, mastery, challenge)</li>
+          <li>Advanced analytics and reports</li>
+          <li>Weekly parent email reports</li>
+          <li>Unlimited students per parent account</li>
+          <li>Priority email support</li>
+          <li>Early access to new features</li>
+        </ul>
+        
+        <a href="/choose_login_role?plan=premium&billing=monthly" class="plan-cta premium-cta primary">Start Free Trial</a>
+      </div>
+
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq-section">
+      <div class="section-header">
+        <h2 class="section-title" style="font-size:2.2rem;">Frequently Asked Questions</h2>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          How does the free trial work?
+        </button>
+        <div class="faq-answer">
+          All new accounts get a 1-week free trial with full access to your chosen plan. No credit card required during signup. After the trial ends, you'll need to add payment to continue using the service.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          Can I change plans later?
+        </button>
+        <div class="faq-answer">
+          Absolutely! You can upgrade, downgrade, or cancel anytime from your account settings. Changes take effect at the start of your next billing cycle.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          What's the difference between monthly and yearly billing?
+        </button>
+        <div class="faq-answer">
+          Monthly billing charges you each month. Yearly billing is a one-time annual payment that saves you over 15% compared to paying monthly for 12 months. Both include the same features.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          How many students can I have on my parent account?
+        </button>
+        <div class="faq-answer">
+          Basic plan allows up to 3 students per parent account. Premium plan has unlimited students, perfect for larger families or homeschool co-ops.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          Do teachers need a paid account?
+        </button>
+        <div class="faq-answer">
+          Teachers can create assignments and track student progress with a free account. Optional paid teacher plans unlock additional features like AI lesson plan generation and advanced class analytics.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          Is my payment information secure?
+        </button>
+        <div class="faq-answer">
+          We use industry-standard encryption and never store full credit card details on our servers. All payments are processed through secure, PCI-compliant payment providers.
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question">
+          What if I'm not satisfied?
+        </button>
+        <div class="faq-answer">
+          You can cancel anytime during or after your free trial. If you're not happy within the first 30 days after payment, contact us for a full refund—no questions asked.
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // Billing toggle functionality
+    (function initBillingToggle() {
+      const monthlyBtn = document.getElementById('monthly-toggle');
+      const yearlyBtn = document.getElementById('yearly-toggle');
+      const monthlyPrices = document.querySelectorAll('.monthly-price');
+      const yearlyPrices = document.querySelectorAll('.yearly-price');
+      const monthlyPeriods = document.querySelectorAll('.monthly-period');
+      const yearlyPeriods = document.querySelectorAll('.yearly-period');
+      const yearlySavings = document.querySelectorAll('.yearly-savings');
+      const basicCta = document.querySelector('.basic-cta');
+      const premiumCta = document.querySelector('.premium-cta');
+
+      function setMode(mode) {
+        if (mode === 'monthly') {
+          monthlyBtn.classList.add('active');
+          yearlyBtn.classList.remove('active');
+          monthlyPrices.forEach(el => el.style.display = 'inline');
+          yearlyPrices.forEach(el => el.style.display = 'none');
+          monthlyPeriods.forEach(el => el.style.display = 'inline');
+          yearlyPeriods.forEach(el => el.style.display = 'none');
+          yearlySavings.forEach(el => el.style.display = 'none');
+          basicCta.href = '/choose_login_role?plan=basic&billing=monthly';
+          premiumCta.href = '/choose_login_role?plan=premium&billing=monthly';
+        } else {
+          monthlyBtn.classList.remove('active');
+          yearlyBtn.classList.add('active');
+          monthlyPrices.forEach(el => el.style.display = 'none');
+          yearlyPrices.forEach(el => el.style.display = 'inline');
+          monthlyPeriods.forEach(el => el.style.display = 'none');
+          yearlyPeriods.forEach(el => el.style.display = 'inline');
+          yearlySavings.forEach(el => el.style.display = 'block');
+          basicCta.href = '/choose_login_role?plan=basic&billing=yearly';
+          premiumCta.href = '/choose_login_role?plan=premium&billing=yearly';
+        }
+      }
+
+      monthlyBtn.addEventListener('click', () => setMode('monthly'));
+      yearlyBtn.addEventListener('click', () => setMode('yearly'));
+
+      // Default to monthly
+      setMode('monthly');
+    })();
+
+    // FAQ accordion
+    (function initFAQ() {
+      document.querySelectorAll('.faq-item').forEach(item => {
+        const question = item.querySelector('.faq-question');
+        const answer = item.querySelector('.faq-answer');
+        
+        question.addEventListener('click', () => {
+          const isOpen = answer.style.display === 'block';
+          
+          // Close all other FAQs
+          document.querySelectorAll('.faq-answer').forEach(a => a.style.display = 'none');
+          document.querySelectorAll('.faq-question').forEach(q => q.classList.remove('active'));
+          
+          // Toggle current FAQ
+          if (!isOpen) {
+            answer.style.display = 'block';
+            question.classList.add('active');
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

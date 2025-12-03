@@ -8,6 +8,10 @@ import logging
 import traceback
 import secrets
 from datetime import datetime, timedelta
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # ============================================================
 # PATHS + DB FILE  (UPDATED FOR PERSISTENT STORAGE)
@@ -721,6 +725,12 @@ def auth_portal():
 def choose_login_role():
     init_user()
     return render_template("choose_login_role.html")
+
+
+@app.route("/plans")
+def plans():
+    init_user()
+    return render_template("plans.html")
 
 
 @app.route("/logout")

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>CozmicLearning – Teacher Sign Up</title>
-    <link rel="stylesheet" href="/static/style.css?v=20251202">
-    <link rel="stylesheet" href="/static/css/auth.css?v=20251202">
+    <link rel="stylesheet" href="/static/style.css?v=20251203">
+    <link rel="stylesheet" href="/static/css/auth.css?v=20251203">
 
     <script>
         function togglePassword() {
@@ -19,9 +19,9 @@
 <div class="auth-box">
     <h1 class="auth-title">Teacher Sign Up</h1>
     <div class="auth-subtitle">Create your CozmicLearning teacher portal account.</div>
-    <div class="auth-subtitle" style="margin-top:-12px;">• Verified email required. • Owner accounts see all classes.</div>
+    <div class="auth-subtitle" style="margin-top:-12px;">• Free for basic classroom features • Optional paid plans for advanced tools</div>
     <div id="planBadge" style="display:none;margin:8px 0 14px;">
-        <span style="display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(118,131,255,0.35);background:rgba(92,107,255,0.12);color:#cfe8ff;font-size:0.9rem;">Selected: <strong id="planName"></strong> — <span id="billingMode"></span></span>
+        <span style="display:inline-block;padding:8px 14px;border-radius:8px;border:1px solid rgba(118,131,255,0.35);background:rgba(92,107,255,0.12);color:#cfe8ff;font-size:0.95rem;font-weight:600;">Selected: <strong id="planName"></strong> — <span id="billingMode"></span> • <span style="color:#84ff00;">7-day free trial</span></span>
     </div>
 
     <div class="flash-messages">
@@ -44,7 +44,7 @@
         </div>
 
         <div>
-            <label for="email">School Email</label>
+            <label for="email">Email</label>
             <input id="email" name="email" type="email" placeholder="you@school.org" required>
         </div>
 
@@ -66,6 +66,10 @@
     <div class="auth-footer">
         Already have an account?
         <a href="/teacher/login">Log in</a>
+        <br>
+        <a href="/plans">View pricing plans</a>
+        <br>
+        <span class="hint">• Basic classroom features are free forever • Upgrade anytime for advanced tools</span>
     </div>
 </div>
         <script>

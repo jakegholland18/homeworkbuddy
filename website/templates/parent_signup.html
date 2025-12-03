@@ -2,8 +2,8 @@
 <html>
 <head>
     <title>Parent Sign Up</title>
-    <link rel="stylesheet" href="/static/style.css?v=20251202">
-    <link rel="stylesheet" href="/static/css/auth.css?v=20251202">
+    <link rel="stylesheet" href="/static/style.css?v=20251203">
+    <link rel="stylesheet" href="/static/css/auth.css?v=20251203">
 
     <script>
         function togglePassword() {
@@ -11,6 +11,134 @@
             field.type = field.type === "password" ? "text" : "password";
         }
     </script>
+    <style>
+        .plan-selector {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(92, 107, 255, 0.08);
+            border-radius: 12px;
+            border: 1px solid rgba(118, 131, 255, 0.3);
+        }
+        .plan-selector-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .billing-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 18px;
+            justify-content: center;
+        }
+        .billing-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid rgba(118, 131, 255, 0.3);
+            background: rgba(92, 107, 255, 0.05);
+            color: #c4d1ff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .billing-btn.active {
+            background: linear-gradient(135deg, #5c6bff, #7683ff);
+            color: #fff;
+            border-color: #5c6bff;
+        }
+        .billing-btn .savings {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 2px 6px;
+            background: rgba(132, 255, 0, 0.2);
+            color: #84ff00;
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+        .plan-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .plan-option {
+            padding: 16px;
+            border-radius: 10px;
+            border: 2px solid rgba(118, 131, 255, 0.3);
+            background: rgba(0, 242, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .plan-option input[type="radio"] {
+            display: none;
+        }
+        .plan-option input[type="radio"]:checked + label {
+            border-color: #5c6bff;
+        }
+        .plan-option:hover {
+            background: rgba(0, 242, 255, 0.1);
+            border-color: rgba(118, 131, 255, 0.6);
+        }
+        .plan-option.selected {
+            border-color: #5c6bff;
+            background: rgba(92, 107, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(92, 107, 255, 0.3);
+        }
+        .plan-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        .plan-badge.basic {
+            background: rgba(0, 242, 255, 0.2);
+            color: #7beaff;
+        }
+        .plan-badge.premium {
+            background: rgba(132, 255, 0, 0.2);
+            color: #aafc7b;
+        }
+        .plan-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .plan-price {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .plan-period {
+            font-size: 0.9rem;
+            color: #8a92b3;
+        }
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0 0;
+            font-size: 0.85rem;
+            color: #b3c0ff;
+        }
+        .plan-features li {
+            padding: 4px 0;
+        }
+        .plan-features li::before {
+            content: "✓";
+            color: #84ff00;
+            margin-right: 6px;
+            font-weight: 700;
+        }
+        @media (max-width: 600px) {
+            .plan-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body class="fade-in">
@@ -18,19 +146,8 @@
 <div class="auth-box">
 
     <h2 class="auth-title">Create Parent Account</h2>
-    <p class="auth-subtitle">Link to your students for progress, practice, and reports.</p>
+    <p class="auth-subtitle">Monitor your children's progress and manage their learning journey.</p>
     
-    {% if selected_plan %}
-    <div style="margin:12px 0 18px; padding: 14px; border-radius:12px; border:2px solid #ffd54f; background:rgba(255,213,79,0.1);">
-        <div style="color:#ffd54f; font-weight:700; font-size:1.05rem; margin-bottom:6px;">
-            ✨ Selected: {{ selected_plan.title() }} Plan
-        </div>
-        <div style="color:#c4d1ff; font-size:0.9rem;">
-            Includes 7-day free trial • Cancel anytime
-        </div>
-    </div>
-    {% endif %}
-
     <div class="flash-messages">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -43,8 +160,60 @@
 
     <form method="POST" class="auth-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="plan" value="{{ selected_plan or 'free' }}">
-        <input type="hidden" name="billing" value="monthly">
+        <input type="hidden" name="plan" id="plan-field" value="{{ selected_plan or 'basic' }}">
+        <input type="hidden" name="billing" id="billing-field" value="monthly">
+
+        <!-- Plan Selector -->
+        <div class="plan-selector">
+            <div class="plan-selector-title">Choose Your Plan</div>
+            
+            <!-- Billing Toggle -->
+            <div class="billing-toggle">
+                <button type="button" class="billing-btn active" id="monthly-btn">
+                    Monthly
+                </button>
+                <button type="button" class="billing-btn" id="yearly-btn">
+                    Yearly <span class="savings">Save 15%+</span>
+                </button>
+            </div>
+
+            <!-- Plan Options -->
+            <div class="plan-options">
+                <div class="plan-option" data-plan="basic" onclick="selectPlan('basic')">
+                    <div class="plan-badge basic">Basic</div>
+                    <div class="plan-name">Basic Plan</div>
+                    <div class="plan-price">
+                        <span class="monthly-price">$9.99</span>
+                        <span class="yearly-price" style="display:none;">$75</span>
+                        <span class="plan-period monthly-period">/mo</span>
+                        <span class="plan-period yearly-period" style="display:none;">/yr</span>
+                    </div>
+                    <ul class="plan-features">
+                        <li>11 subjects</li>
+                        <li>Limited Q&A</li>
+                        <li>Up to 3 students</li>
+                        <li>7-day free trial</li>
+                    </ul>
+                </div>
+
+                <div class="plan-option" data-plan="premium" onclick="selectPlan('premium')">
+                    <div class="plan-badge premium">Premium</div>
+                    <div class="plan-name">Premium Plan</div>
+                    <div class="plan-price">
+                        <span class="monthly-price">$15.99</span>
+                        <span class="yearly-price" style="display:none;">$160</span>
+                        <span class="plan-period monthly-period">/mo</span>
+                        <span class="plan-period yearly-period" style="display:none;">/yr</span>
+                    </div>
+                    <ul class="plan-features">
+                        <li>Unlimited Q&A</li>
+                        <li>Advanced analytics</li>
+                        <li>Unlimited students</li>
+                        <li>7-day free trial</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
         <div>
             <label>Your Name</label>
@@ -64,7 +233,7 @@
             </div>
         </div>
 
-        <button class="auth-submit" type="submit">Create Parent Account</button>
+        <button class="auth-submit" type="submit">Create Account & Start Trial</button>
 
         <div class="auth-actions">
             <a class="btn-secondary" href="/choose_login_role">Switch Role</a>
@@ -74,11 +243,64 @@
 
     <p class="auth-footer">
         Already have an account? <a href="/parent/login">Log in</a><br>
-        Want a different plan? <a href="/parent/plans">View all plans</a><br>
-        <span class="hint">• 7-day free trial on all paid plans • Cancel anytime</span>
+        <a href="/plans">View detailed plan comparison</a><br>
+        <span class="hint">• 7-day free trial on all plans • No credit card required • Cancel anytime</span>
     </p>
 
 </div>
+
+<script>
+    // Billing toggle
+    const monthlyBtn = document.getElementById('monthly-btn');
+    const yearlyBtn = document.getElementById('yearly-btn');
+    const billingField = document.getElementById('billing-field');
+    const monthlyPrices = document.querySelectorAll('.monthly-price');
+    const yearlyPrices = document.querySelectorAll('.yearly-price');
+    const monthlyPeriods = document.querySelectorAll('.monthly-period');
+    const yearlyPeriods = document.querySelectorAll('.yearly-period');
+
+    function setBilling(mode) {
+        billingField.value = mode;
+        
+        if (mode === 'monthly') {
+            monthlyBtn.classList.add('active');
+            yearlyBtn.classList.remove('active');
+            monthlyPrices.forEach(el => el.style.display = 'inline');
+            yearlyPrices.forEach(el => el.style.display = 'none');
+            monthlyPeriods.forEach(el => el.style.display = 'inline');
+            yearlyPeriods.forEach(el => el.style.display = 'none');
+        } else {
+            monthlyBtn.classList.remove('active');
+            yearlyBtn.classList.add('active');
+            monthlyPrices.forEach(el => el.style.display = 'none');
+            yearlyPrices.forEach(el => el.style.display = 'inline');
+            monthlyPeriods.forEach(el => el.style.display = 'none');
+            yearlyPeriods.forEach(el => el.style.display = 'inline');
+        }
+    }
+
+    monthlyBtn.addEventListener('click', () => setBilling('monthly'));
+    yearlyBtn.addEventListener('click', () => setBilling('yearly'));
+
+    // Plan selection
+    function selectPlan(planName) {
+        document.getElementById('plan-field').value = planName;
+        document.querySelectorAll('.plan-option').forEach(opt => {
+            opt.classList.remove('selected');
+        });
+        document.querySelector(`.plan-option[data-plan="${planName}"]`).classList.add('selected');
+    }
+
+    // Initialize from URL params or default
+    (function init() {
+        const params = new URLSearchParams(window.location.search);
+        const plan = params.get('plan') || '{{ selected_plan }}' || 'basic';
+        const billing = params.get('billing') || 'monthly';
+        
+        selectPlan(plan);
+        setBilling(billing);
+    })();
+</script>
 
 </body>
 </html>
