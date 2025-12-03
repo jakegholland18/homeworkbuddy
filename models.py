@@ -15,6 +15,13 @@ class Parent(db.Model):
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String(255))
 
+    # Subscription fields
+    plan = db.Column(db.String(50))           # free/basic/premium
+    billing = db.Column(db.String(20))        # monthly/yearly
+    trial_start = db.Column(db.DateTime)
+    trial_end = db.Column(db.DateTime)
+    subscription_active = db.Column(db.Boolean, default=False)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # One parent → many students
@@ -32,6 +39,13 @@ class Teacher(db.Model):
     name = db.Column(db.String(120))
     email = db.Column(db.String(120), unique=True)
     password_hash = db.Column(db.String(255))
+
+    # Subscription fields (optional for teacher accounts)
+    plan = db.Column(db.String(50))
+    billing = db.Column(db.String(20))
+    trial_start = db.Column(db.DateTime)
+    trial_end = db.Column(db.DateTime)
+    subscription_active = db.Column(db.Boolean, default=False)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -72,6 +86,13 @@ class Student(db.Model):
 
     student_name = db.Column(db.String(120))
     student_email = db.Column(db.String(120))
+
+    # Subscription fields
+    plan = db.Column(db.String(50))           # free/basic/premium
+    billing = db.Column(db.String(20))        # monthly/yearly
+    trial_start = db.Column(db.DateTime)
+    trial_end = db.Column(db.DateTime)
+    subscription_active = db.Column(db.Boolean, default=False)
 
     # Differentiation engine ability tier
     ability_level = db.Column(db.String(20), default="on_level")  

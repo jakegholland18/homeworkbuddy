@@ -135,9 +135,41 @@ def rebuild_database_if_needed():
 
         cur.execute("PRAGMA table_info(students);")
         student_cols = [col[1] for col in cur.fetchall()]
+        cur.execute("PRAGMA table_info(parents);")
+        parent_cols = [col[1] for col in cur.fetchall()]
+        cur.execute("PRAGMA table_info(teachers);")
+        teacher_cols = [col[1] for col in cur.fetchall()]
 
         cur.execute("PRAGMA table_info(assigned_practice);")
         practice_cols = [col[1] for col in cur.fetchall()]
+
+        # Attempt light, non-destructive ALTERs for new subscription columns
+        def ensure_column(table, cols, name, type_sql):
+            if name not in cols:
+                try:
+                    cur.execute(f"ALTER TABLE {table} ADD COLUMN {name} {type_sql}")
+                    conn.commit()
+                    print(f"✅ Added column {table}.{name}")
+                except Exception as e:
+                    print(f"⚠️ Could not add column {table}.{name}: {e}")
+
+        ensure_column("students", student_cols, "plan", "TEXT")
+        ensure_column("students", student_cols, "billing", "TEXT")
+        ensure_column("students", student_cols, "trial_start", "DATETIME")
+        ensure_column("students", student_cols, "trial_end", "DATETIME")
+        ensure_column("students", student_cols, "subscription_active", "BOOLEAN")
+
+        ensure_column("parents", parent_cols, "plan", "TEXT")
+        ensure_column("parents", parent_cols, "billing", "TEXT")
+        ensure_column("parents", parent_cols, "trial_start", "DATETIME")
+        ensure_column("parents", parent_cols, "trial_end", "DATETIME")
+        ensure_column("parents", parent_cols, "subscription_active", "BOOLEAN")
+
+        ensure_column("teachers", teacher_cols, "plan", "TEXT")
+        ensure_column("teachers", teacher_cols, "billing", "TEXT")
+        ensure_column("teachers", teacher_cols, "trial_start", "DATETIME")
+        ensure_column("teachers", teacher_cols, "trial_end", "DATETIME")
+        ensure_column("teachers", teacher_cols, "subscription_active", "BOOLEAN")
 
         conn.close()
 
@@ -580,6 +612,9 @@ def student_signup():
         email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
         parent_email = safe_email(request.form.get("parent_email", ""))
+        # Pricing selections
+        plan = safe_text(request.form.get("plan", ""), 50) or None
+        billing = safe_text(request.form.get("billing", ""), 20) or None
 
         if not name or not email or not password or not parent_email:
             flash("All fields are required, including parent email.", "error")
@@ -593,18 +628,40 @@ def student_signup():
         # Find or create parent
         parent = Parent.query.filter_by(email=parent_email).first()
         if not parent:
+            trial_start = datetime.utcnow()
+            trial_end = trial_start + timedelta(days=7)
             parent = Parent(
                 name=f"Parent of {name}",
                 email=parent_email,
                 password_hash=generate_password_hash(password),
+                plan=plan,
+                billing=billing,
+                trial_start=trial_start,
+                trial_end=trial_end,
+                subscription_active=False,
             )
             db.session.add(parent)
+            db.session.commit()
+        else:
+            # If parent exists, update selections if provided
+            if plan:
+                parent.plan = plan
+            if billing:
+                parent.billing = billing
+            if not parent.trial_start and not parent.trial_end:
+                parent.trial_start = datetime.utcnow()
+                parent.trial_end = parent.trial_start + timedelta(days=7)
             db.session.commit()
 
         new_student = Student(
             student_name=name,
             student_email=email,
             parent_id=parent.id,
+            plan=plan,
+            billing=billing,
+            trial_start=datetime.utcnow(),
+            trial_end=datetime.utcnow() + timedelta(days=7),
+            subscription_active=False,
         )
         db.session.add(new_student)
         db.session.commit()
@@ -651,6 +708,9 @@ def parent_signup():
         name = safe_text(request.form.get("name", ""), 100)
         email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
+        # Pricing selections
+        plan = safe_text(request.form.get("plan", ""), 50) or None
+        billing = safe_text(request.form.get("billing", ""), 20) or None
 
         if not name or not email or not password:
             flash("All fields are required.", "error")
@@ -661,10 +721,17 @@ def parent_signup():
             flash("Parent with that email already exists. Please log in.", "error")
             return redirect("/parent/login")
 
+        trial_start = datetime.utcnow()
+        trial_end = trial_start + timedelta(days=7)
         parent = Parent(
             name=name,
             email=email,
             password_hash=generate_password_hash(password),
+            plan=plan,
+            billing=billing,
+            trial_start=trial_start,
+            trial_end=trial_end,
+            subscription_active=False,
         )
         db.session.add(parent)
         db.session.commit()
@@ -715,6 +782,9 @@ def teacher_signup():
         name = safe_text(request.form.get("name", ""), 100)
         email = safe_email(request.form.get("email", ""))
         password = request.form.get("password", "")
+        # Pricing selections
+        plan = safe_text(request.form.get("plan", ""), 50) or None
+        billing = safe_text(request.form.get("billing", ""), 20) or None
 
         if not name or not email or not password:
             flash("Please fill out all fields.", "error")
@@ -726,7 +796,18 @@ def teacher_signup():
             return redirect("/teacher/login")
 
         hashed = generate_password_hash(password)
-        teacher = Teacher(name=name, email=email, password_hash=hashed)
+        trial_start = datetime.utcnow()
+        trial_end = trial_start + timedelta(days=7)
+        teacher = Teacher(
+            name=name,
+            email=email,
+            password_hash=hashed,
+            plan=plan,
+            billing=billing,
+            trial_start=trial_start,
+            trial_end=trial_end,
+            subscription_active=False,
+        )
         db.session.add(teacher)
         db.session.commit()
 
