@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Mode - CozmicLearning{% endblock %}
+
+{% block content %}
+<style>
+.admin-container {
+    max-width: 1400px;
+    margin: 40px auto;
+    padding: 30px;
+}
+
+.admin-header {
+    text-align: center;
+    margin-bottom: 50px;
+    padding: 30px;
+    background: linear-gradient(135deg, rgba(255,107,157,0.2), rgba(79,172,254,0.2));
+    border-radius: 20px;
+    border: 2px solid rgba(255,107,157,0.3);
+}
+
+.admin-header h1 {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #ff6b9d, #4facfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.admin-header p {
+    color: #a0aec0;
+    font-size: 1.1rem;
+}
+
+.current-mode {
+    display: inline-block;
+    padding: 8px 16px;
+    background: rgba(132,255,0,0.15);
+    border: 1px solid rgba(132,255,0,0.4);
+    border-radius: 8px;
+    margin-top: 15px;
+    font-weight: 600;
+    color: #84ff00;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.admin-section {
+    background: rgba(20, 20, 60, 0.4);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 25px;
+}
+
+.admin-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.admin-section h2 .emoji {
+    font-size: 2rem;
+}
+
+.user-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 15px;
+}
+
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.user-item:hover {
+    background: rgba(79,172,254,0.15);
+    border-color: rgba(79,172,254,0.4);
+    transform: translateX(5px);
+}
+
+.user-info {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.user-email {
+    font-size: 0.9rem;
+    color: #a0aec0;
+}
+
+.user-meta {
+    font-size: 0.85rem;
+    color: #718096;
+    margin-top: 4px;
+}
+
+.switch-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.switch-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(79,172,254,0.6);
+}
+
+.no-users {
+    text-align: center;
+    padding: 40px 20px;
+    color: #718096;
+    font-style: italic;
+}
+
+.warning-box {
+    background: rgba(255,193,7,0.1);
+    border: 2px solid rgba(255,193,7,0.4);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    color: #ffc107;
+    text-align: center;
+    font-weight: 500;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.badge-trial {
+    background: rgba(255,193,7,0.2);
+    border: 1px solid rgba(255,193,7,0.5);
+    color: #ffc107;
+}
+
+.badge-active {
+    background: rgba(132,255,0,0.2);
+    border: 1px solid rgba(132,255,0,0.5);
+    color: #84ff00;
+}
+
+.badge-expired {
+    background: rgba(255,107,157,0.2);
+    border: 1px solid rgba(255,107,157,0.5);
+    color: #ff6b9d;
+}
+
+/* Scrollbar styling */
+.user-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.user-list::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+}
+
+.user-list::-webkit-scrollbar-thumb {
+    background: rgba(79,172,254,0.4);
+    border-radius: 4px;
+}
+
+.user-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(79,172,254,0.6);
+}
+</style>
+
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>🔧 Admin Mode</h1>
+        <p>Switch between any user account to test features and make updates</p>
+        {% if current_mode %}
+            <div class="current-mode">
+                Currently viewing as: {{ current_mode }} - {{ current_user_info }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="warning-box">
+        ⚠️ You are in admin mode. Subscription checks are bypassed. All features are accessible.
+    </div>
+
+    <div class="admin-grid">
+        <!-- STUDENTS -->
+        <div class="admin-section">
+            <h2>
+                <span class="emoji">👨‍🚀</span>
+                Students ({{ students|length }})
+            </h2>
+            <div class="user-list">
+                {% if students %}
+                    {% for student in students %}
+                        <div class="user-item">
+                            <div class="user-info">
+                                <div class="user-name">
+                                    {{ student.student_name }}
+                                    {% if student.subscription_active %}
+                                        <span class="badge badge-active">PAID</span>
+                                    {% elif student.trial_end %}
+                                        {% set now = [] %}
+                                        {% if now.append(1) or True %}
+                                            {% if student.trial_end.timestamp() > (now[0] * 0 + 1733270400) %}
+                                                <span class="badge badge-trial">TRIAL</span>
+                                            {% else %}
+                                                <span class="badge badge-expired">EXPIRED</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                <div class="user-email">{{ student.student_email }}</div>
+                                <div class="user-meta">
+                                    Grade {{ student.grade }} | 
+                                    Plan: {{ student.plan or 'basic' }} ({{ student.billing or 'monthly' }})
+                                </div>
+                            </div>
+                            <a href="/admin/switch_to_student/{{ student.id }}" class="switch-btn">
+                                Switch →
+                            </a>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-users">No students found</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PARENTS -->
+        <div class="admin-section">
+            <h2>
+                <span class="emoji">👨‍👩‍👧‍👦</span>
+                Parents ({{ parents|length }})
+            </h2>
+            <div class="user-list">
+                {% if parents %}
+                    {% for parent in parents %}
+                        <div class="user-item">
+                            <div class="user-info">
+                                <div class="user-name">
+                                    {{ parent.name }}
+                                    {% if parent.subscription_active %}
+                                        <span class="badge badge-active">PAID</span>
+                                    {% elif parent.trial_end %}
+                                        {% set now = [] %}
+                                        {% if now.append(1) or True %}
+                                            {% if parent.trial_end.timestamp() > (now[0] * 0 + 1733270400) %}
+                                                <span class="badge badge-trial">TRIAL</span>
+                                            {% else %}
+                                                <span class="badge badge-expired">EXPIRED</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                <div class="user-email">{{ parent.email }}</div>
+                                <div class="user-meta">
+                                    Plan: {{ parent.plan or 'basic' }} ({{ parent.billing or 'monthly' }})
+                                </div>
+                            </div>
+                            <a href="/admin/switch_to_parent/{{ parent.id }}" class="switch-btn">
+                                Switch →
+                            </a>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-users">No parents found</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- TEACHERS -->
+        <div class="admin-section">
+            <h2>
+                <span class="emoji">👩‍🏫</span>
+                Teachers ({{ teachers|length }})
+            </h2>
+            <div class="user-list">
+                {% if teachers %}
+                    {% for teacher in teachers %}
+                        <div class="user-item">
+                            <div class="user-info">
+                                <div class="user-name">
+                                    {{ teacher.name }}
+                                    {% if teacher.subscription_active %}
+                                        <span class="badge badge-active">PAID</span>
+                                    {% elif teacher.trial_end %}
+                                        {% set now = [] %}
+                                        {% if now.append(1) or True %}
+                                            {% if teacher.trial_end.timestamp() > (now[0] * 0 + 1733270400) %}
+                                                <span class="badge badge-trial">TRIAL</span>
+                                            {% else %}
+                                                <span class="badge badge-expired">EXPIRED</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                <div class="user-email">{{ teacher.email }}</div>
+                                <div class="user-meta">
+                                    Plan: {{ teacher.plan or 'basic' }} ({{ teacher.billing or 'monthly' }})
+                                </div>
+                            </div>
+                            <a href="/admin/switch_to_teacher/{{ teacher.id }}" class="switch-btn">
+                                Switch →
+                            </a>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-users">No teachers found</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

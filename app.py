@@ -494,6 +494,29 @@ def is_owner(teacher: Teacher | None) -> bool:
     )
 
 
+def is_admin() -> bool:
+    """Check if current session user is admin (owner email in any role)"""
+    # Check if logged in as teacher/owner
+    if session.get("teacher_id"):
+        teacher = Teacher.query.get(session["teacher_id"])
+        if teacher and teacher.email and teacher.email.lower() == OWNER_EMAIL.lower():
+            return True
+    
+    # Check if logged in as student with owner email
+    if session.get("student_id"):
+        student = Student.query.get(session["student_id"])
+        if student and student.student_email and student.student_email.lower() == OWNER_EMAIL.lower():
+            return True
+    
+    # Check if logged in as parent with owner email
+    if session.get("parent_id"):
+        parent = Parent.query.get(session["parent_id"])
+        if parent and parent.email and parent.email.lower() == OWNER_EMAIL.lower():
+            return True
+    
+    return False
+
+
 # ============================================================
 # USER SESSION DEFAULTS (STUDENT SIDE)
 # ============================================================
@@ -662,7 +685,12 @@ def check_subscription_access(user_role):
     Middleware-style check for subscription access.
     Redirects to trial_expired page if subscription is inactive and trial is over.
     Returns True if access allowed, redirects if not.
+    ADMIN USERS BYPASS ALL SUBSCRIPTION CHECKS.
     """
+    # Admin mode: bypass all subscription checks
+    if is_admin():
+        return True
+    
     user = None
     
     if user_role == "student":
@@ -939,6 +967,109 @@ def trial_expired():
     # Don't call init_user() or check subscription - this is the upgrade page
     role = request.args.get("role", "student")
     return render_template("trial_expired.html", role=role)
+
+
+@app.route("/admin")
+def admin_dashboard():
+    """Admin-only dashboard to navigate all modes - HIDDEN FROM REGULAR USERS"""
+    if not is_admin():
+        flash("Access denied.", "error")
+        return redirect("/")
+    
+    # Get all users for switching
+    students = Student.query.all()
+    parents = Parent.query.all()
+    teachers = Teacher.query.all()
+    
+    # Get current mode info
+    current_mode = None
+    current_user_info = None
+    
+    if session.get("student_id"):
+        student = Student.query.get(session["student_id"])
+        current_mode = "Student"
+        current_user_info = f"{student.student_name} ({student.student_email})" if student else "Unknown"
+    elif session.get("parent_id"):
+        parent = Parent.query.get(session["parent_id"])
+        current_mode = "Parent"
+        current_user_info = f"{parent.name} ({parent.email})" if parent else "Unknown"
+    elif session.get("teacher_id"):
+        teacher = Teacher.query.get(session["teacher_id"])
+        current_mode = "Teacher"
+        current_user_info = f"{teacher.name} ({teacher.email})" if teacher else "Unknown"
+    
+    return render_template(
+        "admin_mode.html",
+        current_mode=current_mode,
+        current_user_info=current_user_info,
+        students=students,
+        parents=parents,
+        teachers=teachers
+    )
+
+
+@app.route("/admin/switch_to_student/<int:student_id>")
+def admin_switch_to_student(student_id):
+    """Admin: switch to student view"""
+    if not is_admin():
+        flash("Access denied.", "error")
+        return redirect("/")
+    
+    student = Student.query.get(student_id)
+    if not student:
+        flash("Student not found.", "error")
+        return redirect("/admin")
+    
+    # Clear session and log in as this student
+    session.clear()
+    session["student_id"] = student.id
+    session["admin_mode"] = True
+    init_user()
+    
+    flash(f"🔧 Admin mode: Viewing as student {student.student_name}", "success")
+    return redirect("/dashboard")
+
+
+@app.route("/admin/switch_to_parent/<int:parent_id>")
+def admin_switch_to_parent(parent_id):
+    """Admin: switch to parent view"""
+    if not is_admin():
+        flash("Access denied.", "error")
+        return redirect("/")
+    
+    parent = Parent.query.get(parent_id)
+    if not parent:
+        flash("Parent not found.", "error")
+        return redirect("/admin")
+    
+    # Clear session and log in as this parent
+    session.clear()
+    session["parent_id"] = parent.id
+    session["admin_mode"] = True
+    
+    flash(f"🔧 Admin mode: Viewing as parent {parent.name}", "success")
+    return redirect("/parent_dashboard")
+
+
+@app.route("/admin/switch_to_teacher/<int:teacher_id>")
+def admin_switch_to_teacher(teacher_id):
+    """Admin: switch to teacher view"""
+    if not is_admin():
+        flash("Access denied.", "error")
+        return redirect("/")
+    
+    teacher = Teacher.query.get(teacher_id)
+    if not teacher:
+        flash("Teacher not found.", "error")
+        return redirect("/admin")
+    
+    # Clear session and log in as this teacher
+    session.clear()
+    session["teacher_id"] = teacher.id
+    session["admin_mode"] = True
+    
+    flash(f"🔧 Admin mode: Viewing as teacher {teacher.name}", "success")
+    return redirect("/teacher/dashboard")
 
 
 @app.route("/create-checkout-session", methods=["POST"])
@@ -1580,91 +1711,6 @@ def teacher_dashboard():
         unread_messages=unread_messages,
         trial_days_remaining=trial_days_remaining,
     )
-
-# ============================================================
-# ADMIN PORTAL
-# ============================================================
-
-@app.route("/admin/login", methods=["GET", "POST"])
-def admin_login():
-    if request.method == "POST":
-        pw = request.form.get("password", "").strip()
-        if pw == ADMIN_PASSWORD:
-            session["is_admin"] = True
-            session["view_mode"] = "admin"
-            flash("Admin access granted.", "info")
-            return redirect("/admin/dashboard")
-
-        flash("Incorrect admin password.", "error")
-
-    # Reuse role chooser as admin login view
-    return render_template("choose_login_role.html")
-
-
-@app.route("/admin/dashboard")
-def admin_dashboard():
-    if not session.get("is_admin"):
-        flash("Admin access required.", "error")
-        return redirect("/choose_login_role")
-
-    total_teachers = Teacher.query.count()
-    total_classes = Class.query.count()
-    total_students = Student.query.count()
-
-    all_teachers = Teacher.query.all()
-    all_classes = Class.query.all()
-    all_students = Student.query.all()
-
-    return render_template(
-        "admin_dashboard.html",
-        total_teachers=total_teachers,
-        total_classes=total_classes,
-        total_students=total_students,
-        teachers=all_teachers,
-        classes=all_classes,
-        students=all_students,
-        view_mode=session.get("view_mode", "admin"),
-    )
-
-
-@app.route("/admin/switch/<mode>")
-def admin_switch(mode):
-    if not session.get("is_admin"):
-        return redirect("/admin/login")
-
-    valid = ["admin", "teacher", "student", "parent"]
-    if mode in valid:
-        session["view_mode"] = mode
-
-    if mode == "admin":
-        return redirect("/admin/dashboard")
-    if mode == "teacher":
-        return redirect("/teacher/dashboard")
-    if mode == "student":
-        return redirect("/subjects")
-    if mode == "parent":
-        return redirect("/parent_dashboard")
-
-    return redirect("/admin/dashboard")
-
-
-# ============================================================
-# ADMIN – VIEW STUDENTS
-# ============================================================
-
-@app.route("/admin/students")
-def admin_students():
-    if not session.get("is_admin"):
-        flash("Admin access required.", "error")
-        return redirect("/choose_login_role")
-
-    all_students = Student.query.all()
-    return render_template(
-        "admin_dashboard.html",
-        students=all_students,
-        view_mode="admin",
-    )
-
 
 # ============================================================
 # TEACHER – CLASSES + STUDENTS
