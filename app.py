@@ -1026,6 +1026,13 @@ def reset_password(token):
 @app.route("/teacher/dashboard")
 def teacher_dashboard():
     teacher = get_current_teacher()
+        # Count unread messages
+        unread_messages = Message.query.filter_by(
+            recipient_type="teacher",
+            recipient_id=teacher.id,
+            is_read=False
+        ).count()
+
     if not teacher:
         return redirect("/teacher/login")
 
@@ -1035,6 +1042,7 @@ def teacher_dashboard():
         teacher=teacher,
         classes=classes,
         is_owner=is_owner(teacher),
+        unread_messages=unread_messages,
     )
 
 # ============================================================
@@ -3428,6 +3436,15 @@ def dashboard():
 
 @app.route("/parent_dashboard")
 def parent_dashboard():
+        parent_id = session.get("parent_id")
+        unread_messages = 0
+        if parent_id:
+            unread_messages = Message.query.filter_by(
+                recipient_type="parent",
+                recipient_id=parent_id,
+                is_read=False
+            ).count()
+
     init_user()
 
     progress = {
@@ -3446,6 +3463,7 @@ def parent_dashboard():
         xp=session["xp"],
         level=session["level"],
         tokens=session["tokens"],
+            unread_messages=unread_messages,
         character=session["character"],
     )
 

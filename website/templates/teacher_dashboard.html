@@ -378,6 +378,12 @@
         <a href="/subjects">Subjects</a>
         <a href="/teacher/classes">My Classes</a>
         <a href="/teacher/analytics">Analytics</a>
+                <a href="/teacher/messages">
+                    📬 Messages
+                    {% if unread_messages > 0 %}
+                    <span style="background: var(--accent); color: var(--bg); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 4px;">{{ unread_messages }}</span>
+                    {% endif %}
+                </a>
         <a href="/teacher/settings">Settings</a>
     </div>
 
