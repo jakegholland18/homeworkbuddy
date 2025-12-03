@@ -13,3 +13,4 @@ Pillow>=10.3.0
 requests==2.31.0
 beautifulsoup4==4.12.3
 youtube-transcript-api==0.6.2
+stripe==7.9.0

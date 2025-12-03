@@ -46,3 +46,41 @@ services:
         sync: false
       - key: MAIL_DEFAULT_SENDER
         value: noreply@cozmiclearning.com
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PUBLISHABLE_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_STUDENT_BASIC_MONTHLY
+        sync: false
+      - key: STRIPE_STUDENT_BASIC_YEARLY
+        sync: false
+      - key: STRIPE_STUDENT_PREMIUM_MONTHLY
+        sync: false
+      - key: STRIPE_STUDENT_PREMIUM_YEARLY
+        sync: false
+      - key: STRIPE_PARENT_BASIC_MONTHLY
+        sync: false
+      - key: STRIPE_PARENT_BASIC_YEARLY
+        sync: false
+      - key: STRIPE_PARENT_PREMIUM_MONTHLY
+        sync: false
+      - key: STRIPE_PARENT_PREMIUM_YEARLY
+        sync: false
+      - key: STRIPE_TEACHER_BASIC_MONTHLY
+        sync: false
+      - key: STRIPE_TEACHER_BASIC_YEARLY
+        sync: false
+      - key: STRIPE_TEACHER_PREMIUM_MONTHLY
+        sync: false
+      - key: STRIPE_TEACHER_PREMIUM_YEARLY
+        sync: false
+      - key: STRIPE_HOMESCHOOL_ESSENTIAL_MONTHLY
+        sync: false
+      - key: STRIPE_HOMESCHOOL_ESSENTIAL_YEARLY
+        sync: false
+      - key: STRIPE_HOMESCHOOL_COMPLETE_MONTHLY
+        sync: false
+      - key: STRIPE_HOMESCHOOL_COMPLETE_YEARLY
+        sync: false

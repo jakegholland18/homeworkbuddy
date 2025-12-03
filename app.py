@@ -38,6 +38,7 @@ from flask import got_request_exception
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_wtf import CSRFProtect
 from flask_mail import Mail, Message as EmailMessage
+import stripe
 
 # ============================================================
 # FLASK APP SETUP
@@ -82,6 +83,40 @@ mail = Mail(app)
 
 OWNER_EMAIL = "jakegholland18@gmail.com"
 ADMIN_PASSWORD = "Cash&Ollie123"
+
+# ============================================================
+# STRIPE CONFIGURATION
+# ============================================================
+
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+
+# Stripe Price IDs (create these in Stripe Dashboard)
+STRIPE_PRICES = {
+    # Students
+    'student_basic_monthly': os.environ.get('STRIPE_STUDENT_BASIC_MONTHLY'),
+    'student_basic_yearly': os.environ.get('STRIPE_STUDENT_BASIC_YEARLY'),
+    'student_premium_monthly': os.environ.get('STRIPE_STUDENT_PREMIUM_MONTHLY'),
+    'student_premium_yearly': os.environ.get('STRIPE_STUDENT_PREMIUM_YEARLY'),
+    
+    # Parents
+    'parent_basic_monthly': os.environ.get('STRIPE_PARENT_BASIC_MONTHLY'),
+    'parent_basic_yearly': os.environ.get('STRIPE_PARENT_BASIC_YEARLY'),
+    'parent_premium_monthly': os.environ.get('STRIPE_PARENT_PREMIUM_MONTHLY'),
+    'parent_premium_yearly': os.environ.get('STRIPE_PARENT_PREMIUM_YEARLY'),
+    
+    # Teachers
+    'teacher_basic_monthly': os.environ.get('STRIPE_TEACHER_BASIC_MONTHLY'),
+    'teacher_basic_yearly': os.environ.get('STRIPE_TEACHER_BASIC_YEARLY'),
+    'teacher_premium_monthly': os.environ.get('STRIPE_TEACHER_PREMIUM_MONTHLY'),
+    'teacher_premium_yearly': os.environ.get('STRIPE_TEACHER_PREMIUM_YEARLY'),
+    
+    # Homeschool
+    'homeschool_essential_monthly': os.environ.get('STRIPE_HOMESCHOOL_ESSENTIAL_MONTHLY'),
+    'homeschool_essential_yearly': os.environ.get('STRIPE_HOMESCHOOL_ESSENTIAL_YEARLY'),
+    'homeschool_complete_monthly': os.environ.get('STRIPE_HOMESCHOOL_COMPLETE_MONTHLY'),
+    'homeschool_complete_yearly': os.environ.get('STRIPE_HOMESCHOOL_COMPLETE_YEARLY'),
+}
 
 # ============================================================
 # DATABASE + MODELS
@@ -598,6 +633,90 @@ def check_parent_student_limit(parent):
 
 
 # ============================================================
+# SUBSCRIPTION STATUS HELPERS
+# ============================================================
+
+def is_trial_expired(user):
+    """
+    Check if user's trial period has ended.
+    Returns True if trial expired, False otherwise.
+    """
+    if not user:
+        return True
+    
+    # If they have an active paid subscription, trial doesn't matter
+    if user.subscription_active:
+        return False
+    
+    # If no trial_end set, consider expired
+    if not user.trial_end:
+        return True
+    
+    # Check if current time is past trial end
+    now = datetime.utcnow()
+    return now > user.trial_end
+
+
+def check_subscription_access(user_role):
+    """
+    Middleware-style check for subscription access.
+    Redirects to trial_expired page if subscription is inactive and trial is over.
+    Returns True if access allowed, redirects if not.
+    """
+    user = None
+    
+    if user_role == "student":
+        student_id = session.get("student_id")
+        if student_id:
+            user = Student.query.get(student_id)
+    elif user_role == "parent":
+        parent_id = session.get("parent_id")
+        if parent_id:
+            user = Parent.query.get(parent_id)
+    elif user_role == "teacher":
+        teacher_id = session.get("teacher_id")
+        if teacher_id:
+            user = Teacher.query.get(teacher_id)
+    
+    if not user:
+        flash("Please log in to continue.", "error")
+        return redirect("/choose_login_role")
+    
+    # Check if trial expired and no active subscription
+    if is_trial_expired(user):
+        return redirect(f"/trial_expired?role={user_role}")
+    
+    return True  # Access allowed
+
+
+def get_days_remaining_in_trial(user):
+    """Returns number of days remaining in trial, or 0 if expired/no trial."""
+    if not user or not user.trial_end:
+        return 0
+    
+    if user.subscription_active:
+        return 0  # Paid subscription active
+    
+    now = datetime.utcnow()
+    if now > user.trial_end:
+        return 0  # Expired
+    
+    delta = user.trial_end - now
+    return max(0, delta.days)
+
+
+def get_stripe_price_id(role, plan, billing):
+    """
+    Get Stripe Price ID based on role, plan tier, and billing cycle.
+    role: 'student', 'parent', 'teacher', 'homeschool'
+    plan: 'basic', 'premium', 'essential', 'complete'
+    billing: 'monthly', 'yearly'
+    """
+    key = f"{role}_{plan}_{billing}"
+    return STRIPE_PRICES.get(key)
+
+
+# ============================================================
 # XP SYSTEM
 # ============================================================
 
@@ -811,6 +930,219 @@ def choose_login_role():
 def plans():
     init_user()
     return render_template("plans.html")
+
+
+@app.route("/trial_expired")
+def trial_expired():
+    """Show upgrade page when trial has expired."""
+    init_user()
+    role = request.args.get("role", "student")
+    return render_template("trial_expired.html", role=role)
+
+
+@csrf.exempt  # Stripe checkout doesn't support CSRF
+@app.route("/create-checkout-session", methods=["POST"])
+def create_checkout_session():
+    """Create Stripe checkout session for subscription."""
+    try:
+        role = request.form.get("role")
+        plan = request.form.get("plan")
+        billing = request.form.get("billing")
+        user_id = request.form.get("user_id")
+        
+        # Get Stripe price ID
+        price_id = get_stripe_price_id(role, plan, billing)
+        
+        if not price_id:
+            flash(f"Invalid plan configuration: {role} {plan} {billing}", "error")
+            return redirect(f"/trial_expired?role={role}")
+        
+        # Create Stripe checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=request.host_url.rstrip('/') + f'/subscription-success?session_id={{CHECKOUT_SESSION_ID}}&role={role}&user_id={user_id}',
+            cancel_url=request.host_url.rstrip('/') + f'/trial_expired?role={role}',
+            client_reference_id=f"{role}:{user_id}",  # Track which user is subscribing
+            metadata={
+                'role': role,
+                'user_id': user_id,
+                'plan': plan,
+                'billing': billing,
+            }
+        )
+        
+        return redirect(checkout_session.url, code=303)
+        
+    except Exception as e:
+        logging.error(f"Stripe checkout error: {e}")
+        flash("Payment processing error. Please try again.", "error")
+        return redirect(f"/trial_expired?role={role}")
+
+
+@app.route("/subscription-success")
+def subscription_success():
+    """Handle successful subscription payment."""
+    session_id = request.args.get("session_id")
+    role = request.args.get("role")
+    user_id = request.args.get("user_id")
+    
+    if not session_id:
+        flash("Invalid session.", "error")
+        return redirect("/choose_login_role")
+    
+    try:
+        # Retrieve checkout session from Stripe
+        checkout_session = stripe.checkout.Session.retrieve(session_id)
+        
+        if checkout_session.payment_status == "paid":
+            # Activate subscription for user
+            if role == "student":
+                user = Student.query.get(user_id)
+            elif role == "parent":
+                user = Parent.query.get(user_id)
+            elif role == "teacher":
+                user = Teacher.query.get(user_id)
+            else:
+                flash("Invalid role.", "error")
+                return redirect("/choose_login_role")
+            
+            if user:
+                user.subscription_active = True
+                user.trial_end = None  # Clear trial end since they're now paid
+                db.session.commit()
+                
+                flash(f"🎉 Welcome to CozmicLearning {user.plan.replace('_', ' ').title()} plan! Your subscription is now active.", "success")
+                
+                # Redirect to appropriate dashboard
+                if role == "student":
+                    return redirect("/dashboard")
+                elif role == "parent":
+                    return redirect("/parent_dashboard")
+                elif role == "teacher":
+                    return redirect("/teacher/dashboard")
+            else:
+                flash("User not found.", "error")
+                return redirect("/choose_login_role")
+        else:
+            flash("Payment not completed. Please try again.", "error")
+            return redirect(f"/trial_expired?role={role}")
+            
+    except Exception as e:
+        logging.error(f"Subscription activation error: {e}")
+        flash("Error activating subscription. Please contact support.", "error")
+        return redirect(f"/trial_expired?role={role}")
+
+
+@csrf.exempt  # Stripe webhooks can't have CSRF
+@app.route("/stripe-webhook", methods=["POST"])
+def stripe_webhook():
+    """Handle Stripe webhook events for subscription management."""
+    payload = request.data
+    sig_header = request.headers.get("Stripe-Signature")
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, webhook_secret
+        )
+    except ValueError:
+        logging.error("Invalid webhook payload")
+        return jsonify({"error": "Invalid payload"}), 400
+    except stripe.error.SignatureVerificationError:
+        logging.error("Invalid webhook signature")
+        return jsonify({"error": "Invalid signature"}), 400
+    
+    # Handle different event types
+    if event['type'] == 'checkout.session.completed':
+        session_obj = event['data']['object']
+        handle_checkout_completed(session_obj)
+        
+    elif event['type'] == 'customer.subscription.updated':
+        subscription = event['data']['object']
+        handle_subscription_updated(subscription)
+        
+    elif event['type'] == 'customer.subscription.deleted':
+        subscription = event['data']['object']
+        handle_subscription_canceled(subscription)
+        
+    elif event['type'] == 'invoice.payment_failed':
+        invoice = event['data']['object']
+        handle_payment_failed(invoice)
+    
+    return jsonify({"status": "success"}), 200
+
+
+def handle_checkout_completed(session_obj):
+    """Activate subscription when checkout is completed."""
+    try:
+        metadata = session_obj.get('metadata', {})
+        role = metadata.get('role')
+        user_id = metadata.get('user_id')
+        
+        if role == "student":
+            user = Student.query.get(user_id)
+        elif role == "parent":
+            user = Parent.query.get(user_id)
+        elif role == "teacher":
+            user = Teacher.query.get(user_id)
+        else:
+            logging.error(f"Unknown role in webhook: {role}")
+            return
+        
+        if user:
+            user.subscription_active = True
+            user.trial_end = None
+            db.session.commit()
+            logging.info(f"Activated subscription for {role} {user_id}")
+    except Exception as e:
+        logging.error(f"Error in handle_checkout_completed: {e}")
+
+
+def handle_subscription_updated(subscription):
+    """Handle subscription updates (plan changes, renewals)."""
+    try:
+        customer_id = subscription.get('customer')
+        status = subscription.get('status')
+        
+        # You would need to store customer_id in your database to look up users
+        # For now, we'll log the event
+        logging.info(f"Subscription updated for customer {customer_id}: {status}")
+    except Exception as e:
+        logging.error(f"Error in handle_subscription_updated: {e}")
+
+
+def handle_subscription_canceled(subscription):
+    """Deactivate user account when subscription is canceled."""
+    try:
+        customer_id = subscription.get('customer')
+        
+        # Find user by Stripe customer ID (would need to add this field to models)
+        # For now, log the event
+        logging.warning(f"Subscription canceled for customer {customer_id}")
+        
+        # TODO: Add stripe_customer_id field to Student, Parent, Teacher models
+        # Then query and deactivate: user.subscription_active = False
+    except Exception as e:
+        logging.error(f"Error in handle_subscription_canceled: {e}")
+
+
+def handle_payment_failed(invoice):
+    """Handle failed payment (send email, grace period, etc)."""
+    try:
+        customer_id = invoice.get('customer')
+        amount_due = invoice.get('amount_due') / 100  # Convert cents to dollars
+        
+        logging.warning(f"Payment failed for customer {customer_id}: ${amount_due}")
+        
+        # TODO: Send email notification to user about failed payment
+        # TODO: Set grace period before deactivating account
+    except Exception as e:
+        logging.error(f"Error in handle_payment_failed: {e}")
 
 
 @app.route("/logout")
@@ -1221,6 +1553,14 @@ def teacher_dashboard():
     teacher = get_current_teacher()
     if not teacher:
         return redirect("/teacher/login")
+    
+    # Check subscription status for teachers
+    access_check = check_subscription_access("teacher")
+    if access_check != True:
+        return access_check  # Redirect to trial_expired
+    
+    # Get trial days remaining
+    trial_days_remaining = get_days_remaining_in_trial(teacher)
 
     # Count unread messages
     unread_messages = Message.query.filter_by(
@@ -1236,6 +1576,7 @@ def teacher_dashboard():
         classes=classes,
         is_owner=is_owner(teacher),
         unread_messages=unread_messages,
+        trial_days_remaining=trial_days_remaining,
     )
 
 # ============================================================
@@ -2965,6 +3306,13 @@ def ask_question():
 @app.route("/subject", methods=["POST"])
 def subject_answer():
     init_user()
+    
+    # Check subscription status first
+    user_role = session.get("user_role")
+    if user_role in ["student", "parent", "teacher"]:
+        access_check = check_subscription_access(user_role)
+        if access_check != True:
+            return access_check  # Redirect to trial_expired
 
     # Check question limit for Basic plan students
     allowed, remaining, limit = check_question_limit()
@@ -3023,6 +3371,13 @@ def subject_answer():
 @csrf.exempt
 def followup_message():
     init_user()
+    
+    # Check subscription status first
+    user_role = session.get("user_role")
+    if user_role in ["student", "parent", "teacher"]:
+        access_check = check_subscription_access(user_role)
+        if access_check != True:
+            return jsonify({"error": "Your trial has expired. Please upgrade to continue.", "trial_expired": True})
 
     # Check question limit for Basic plan students
     allowed, remaining, limit = check_question_limit()
@@ -3054,6 +3409,13 @@ def followup_message():
 @csrf.exempt
 def deep_study_message():
     init_user()
+    
+    # Check subscription status first
+    user_role = session.get("user_role")
+    if user_role in ["student", "parent", "teacher"]:
+        access_check = check_subscription_access(user_role)
+        if access_check != True:
+            return jsonify({"error": "Your trial has expired. Please upgrade to continue.", "trial_expired": True})
 
     # Check question limit for Basic plan students
     allowed, remaining, limit = check_question_limit()
@@ -3710,15 +4072,25 @@ Instead, start each bullet with a simple symbol like '•'.
 @app.route("/dashboard")
 def dashboard():
     init_user()
+    
+    # Check subscription status for students
+    access_check = check_subscription_access("student")
+    if access_check != True:
+        return access_check  # Redirect to trial_expired
 
     # Time limit enforcement (Phase 3)
     student_id = session.get("student_id")
     time_limit_active = False
     minutes_remaining = None
     daily_limit = None
+    trial_days_remaining = 0
     
     if student_id:
         student = Student.query.get(student_id)
+        
+        # Get trial days remaining to show in UI
+        trial_days_remaining = get_days_remaining_in_trial(student)
+        
         if student and student.parent_id:
             parent = Parent.query.get(student.parent_id)
             if parent and parent.daily_limit_minutes:
@@ -3787,6 +4159,7 @@ def dashboard():
         questions_used=questions_used,
         questions_limit=limit if limit != float('inf') else None,
         questions_remaining=remaining if remaining != float('inf') else None,
+        trial_days_remaining=trial_days_remaining,
     )
 
 
@@ -3797,6 +4170,11 @@ def dashboard():
 @app.route("/parent_dashboard")
 def parent_dashboard():
     init_user()
+    
+    # Check subscription status for parents
+    access_check = check_subscription_access("parent")
+    if access_check != True:
+        return access_check  # Redirect to trial_expired
 
     parent_id = session.get("parent_id")
     parent = None
@@ -3805,9 +4183,14 @@ def parent_dashboard():
     student_limit = 3
     lesson_plans_limit = 0
     assignments_limit = 0
+    trial_days_remaining = 0
     
     if parent_id:
         parent = Parent.query.get(parent_id)
+        
+        # Get trial days remaining
+        trial_days_remaining = get_days_remaining_in_trial(parent)
+        
         unread_messages = Message.query.filter_by(
             recipient_type="parent",
             recipient_id=parent_id,
@@ -3840,6 +4223,7 @@ def parent_dashboard():
         student_limit=student_limit if student_limit != float('inf') else None,
         lesson_plans_limit=lesson_plans_limit if lesson_plans_limit != float('inf') else None,
         assignments_limit=assignments_limit if assignments_limit != float('inf') else None,
+        trial_days_remaining=trial_days_remaining,
     )
 
 
