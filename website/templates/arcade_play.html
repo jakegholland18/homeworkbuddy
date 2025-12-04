@@ -366,7 +366,7 @@
                     <div class="question-text">${questionText}</div>
                     <div class="options-grid" id="options-grid">
                         ${question.options.map((opt, i) => `
-                            <button class="option-btn" data-answer="${opt.replace(/"/g, '&quot;')}" onclick="checkAnswer(this.dataset.answer)">${opt}</button>
+                            <button class="option-btn" data-answer="${String(opt).replace(/"/g, '&quot;')}" onclick="checkAnswer(this.dataset.answer)">${opt}</button>
                         `).join('')}
                     </div>
                 `;

@@ -3629,13 +3629,15 @@ def teacher_assign_questions():
 @csrf.exempt
 @app.route("/teacher/preview_questions", methods=["POST"])
 def teacher_preview_questions():
-    """Generate AI questions for preview only (no DB write)."""
-    teacher = get_current_teacher()
+    """Generate AI questions and redirect to preview/edit page."""
+    teacher = get_teacher_or_admin()
     if not teacher:
         return jsonify({"error": "Not authenticated"}), 401
 
     data = request.get_json() or {}
 
+    class_id = data.get("class_id")
+    title = safe_text(data.get("title", ""), 200)
     subject = safe_text(data.get("subject", "terra_nova"), 50)
     topic = safe_text(data.get("topic", ""), 500)
     grade = safe_text(data.get("grade", "8"), 10)
@@ -3643,6 +3645,8 @@ def teacher_preview_questions():
     differentiation_mode = data.get("differentiation_mode", "none")
     student_ability = data.get("student_ability", "on_level")
     num_questions = data.get("num_questions", 10)
+    open_date = data.get("open_date")
+    due_date = data.get("due_date")
 
     if not topic:
         return jsonify({"error": "Topic is required"}), 400
@@ -3658,17 +3662,126 @@ def teacher_preview_questions():
         num_questions=num_questions,
     )
 
+    # Store in session for preview/edit page
+    session["preview_assignment"] = {
+        "class_id": class_id,
+        "title": title or f"{subject.replace('_', ' ').title()}: {topic}",
+        "subject": subject,
+        "topic": topic,
+        "grade": grade,
+        "character": character,
+        "differentiation_mode": differentiation_mode,
+        "student_ability": student_ability,
+        "questions": payload.get("questions", []),
+        "open_date": open_date,
+        "due_date": due_date,
+    }
+
     return jsonify({
         "success": True,
-        "questions": payload.get("questions", []),
-        "metadata": {
-            "subject": subject,
-            "topic": topic,
-            "grade": grade,
-            "differentiation_mode": differentiation_mode,
-            "student_ability": student_ability,
-        }
+        "redirect": "/teacher/preview_assignment"
     }), 200
+
+
+@app.route("/teacher/preview_assignment")
+def teacher_preview_assignment():
+    """Show preview/edit page for generated assignment."""
+    teacher = get_teacher_or_admin()
+    if not teacher:
+        return redirect("/teacher/login")
+
+    # Get preview data from session
+    preview_data = session.get("preview_assignment")
+    if not preview_data:
+        flash("No preview data found. Please generate questions first.", "error")
+        return redirect("/teacher/dashboard")
+
+    # Get classes for dropdown (if admin, show all classes)
+    if is_admin() or (hasattr(teacher, '__class__') and teacher.__class__.__name__ == 'AdminTeacher'):
+        classes = Class.query.all()
+    else:
+        classes = teacher.classes or []
+
+    return render_template(
+        "teacher_assignment_preview.html",
+        preview=preview_data,
+        classes=classes,
+        teacher=teacher,
+        is_owner=is_owner(),
+    )
+
+
+@csrf.exempt
+@app.route("/teacher/save_preview_assignment", methods=["POST"])
+def teacher_save_preview_assignment():
+    """Save edited assignment from preview page to database."""
+    teacher = get_teacher_or_admin()
+    if not teacher:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    data = request.get_json() or {}
+
+    class_id = data.get("class_id")
+    title = safe_text(data.get("title", ""), 200)
+    questions = data.get("questions", [])
+    open_date_str = data.get("open_date")
+    due_date_str = data.get("due_date")
+
+    if not class_id:
+        return jsonify({"error": "Class is required"}), 400
+    if not title:
+        return jsonify({"error": "Title is required"}), 400
+    if not questions:
+        return jsonify({"error": "At least one question is required"}), 400
+
+    # Parse dates
+    open_date = None
+    due_date = None
+    try:
+        if open_date_str:
+            open_date = datetime.fromisoformat(open_date_str.replace("Z", "+00:00"))
+        if due_date_str:
+            due_date = datetime.fromisoformat(due_date_str.replace("Z", "+00:00"))
+    except:
+        pass
+
+    # Create assignment
+    assignment = Practice(
+        class_id=int(class_id),
+        teacher_id=teacher.id if hasattr(teacher, 'id') and teacher.id else None,
+        title=title,
+        subject=data.get("subject", "terra_nova"),
+        open_date=open_date,
+        due_date=due_date,
+        is_published=True,
+    )
+    db.session.add(assignment)
+    db.session.flush()  # Get assignment ID
+
+    # Save questions
+    for idx, q in enumerate(questions):
+        question = PracticeQuestion(
+            practice_id=assignment.id,
+            question_order=idx + 1,
+            prompt=safe_text(q.get("prompt", ""), 1000),
+            question_type=q.get("type", "multiple_choice"),
+            choices=q.get("choices", []),
+            expected_answer=q.get("expected"),
+            explanation=safe_text(q.get("explanation", ""), 2000),
+        )
+        db.session.add(question)
+
+    db.session.commit()
+
+    # Clear session preview data
+    session.pop("preview_assignment", None)
+
+    return jsonify({
+        "success": True,
+        "assignment_id": assignment.id,
+        "message": "Assignment created successfully!"
+    }), 200
+
 
 # ============================================================
 # TEACHER - GENERATE LESSON PLAN

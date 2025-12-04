@@ -775,13 +775,16 @@ async function generateLessonPlan() {
 }
 
 async function previewQuestions() {
+    // Show loading state
     const modal = document.getElementById('previewModal');
     const content = document.getElementById('previewContent');
-    
+
     content.innerHTML = '<p style="text-align: center;">Generating questions... (this may take 15-30 seconds)<br><small style="color: var(--muted-3);">AI is creating professional, grade-appropriate questions</small></p>';
     modal.style.display = 'block';
 
     const payload = {
+        class_id: document.getElementById('assignClassId').value,
+        title: document.getElementById('assignTitle').value.trim(),
         topic: document.getElementById('assignTopic').value.trim(),
         subject: document.getElementById('assignSubject').value,
         grade: document.getElementById('assignGradeLevel').value,
@@ -789,6 +792,8 @@ async function previewQuestions() {
         differentiation_mode: document.getElementById('assignDiffMode').value,
         student_ability: document.getElementById('assignAbility').value,
         num_questions: parseInt(document.getElementById('assignNumQuestions').value || '10', 10),
+        open_date: document.getElementById('assignOpenDate').value || null,
+        due_date: document.getElementById('assignDueDate').value || null,
     };
 
     try {
@@ -806,42 +811,11 @@ async function previewQuestions() {
 
         clearTimeout(timeoutId);
         const data = await res.json();
-        
-        if (res.ok && data.questions) {
-            let html = `<div style="margin-bottom: 16px; padding: 12px; background: rgba(0,242,255,0.1); border-radius: 8px;">
-                <strong>Topic:</strong> ${data.metadata.topic}<br>
-                <strong>Subject:</strong> ${data.metadata.subject}<br>
-                <strong>Grade:</strong> ${data.metadata.grade}<br>
-                <strong>Mode:</strong> ${data.metadata.differentiation_mode}<br>
-                <strong>Ability:</strong> ${data.metadata.student_ability}
-            </div>`;
-            
-            data.questions.forEach((q, idx) => {
-                html += `<div style="margin-bottom: 20px; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 10px; border-left: 3px solid var(--accent);">
-                    <div style="font-weight: 700; margin-bottom: 8px; color: var(--text);">Q${idx + 1}: ${q.prompt}</div>`;
-                
-                if (q.type === 'multiple_choice' && q.choices && q.choices.length > 0) {
-                    html += '<div style="margin: 8px 0;">';
-                    q.choices.forEach(choice => {
-                        html += `<div style="margin: 4px 0; padding: 6px; background: rgba(255,255,255,0.05); border-radius: 6px;">${choice}</div>`;
-                    });
-                    html += '</div>';
-                }
-                
-                html += `<div style="margin-top: 8px; font-size: 0.85rem; color: var(--success);">
-                    <strong>Answer:</strong> ${Array.isArray(q.expected) ? q.expected.join(', ') : q.expected}
-                </div>`;
-                
-                if (q.explanation) {
-                    html += `<div style="margin-top: 8px; font-size: 0.85rem; color: var(--muted-2);">
-                        <strong>Explanation:</strong> ${q.explanation}
-                    </div>`;
-                }
-                
-                html += '</div>';
-            });
-            
-            content.innerHTML = html;
+
+        if (res.ok && data.success && data.redirect) {
+            // Close modal and redirect to preview/edit page
+            modal.style.display = 'none';
+            window.location.href = data.redirect;
         } else {
             content.innerHTML = `<p style="color: var(--warning);">Error: ${data.error || 'Failed to generate questions'}</p>`;
         }
