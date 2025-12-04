@@ -483,40 +483,6 @@
         </a>
     </div>
 
-    <!-- ADMIN LINK -->
-    <div class="admin-link">
-        <a onclick="openAdmin()">🔐 Admin Login</a>
-    </div>
-
-</div>
-
-<!-- ============================
-       ADMIN LOGIN MODAL 
-============================ -->
-<div id="adminModal" class="admin-modal">
-    <div class="admin-modal-content">
-        <h2>Admin Login</h2>
-
-        <form method="POST" action="/admin/login">
-
-            <div class="admin-password-wrapper">
-                <input 
-                    type="password" 
-                    name="password" 
-                    id="admin_password"
-                    placeholder="Enter Admin Password"
-                    required
-                    class="admin-input"
-                >
-                <span class="admin-toggle-password" onclick="togglePassword('admin_password')">👁</span>
-            </div>
-
-            <button type="submit" class="admin-btn">Login</button>
-        </form>
-
-        <button class="admin-close" onclick="closeAdmin()">Close</button>
-
-    </div>
 </div>
 
 <!-- ============================

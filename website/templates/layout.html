@@ -226,16 +226,7 @@
             <a href="/teacher/messages">💬 Message Parents</a>
         {% endif %}
 
-        {% if session.get('is_admin') or session.get('is_owner') or session.get('admin_authenticated') or session.get('bypass_auth') %}
-            <hr>
-            <a href="/admin/dashboard">👑 Admin Dashboard</a>
-            <a href="/admin/teachers">📘 All Teachers</a>
-            <a href="/admin/students">👨‍🎓 All Students</a>
-            <a href="/admin/classes">🏫 All Classes</a>
-            <a href="/admin/reports">📈 Full Analytics</a>
-        {% else %}
-            <a href="/admin/login" style="opacity:0.7;">🔐 Admin Login</a>
-        {% endif %}
+        <!-- Admin links removed per product decision -->
     </div>
 
 

@@ -2,19 +2,26 @@
 {% extends "layout.html" %}
 {% block content %}
 
-<h2 style="text-align:center; margin-top:40px;">Choose Your Learning Planet</h2>
-<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:32px; margin-top:32px;">
-    {% for subject, img, name, subtitle in planets %}
-        <a href="/choose-grade?subject={{ subject }}" style="display:inline-block; text-align:center; background:#f5f6fa; border-radius:16px; box-shadow:0 2px 12px #ccc; padding:24px 18px; min-width:180px; text-decoration:none; color:#23243a; font-weight:600; font-size:1.1rem; margin-bottom:18px;">
-            <img src="/static/planets/{{ img }}" alt="{{ name }} planet icon" style="width:72px; height:72px; margin-bottom:12px;">
-            <div>{{ name }}</div>
-            <div style="font-size:0.95rem; color:#888; margin-top:4px;">{{ subtitle }}</div>
+<div style="max-width:1100px; margin: 16px auto 32px;">
+    <h2 style="text-align:center; margin-top:20px;">Choose Your Learning Planet</h2>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:28px; margin-top:28px; align-items:start;">
+        {% for subject, img, name, subtitle in planets %}
+        <a href="/choose-grade?subject={{ subject }}" style="text-decoration:none;">
+            <div style="background: linear-gradient(135deg, rgba(92,107,255,0.08), rgba(0,242,255,0.04)); border:1px solid rgba(118,131,255,0.14); padding:20px; border-radius:14px; text-align:center; color:var(--text); box-shadow: 0 12px 30px rgba(0,0,0,0.5);">
+                <div style="width:84px; height:84px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.02); border-radius:12px;">
+                    <img src="/static/planets/{{ img }}" alt="{{ name }}" style="width:56px; height:56px; object-fit:contain;">
+                </div>
+                <div style="font-weight:800; font-size:1.05rem;">{{ name }}</div>
+                <div style="font-size:0.9rem; color:var(--muted); margin-top:6px;">{{ subtitle }}</div>
+            </div>
         </a>
-    {% endfor %}
+        {% endfor %}
+    </div>
 </div>
 
 <script>
-// Call drawStars if defined (keeps behavior but avoids template errors)
+// keep the stars background behavior if defined
 if (typeof drawStars === 'function') {
     try { document.addEventListener('DOMContentLoaded', drawStars); } catch (e) { console.error(e); }
 }
