@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ student.student_name }} — Admin — CozmicLearning</title>
+    <link rel="stylesheet" href="/static/style.css?v=20251202">
+    <style>
+        body { margin: 0; padding: 0; background: var(--bg-gradient-main); font-family: "Poppins", sans-serif; color: white; }
+        .stars { position: fixed; inset: 0; background: url('/static/stars.png'); background-size: cover; opacity: 0.25; z-index: -1; animation: drift 65s linear infinite; }
+        @keyframes drift { from { transform: translateY(0); } to { transform: translateY(-2200px); } }
+
+        .sidebar { width: 260px; height: 100vh; background: rgba(0,0,0,0.45); backdrop-filter: blur(14px); border-right: 1px solid rgba(255,255,255,0.12); position: fixed; top: 0; left: 0; padding: 30px 20px; }
+        .sidebar h2 { margin: 0 0 40px; font-size: 1.7rem; text-align: center; color: #bfe6ff; text-shadow: 0 0 12px rgba(255,255,255,0.4); }
+        .nav-link { display: block; padding: 14px 18px; border-radius: 12px; color: white; margin-bottom: 12px; text-decoration: none; background: rgba(255,255,255,0.05); transition: 0.25s; }
+        .nav-link:hover { background: rgba(255,255,255,0.15); transform: translateX(4px); }
+        .logout { margin-top: 40px; background: rgba(255,100,100,0.25); }
+
+        .main { margin-left: 280px; padding: 40px; height: calc(100vh - 80px); overflow-y: auto; }
+        .page-title { font-size: 2.3rem; margin-bottom: 15px; color: #cfe8ff; }
+        .back-link { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { text-decoration: underline; }
+
+        .info-card { background: rgba(255,255,255,0.07); padding: 20px; border-radius: 14px; margin-bottom: 20px; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .info-item { }
+        .info-label { font-size: 0.85rem; opacity: 0.7; margin-bottom: 4px; }
+        .info-value { font-size: 1.1rem; font-weight: 500; }
+
+        .section-title { font-size: 1.5rem; margin: 30px 0 15px; color: #cfe8ff; }
+        table { width: 100%; background: rgba(255,255,255,0.05); border-radius: 14px; overflow: hidden; }
+        th { background: rgba(255,255,255,0.1); padding: 12px; text-align: left; font-size: 0.9rem; }
+        td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+        .status-badge { padding: 3px 8px; border-radius: 10px; font-size: 0.75rem; display: inline-block; }
+        .status-flagged { background: rgba(255,50,50,0.3); color: #ff6b6b; }
+        .status-allowed { background: rgba(0,255,100,0.2); color: #00ff80; }
+    </style>
+</head>
+<body>
+<div class="stars"></div>
+
+<div class="sidebar">
+    <h2>Admin Panel</h2>
+    <a class="nav-link" href="/admin">📊 Dashboard</a>
+    <a class="nav-link" href="/admin/students">👥 Students</a>
+    <a class="nav-link" href="/admin/teachers">👨‍🏫 Teachers</a>
+    <a class="nav-link" href="/admin/parents">👪 Parents</a>
+    <a class="nav-link" href="/admin/assignments">📝 Assignments</a>
+    <a class="nav-link" href="/admin/moderation">🛡️ Content Moderation</a>
+    <a class="nav-link logout" href="/admin_logout">Log Out</a>
+</div>
+
+<div class="main">
+    <a href="/admin/students" class="back-link">← Back to Students</a>
+    <div class="page-title">{{ student.student_name }}</div>
+
+    <!-- Student Info -->
+    <div class="info-card">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Email</div>
+                <div class="info-value">{{ student.student_email or 'N/A' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Grade Level</div>
+                <div class="info-value">{{ student.grade_level or 'N/A' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Plan</div>
+                <div class="info-value">{{ student.plan or 'free' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Status</div>
+                <div class="info-value">{{ 'Active' if student.subscription_active else 'Inactive' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Parent</div>
+                <div class="info-value">
+                    {% if parent %}
+                    <a href="/admin/parent/{{ parent.id }}" style="color: var(--accent);">{{ parent.name }}</a>
+                    {% else %}
+                    N/A
+                    {% endif %}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Class</div>
+                <div class="info-value">{{ student_class.class_name if student_class else 'N/A' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Joined</div>
+                <div class="info-value">{{ student.created_at.strftime('%Y-%m-%d') if student.created_at else 'N/A' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Questions -->
+    <div class="section-title">Recent Questions (Last 50)</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Question</th>
+                <th>Subject</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for q in recent_questions %}
+            <tr>
+                <td>{{ q.created_at.strftime('%Y-%m-%d %H:%M') if q.created_at else 'N/A' }}</td>
+                <td style="max-width: 400px;">{{ q.question_text[:100] }}{% if q.question_text|length > 100 %}...{% endif %}</td>
+                <td>{{ q.subject or 'N/A' }}</td>
+                <td>
+                    {% if q.flagged %}
+                    <span class="status-badge status-flagged">Flagged</span>
+                    {% else %}
+                    <span class="status-badge status-allowed">Allowed</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="text-align: center; padding: 30px;">No questions yet</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Assignment Completions -->
+    <div class="section-title">Assignment Completions (Last 20)</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Assignment</th>
+                <th>Started</th>
+                <th>Status</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in completions %}
+            <tr>
+                <td>{{ c.practice_ref.title if c.practice_ref else 'N/A' }}</td>
+                <td>{{ c.started_at.strftime('%Y-%m-%d %H:%M') if c.started_at else 'N/A' }}</td>
+                <td>{{ 'Completed' if c.completed else 'In Progress' }}</td>
+                <td>{{ c.score if c.score else 'N/A' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" style="text-align: center; padding: 30px;">No assignments yet</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

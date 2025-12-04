@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Assignments — Admin — CozmicLearning</title>
+    <link rel="stylesheet" href="/static/style.css?v=20251202">
+    <style>
+        body { margin: 0; padding: 0; background: var(--bg-gradient-main); font-family: "Poppins", sans-serif; color: white; }
+        .stars { position: fixed; inset: 0; background: url('/static/stars.png'); background-size: cover; opacity: 0.25; z-index: -1; animation: drift 65s linear infinite; }
+        @keyframes drift { from { transform: translateY(0); } to { transform: translateY(-2200px); } }
+
+        .sidebar { width: 260px; height: 100vh; background: rgba(0,0,0,0.45); backdrop-filter: blur(14px); border-right: 1px solid rgba(255,255,255,0.12); position: fixed; top: 0; left: 0; padding: 30px 20px; }
+        .sidebar h2 { margin: 0 0 40px; font-size: 1.7rem; text-align: center; color: #bfe6ff; text-shadow: 0 0 12px rgba(255,255,255,0.4); }
+        .nav-link { display: block; padding: 14px 18px; border-radius: 12px; color: white; margin-bottom: 12px; text-decoration: none; background: rgba(255,255,255,0.05); transition: 0.25s; }
+        .nav-link:hover { background: rgba(255,255,255,0.15); transform: translateX(4px); }
+        .nav-link.active { background: rgba(255,255,255,0.2); }
+        .logout { margin-top: 40px; background: rgba(255,100,100,0.25); }
+        .logout:hover { background: rgba(255,100,100,0.4); }
+
+        .main { margin-left: 280px; padding: 40px; height: calc(100vh - 80px); overflow-y: auto; }
+        .page-title { font-size: 2.3rem; margin-bottom: 25px; color: #cfe8ff; }
+
+        .search-bar { margin-bottom: 20px; display: flex; gap: 12px; }
+        .search-bar input, .search-bar select { padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; }
+        .search-bar button { padding: 12px 24px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); border: none; border-radius: 10px; color: white; cursor: pointer; }
+
+        table { width: 100%; background: rgba(255,255,255,0.05); border-radius: 14px; overflow: hidden; }
+        th { background: rgba(255,255,255,0.1); padding: 15px; text-align: left; }
+        td { padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        tr:hover { background: rgba(255,255,255,0.08); }
+        .progress-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--success), #6bff00); }
+
+        .pagination { margin-top: 20px; display: flex; gap: 8px; justify-content: center; }
+        .pagination a, .pagination span { padding: 8px 14px; background: rgba(255,255,255,0.1); border-radius: 8px; text-decoration: none; color: white; }
+        .pagination .current { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+    </style>
+</head>
+<body>
+<div class="stars"></div>
+
+<div class="sidebar">
+    <h2>Admin Panel</h2>
+    <a class="nav-link" href="/admin">📊 Dashboard</a>
+    <a class="nav-link" href="/admin/students">👥 Students</a>
+    <a class="nav-link" href="/admin/teachers">👨‍🏫 Teachers</a>
+    <a class="nav-link" href="/admin/parents">👪 Parents</a>
+    <a class="nav-link active" href="/admin/assignments">📝 Assignments</a>
+    <a class="nav-link" href="/admin/moderation">🛡️ Content Moderation</a>
+    <a class="nav-link logout" href="/admin_logout">Log Out</a>
+</div>
+
+<div class="main">
+    <div class="page-title">All Assignments</div>
+
+    <form class="search-bar" method="GET">
+        <input type="text" name="search" placeholder="Search assignments..." value="{{ search }}" style="flex: 1;">
+        <select name="subject">
+            <option value="">All Subjects</option>
+            <option value="num_forge" {% if subject_filter == 'num_forge' %}selected{% endif %}>NumForge</option>
+            <option value="atom_sphere" {% if subject_filter == 'atom_sphere' %}selected{% endif %}>AtomSphere</option>
+            <option value="ink_haven" {% if subject_filter == 'ink_haven' %}selected{% endif %}>InkHaven</option>
+            <option value="faith_realm" {% if subject_filter == 'faith_realm' %}selected{% endif %}>FaithRealm</option>
+            <option value="chrono_core" {% if subject_filter == 'chrono_core' %}selected{% endif %}>ChronoCore</option>
+        </select>
+        <button type="submit">Search</button>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Subject</th>
+                <th>Class</th>
+                <th>Teacher</th>
+                <th>Due Date</th>
+                <th>Completion</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for stat in assignment_stats %}
+            {% set assignment = stat.assignment %}
+            <tr>
+                <td><strong>{{ assignment.title }}</strong></td>
+                <td>{{ assignment.subject }}</td>
+                <td>{{ assignment.class_ref.class_name if assignment.class_ref else 'N/A' }}</td>
+                <td>{{ assignment.teacher_ref.name if assignment.teacher_ref else 'N/A' }}</td>
+                <td>{{ assignment.due_date.strftime('%Y-%m-%d') if assignment.due_date else 'No deadline' }}</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="progress-bar" style="flex: 1;">
+                            <div class="progress-fill" style="width: {{ stat.completion_rate }}%;"></div>
+                        </div>
+                        <span style="font-size: 0.85rem;">{{ stat.completed }}/{{ stat.total }} ({{ "%.0f"|format(stat.completion_rate) }}%)</span>
+                    </div>
+                </td>
+                <td>{{ assignment.created_at.strftime('%Y-%m-%d') if assignment.created_at else 'N/A' }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" style="text-align: center; padding: 40px;">No assignments found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="?page={{ pagination.prev_num }}&search={{ search }}&subject={{ subject_filter }}">« Prev</a>
+        {% endif %}
+
+        {% for page in pagination.iter_pages() %}
+            {% if page %}
+                {% if page == pagination.page %}
+                    <span class="current">{{ page }}</span>
+                {% else %}
+                    <a href="?page={{ page }}&search={{ search }}&subject={{ subject_filter }}">{{ page }}</a>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <a href="?page={{ pagination.next_num }}&search={{ search }}&subject={{ subject_filter }}">Next »</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 20px; opacity: 0.6; font-size: 0.9rem;">
+        Showing {{ assignment_stats|length }} assignments
+    </div>
+</div>
+
+</body>
+</html>
