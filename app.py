@@ -26,6 +26,10 @@ os.makedirs(PERSIST_DIR, exist_ok=True)
 # Use persistent SQLite file
 DB_PATH = os.path.join(PERSIST_DIR, "cozmiclearning.db")
 
+# Log database path for debugging
+print(f"🗄️  Database path: {DB_PATH}")
+print(f"📁 Database exists: {os.path.exists(DB_PATH)}")
+
 # ============================================================
 # FLASK + SECURITY IMPORTS
 # ============================================================
@@ -2416,13 +2420,30 @@ def add_class():
         flash("Class name is required.", "error")
         return redirect("/teacher/dashboard")
 
-    cls = Class(teacher_id=teacher.id, class_name=class_name, grade_level=grade)
-    db.session.add(cls)
-    db.session.commit()
-    # Save backup after creating class
-    backup_classes_to_json()
+    try:
+        cls = Class(teacher_id=teacher.id, class_name=class_name, grade_level=grade)
+        db.session.add(cls)
+        db.session.commit()
+        
+        # Log success
+        print(f"✅ Class created: {class_name} (ID: {cls.id}, Teacher: {teacher.id})")
+        
+        # Verify it was saved
+        verify = Class.query.get(cls.id)
+        if verify:
+            print(f"✅ Class verified in database: {verify.class_name}")
+        else:
+            print(f"⚠️ Class NOT found after commit!")
+        
+        # Save backup after creating class
+        backup_classes_to_json()
 
-    flash("Class created successfully.", "info")
+        flash("Class created successfully.", "info")
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Error creating class: {e}")
+        flash(f"Error creating class: {str(e)}", "error")
+    
     return redirect("/teacher/dashboard")
 
 
