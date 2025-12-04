@@ -9,6 +9,7 @@ services:
     buildCommand: |
       pip install --upgrade pip
       pip install -r requirements.txt
+      python migrate_add_open_date.py || true
     startCommand: |
       gunicorn app:app --bind 0.0.0.0:$PORT --workers 4 --threads 2 --worker-class gthread --timeout 120 --max-requests 1000 --max-requests-jitter 100 --worker-tmp-dir /dev/shm --access-logfile - --error-logfile - --log-level info
     healthCheckPath: /
