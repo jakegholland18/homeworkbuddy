@@ -260,6 +260,32 @@ def seed_owner():
 
 with app.app_context():
     db.create_all()  # ensure tables exist
+
+    # ============================================================
+    # DATABASE MIGRATION: Add open_date column if missing
+    # ============================================================
+    import sqlite3
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        # Check if open_date column exists
+        cursor.execute("PRAGMA table_info(assigned_practice)")
+        columns = [row[1] for row in cursor.fetchall()]
+
+        if "open_date" not in columns:
+            print("🔧 Running migration: Adding open_date column to assigned_practice table...")
+            cursor.execute("ALTER TABLE assigned_practice ADD COLUMN open_date TIMESTAMP")
+            conn.commit()
+            print("✅ Migration complete: open_date column added successfully!")
+        else:
+            print("✅ Database schema up to date: open_date column exists")
+
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ Migration warning: {e}")
+    # ============================================================
+
     seed_owner()
     # Attempt restore from backup if DB is empty
     restore_classes_from_json_if_empty()
