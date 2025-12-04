@@ -403,8 +403,24 @@
         } else {
             correctAnswer = '';
         }
-        
-        const isCorrect = userAnswer.toLowerCase().trim() === correctAnswer;
+
+        // Robust normalization (match backend)
+        function normalize(val) {
+            if (!val) return '';
+            let v = val.toString().toLowerCase().trim();
+            v = v.replace(/(percent|%|\$|,)/g, '');
+            v = v.replace(/\s+/g, '');
+            return v;
+        }
+        let normUser = normalize(userAnswer);
+        let normCorrect = normalize(correctAnswer);
+        let isCorrect = false;
+        // Try float comparison if both are numbers
+        if (!isNaN(parseFloat(normUser)) && !isNaN(parseFloat(normCorrect))) {
+            isCorrect = Math.abs(parseFloat(normUser) - parseFloat(normCorrect)) < 1e-6;
+        } else {
+            isCorrect = normUser === normCorrect;
+        }
 
         // Visual feedback
         if (question.options) {
