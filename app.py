@@ -585,6 +585,34 @@ def get_current_teacher():
     return Teacher.query.get(tid)
 
 
+def get_teacher_or_admin():
+    """
+    Get current teacher, or return a placeholder for admin access.
+    Used in routes where admins should be able to view teacher features.
+    Returns: Teacher object, or special AdminTeacher placeholder, or None
+    """
+    # First check if there's a logged-in teacher
+    teacher = get_current_teacher()
+    if teacher:
+        return teacher
+
+    # If admin is authenticated, return a placeholder that indicates admin access
+    if is_admin():
+        # Return a special object that signals admin access without being a real teacher
+        class AdminTeacher:
+            id = None
+            name = "Admin View"
+            email = OWNER_EMAIL
+            classes = []  # Will be populated by route if needed
+
+            def __repr__(self):
+                return "<AdminTeacher>"
+
+        return AdminTeacher()
+
+    return None
+
+
 def is_owner(teacher: Teacher | None) -> bool:
     return bool(
         teacher and teacher.email and teacher.email.lower() == OWNER_EMAIL.lower()
@@ -2718,24 +2746,28 @@ def reset_password(token):
 
 @app.route("/teacher/dashboard")
 def teacher_dashboard():
-    teacher = get_current_teacher()
+    teacher = get_teacher_or_admin()
     if not teacher:
         return redirect("/teacher/login")
-    
-    # Check subscription status for teachers
-    access_check = check_subscription_access("teacher")
-    if access_check != True:
-        return access_check  # Redirect to trial_expired
-    
-    # Get trial days remaining
-    trial_days_remaining = get_days_remaining_in_trial(teacher)
 
-    # Count unread messages
-    unread_messages = Message.query.filter_by(
-        recipient_type="teacher",
-        recipient_id=teacher.id,
-        is_read=False,
-    ).count()
+    # Admin users bypass subscription checks
+    if not is_admin():
+        # Check subscription status for teachers
+        access_check = check_subscription_access("teacher")
+        if access_check != True:
+            return access_check  # Redirect to trial_expired
+
+    # Get trial days remaining (0 for admin)
+    trial_days_remaining = get_days_remaining_in_trial(teacher) if hasattr(teacher, 'trial_end_date') else 0
+
+    # Count unread messages (0 for admin)
+    unread_messages = 0
+    if teacher.id:  # Real teacher (not admin)
+        unread_messages = Message.query.filter_by(
+            recipient_type="teacher",
+            recipient_id=teacher.id,
+            is_read=False,
+        ).count()
 
     classes = teacher.classes or []
     return render_template(
@@ -2807,11 +2839,16 @@ def teacher_settings():
 
 @app.route("/teacher/classes")
 def teacher_classes():
-    teacher = get_current_teacher()
+    teacher = get_teacher_or_admin()
     if not teacher:
         return redirect("/teacher/login")
 
-    classes = teacher.classes or []
+    # If admin, show all classes; if real teacher, show their classes
+    if is_admin():
+        classes = Class.query.all()
+    else:
+        classes = teacher.classes or []
+
     return render_template(
         "teacher_dashboard.html",
         teacher=teacher,
@@ -2956,7 +2993,7 @@ def delete_student(student_id):
 
 @app.route("/teacher/assignments")
 def teacher_assignments():
-    teacher = get_current_teacher()
+    teacher = get_teacher_or_admin()
     if not teacher:
         return redirect("/teacher/login")
 
