@@ -1,6 +1,6 @@
+
 {% extends "layout.html" %}
 {% block content %}
-drawStars();
 
 <h2 style="text-align:center; margin-top:40px;">Choose Your Learning Planet</h2>
 <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:32px; margin-top:32px;">
@@ -11,8 +11,14 @@ drawStars();
             <div style="font-size:0.95rem; color:#888; margin-top:4px;">{{ subtitle }}</div>
         </a>
     {% endfor %}
-    
-    {% endblock %}
 </div>
+
+<script>
+// Call drawStars if defined (keeps behavior but avoids template errors)
+if (typeof drawStars === 'function') {
+    try { document.addEventListener('DOMContentLoaded', drawStars); } catch (e) { console.error(e); }
+}
+</script>
+
 {% endblock %}
 
