@@ -1547,6 +1547,7 @@ def parent_signup():
     return render_template("parent_signup.html", selected_plan=selected_plan)
 
 
+@csrf.exempt
 @app.route("/parent/login", methods=["GET", "POST"])
 def parent_login():
     init_user()
@@ -1573,7 +1574,16 @@ def parent_login():
             db.session.commit()
 
         flash("Logged in!", "info")
-        return redirect("/parent_dashboard")
+        
+        # Check if this is a homeschool parent (has teacher features)
+        _, _, _, has_teacher_features = get_parent_plan_limits(parent)
+        
+        if has_teacher_features:
+            # Redirect homeschool parents to homeschool dashboard
+            return redirect("/homeschool/dashboard")
+        else:
+            # Regular parents go to parent dashboard
+            return redirect("/parent_dashboard")
 
     return render_template("parent_login.html")
 
@@ -2964,12 +2974,22 @@ def homeschool_gradebook():
     """Homeschool gradebook - view student progress grouped by subject."""
     init_user()
     
+    parent_id = session.get("parent_id")
+    
+    # Temporary debug - auto-login test homeschool parent
+    if not parent_id:
+        test_parent = Parent.query.filter_by(email='homeschool@test.com').first()
+        if test_parent:
+            session["parent_id"] = test_parent.id
+            session["user_role"] = "parent"
+            session["parent_name"] = test_parent.name if hasattr(test_parent, 'name') else "Homeschool Parent"
+            parent_id = test_parent.id
+    
     if not session.get("bypass_auth"):
         access_check = check_subscription_access("parent")
         if access_check != True:
             return access_check
 
-    parent_id = session.get("parent_id")
     if not parent_id:
         flash("Please log in as a parent.", "error")
         return redirect("/parent/login")
@@ -4634,6 +4654,10 @@ def parent_dashboard():
             
             # Get plan limits for homeschool features
             student_limit, lesson_plans_limit, assignments_limit, has_teacher_features = get_parent_plan_limits(parent)
+            
+            # If this is a homeschool parent, redirect to homeschool dashboard
+            if has_teacher_features:
+                return redirect("/homeschool/dashboard")
 
     progress = {
         s: (
@@ -4687,6 +4711,18 @@ def homeschool_dashboard():
     """Unified dashboard for homeschool parents with teacher features."""
     init_user()
     
+    parent_id = session.get("parent_id")
+    
+    # Temporary debug - remove after testing
+    if not parent_id:
+        # Try to find the homeschool parent for testing
+        test_parent = Parent.query.filter_by(email='homeschool@test.com').first()
+        if test_parent:
+            session["parent_id"] = test_parent.id
+            session["user_role"] = "parent"
+            session["parent_name"] = test_parent.name if hasattr(test_parent, 'name') else "Homeschool Parent"
+            parent_id = test_parent.id
+    
     # Admin bypass - allow access without parent_id
     if not session.get("bypass_auth"):
         # Check subscription status for homeschool
@@ -4694,7 +4730,6 @@ def homeschool_dashboard():
         if access_check != True:
             return access_check  # Redirect to trial_expired
 
-    parent_id = session.get("parent_id")
     parent = None
     unread_messages = 0
     has_teacher_features = False

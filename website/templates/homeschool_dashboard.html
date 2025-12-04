@@ -72,6 +72,157 @@
             z-index: 1;
         }
 
+        /* Top Navigation Bar */
+        .topbar {
+            background: var(--glass-1);
+            border: 1px solid var(--border-soft);
+            border-radius: 16px;
+            padding: 16px 24px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(12px);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .topbar-logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .topbar-nav {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .topbar-nav a {
+            color: var(--muted-2);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .topbar-nav a:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--text);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, rgba(255,77,77,0.2), rgba(255,107,157,0.2));
+            border: 1px solid rgba(255,107,157,0.3);
+            border-radius: 8px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(135deg, rgba(255,77,77,0.3), rgba(255,107,157,0.3));
+            transform: translateY(-2px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: var(--muted);
+            font-size: 1.05rem;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 30px;
+            background: var(--glass-1);
+            padding: 12px;
+            border-radius: 16px;
+            border: 1px solid var(--border-soft);
+        }
+
+        .tab-btn {
+            padding: 14px 20px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--muted-3);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-family: "Poppins", sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.08);
+            color: var(--text);
+            border-color: var(--border-soft);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            color: var(--text);
+            box-shadow: 0 6px 20px rgba(92,107,255,0.4);
+            border-color: var(--primary-2);
+            transform: translateY(-2px);
+        }
+
+        .tab-badge {
+            background: var(--accent);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -341,25 +492,65 @@
     <div class="stars"></div>
     
     <div class="container">
+        <!-- Top Navigation Bar -->
+        <div class="topbar">
+            <div class="topbar-left">
+                <div class="topbar-logo">🚀 CozmicLearning</div>
+                <div class="topbar-nav">
+                    <a href="/homeschool/dashboard">🏡 Home</a>
+                    <a href="/subjects">🌌 Explore</a>
+                    {% if has_teacher_features %}
+                    <a href="/teacher/assignments">📝 Assignments</a>
+                    <a href="/homeschool/gradebook">📊 Gradebook</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="topbar-right">
+                <div class="user-info">
+                    {{ session.get('parent_name', 'Homeschool Parent') }}
+                </div>
+                <a href="/logout" class="logout-btn">Logout</a>
+            </div>
+        </div>
+
         <div class="header">
             <h1>🏡 Homeschool Dashboard</h1>
             <p>Parent Monitoring + Teacher Tools Combined</p>
-            {% if session.get('admin_mode') or session.get('homeschool_mode') %}
-            <p style="color: var(--pink); margin-top: 8px;">🔧 Admin/Homeschool Mode Active</p>
+            {% if trial_days_remaining and trial_days_remaining > 0 %}
+            <p style="color: var(--warning); margin-top: 8px;">
+                ⏰ Trial: {{ trial_days_remaining }} day{{ 's' if trial_days_remaining != 1 else '' }} remaining
+            </p>
             {% endif %}
         </div>
 
         <!-- Tab Navigation -->
         <div class="tab-nav">
-            <button class="tab-btn active" onclick="switchTab('students')">👥 My Students</button>
-            <button class="tab-btn" onclick="switchTab('subjects')">🌌 Explore Subjects</button>
+            <button class="tab-btn active" onclick="switchTab('students')">
+                👥 My Students
+            </button>
+            <button class="tab-btn" onclick="switchTab('subjects')">
+                🌌 Subjects
+            </button>
             {% if has_teacher_features %}
-            <button class="tab-btn" onclick="switchTab('gradebook')">📊 Gradebook</button>
-            <button class="tab-btn" onclick="switchTab('assignments')">📝 Assignments</button>
-            <button class="tab-btn" onclick="switchTab('lessons')">📚 Lesson Plans</button>
+            <button class="tab-btn" onclick="switchTab('gradebook')">
+                📊 Gradebook
+            </button>
+            <button class="tab-btn" onclick="switchTab('assignments')">
+                📝 Assignments
+            </button>
+            <button class="tab-btn" onclick="switchTab('lessons')">
+                📚 Lessons
+            </button>
             {% endif %}
-            <button class="tab-btn" onclick="switchTab('messages')">📬 Messages {% if unread_messages > 0 %}<span style="background: var(--accent); padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-left: 4px;">{{ unread_messages }}</span>{% endif %}</button>
-            <button class="tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
+            <button class="tab-btn" onclick="switchTab('messages')">
+                📬 Messages
+                {% if unread_messages > 0 %}
+                <span class="tab-badge">{{ unread_messages }}</span>
+                {% endif %}
+            </button>
+            <button class="tab-btn" onclick="switchTab('settings')">
+                ⚙️ Settings
+            </button>
         </div>
 
         <!-- Students Tab -->
