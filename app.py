@@ -3980,21 +3980,56 @@ def assignment_take(practice_id):
 
     assignment = AssignedPractice.query.get_or_404(practice_id)
 
-    # Load student + grade level (fallback 8)
-    student_id = session.get("student_id")
-    student = Student.query.get(student_id) if student_id else None
-    grade_level = student.class_ref.grade_level if student and student.class_ref else "8"
+    # Check if assignment has AssignedQuestion records
+    assigned_questions = assignment.questions or []
+    
+    if assigned_questions:
+        # Use teacher's pre-defined questions
+        steps = []
+        for q in assigned_questions:
+            # Parse correct answers (handle comma-separated values and whitespace)
+            if q.correct_answer:
+                expected = [ans.strip() for ans in q.correct_answer.split(",") if ans.strip()]
+            else:
+                expected = []
+            
+            step = {
+                "prompt": q.question_text,
+                "type": q.question_type or "free",
+                "expected": expected,
+                "hint": "",
+                "explanation": q.explanation or ""
+            }
+            
+            # Add choices for multiple choice questions
+            if q.question_type == "multiple_choice":
+                choices = []
+                if q.choice_a: choices.append(q.choice_a)
+                if q.choice_b: choices.append(q.choice_b)
+                if q.choice_c: choices.append(q.choice_c)
+                if q.choice_d: choices.append(q.choice_d)
+                step["choices"] = choices
+            
+            steps.append(step)
+        
+        practice = {
+            "steps": steps,
+            "final_message": "Great work! Review your answers."
+        }
+    else:
+        # No AssignedQuestions - fall back to AI generation
+        student_id = session.get("student_id")
+        student = Student.query.get(student_id) if student_id else None
+        grade_level = student.class_ref.grade_level if student and student.class_ref else "8"
+        differentiation = getattr(assignment, "differentiation_mode", "none")
 
-    differentiation = getattr(assignment, "differentiation_mode", "none")
-
-    # Generate AI mission
-    practice = generate_practice_session(
-        topic=assignment.topic or assignment.title,
-        subject=assignment.subject or "terra_nova",
-        grade_level=grade_level,
-        character="nova",  # could be pulled from student later
-        differentiation_mode=differentiation,
-    )
+        practice = generate_practice_session(
+            topic=assignment.topic or assignment.title,
+            subject=assignment.subject or "terra_nova",
+            grade_level=grade_level,
+            character="nova",
+            differentiation_mode=differentiation,
+        )
 
     session["practice"] = practice
     session["practice_step"] = 0
