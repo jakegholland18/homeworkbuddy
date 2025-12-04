@@ -13,7 +13,29 @@
   </style>
   <h2 style="margin-bottom: 8px;">Edit Assignment: {{ assignment.title }}</h2>
   <small style="color:#8a92b3;">Subject: {{ assignment.subject }} · Class: {{ assignment.class_ref.class_name }}</small>
-  
+
+  <!-- Scheduling Info Display -->
+  <div style="margin: 12px 0; padding: 12px; background: rgba(0,242,255,0.08); border: 1px solid rgba(118,131,255,0.3); border-radius: 10px;">
+    <div style="font-size: 0.9rem; color: var(--muted-2); display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div>
+        <strong style="color: var(--accent);">Opens:</strong>
+        {% if assignment.open_date %}
+          {{ assignment.open_date.strftime('%b %d, %Y at %I:%M %p') }}
+        {% else %}
+          <span style="color: var(--success);">Immediately (already open)</span>
+        {% endif %}
+      </div>
+      <div>
+        <strong style="color: var(--warning);">Closes:</strong>
+        {% if assignment.due_date %}
+          {{ assignment.due_date.strftime('%b %d, %Y at %I:%M %p') }}
+        {% else %}
+          <span style="color: var(--muted-3);">No deadline</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
   {% if assignment.preview_json %}
   <div style="margin: 12px 0;">
     <a href="/teacher/assignments/{{ assignment.id }}/preview" class="btn" style="display: inline-block; padding: 8px 16px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); text-decoration: none; border-radius: 8px; font-size: 0.9rem;">
@@ -22,6 +44,35 @@
   </div>
   {% endif %}
 
+  <!-- Edit Scheduling Settings -->
+  <div style="margin-bottom: 24px; padding: 16px; border: 1px solid rgba(118,131,255,0.3); border-radius: 12px; background: rgba(132,255,0,0.08);">
+    <h3 style="margin-bottom: 12px; color: var(--success);">⏰ Edit Schedule</h3>
+    <small style="color: var(--muted-3); display: block; margin-bottom: 12px;">Change when students can access this assignment</small>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+      <div>
+        <label style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Open Date & Time</label>
+        <input type="datetime-local" id="editOpenDate"
+               value="{% if assignment.open_date %}{{ assignment.open_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+               style="width: 100%;">
+        <small style="color: var(--muted-3); font-size: 0.75rem; display: block; margin-top: 2px;">Clear to open immediately</small>
+      </div>
+      <div>
+        <label style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Close Date & Time</label>
+        <input type="datetime-local" id="editDueDate"
+               value="{% if assignment.due_date %}{{ assignment.due_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+               style="width: 100%;">
+        <small style="color: var(--muted-3); font-size: 0.75rem; display: block; margin-top: 2px;">Clear for no deadline</small>
+      </div>
+    </div>
+
+    <button type="button" class="btn" onclick="updateSchedule()" style="background: linear-gradient(135deg, var(--success), #6bff00);">
+      Update Schedule
+    </button>
+    <div id="scheduleUpdateResult" style="margin-top: 8px; font-size: 0.85rem; display: none;"></div>
+  </div>
+
+  <h3 style="margin-bottom: 12px;">Questions</h3>
   <form method="POST" style="margin-top: 16px;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
@@ -105,6 +156,43 @@
 </div>
 
 <script>
+async function updateSchedule() {
+  const resultDiv = document.getElementById('scheduleUpdateResult');
+  resultDiv.style.display = 'block';
+  resultDiv.style.color = 'var(--muted)';
+  resultDiv.textContent = 'Updating schedule...';
+
+  const payload = {
+    open_date: document.getElementById('editOpenDate').value || null,
+    due_date: document.getElementById('editDueDate').value || null
+  };
+
+  try {
+    const res = await fetch('/teacher/assignments/{{ assignment.id }}/update_schedule', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      resultDiv.style.color = 'var(--success)';
+      resultDiv.innerHTML = '<strong>✓ Success!</strong> Schedule updated. Reloading...';
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } else {
+      resultDiv.style.color = 'var(--warning)';
+      resultDiv.innerHTML = `<strong>✗ Error:</strong> ${data.error || 'Unknown error'}`;
+    }
+  } catch (err) {
+    resultDiv.style.color = 'var(--warning)';
+    resultDiv.innerHTML = `<strong>✗ Network Error:</strong> ${err.message}`;
+  }
+}
+
 async function generateMoreQuestions() {
   const resultDiv = document.getElementById('moreQuestionsResult');
   resultDiv.style.display = 'block';

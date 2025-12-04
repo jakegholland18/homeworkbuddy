@@ -159,7 +159,8 @@ class AssignedPractice(db.Model):
     subject = db.Column(db.String(50))
     topic = db.Column(db.String(200))
     instructions = db.Column(db.Text)
-    due_date = db.Column(db.DateTime)
+    open_date = db.Column(db.DateTime, nullable=True)  # When assignment becomes visible to students
+    due_date = db.Column(db.DateTime, nullable=True)   # When assignment closes
 
     # Assignment type for gradebook categorization
     assignment_type = db.Column(db.String(50), default="practice")  # practice / quiz / test / homework

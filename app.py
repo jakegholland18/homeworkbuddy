@@ -2880,6 +2880,54 @@ def assignment_generate_more(practice_id):
     }), 201
 
 
+@csrf.exempt
+@app.route("/teacher/assignments/<int:assignment_id>/update_schedule", methods=["POST"])
+def assignment_update_schedule(assignment_id):
+    """Update assignment open_date and due_date."""
+    teacher = get_current_teacher()
+    if not teacher:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    assignment = AssignedPractice.query.get_or_404(assignment_id)
+    if not is_owner(teacher) and assignment.teacher_id != teacher.id:
+        return jsonify({"error": "Not authorized"}), 403
+
+    data = request.get_json() or {}
+    open_str = data.get("open_date", "").strip() if data.get("open_date") else ""
+    due_str = data.get("due_date", "").strip() if data.get("due_date") else ""
+
+    # Parse open date
+    if open_str:
+        try:
+            assignment.open_date = datetime.strptime(open_str, "%Y-%m-%dT%H:%M")
+        except Exception:
+            try:
+                assignment.open_date = datetime.strptime(open_str, "%Y-%m-%d")
+            except Exception:
+                return jsonify({"error": "Invalid open_date format"}), 400
+    else:
+        assignment.open_date = None
+
+    # Parse due date
+    if due_str:
+        try:
+            assignment.due_date = datetime.strptime(due_str, "%Y-%m-%dT%H:%M")
+        except Exception:
+            try:
+                assignment.due_date = datetime.strptime(due_str, "%Y-%m-%d")
+            except Exception:
+                return jsonify({"error": "Invalid due_date format"}), 400
+    else:
+        assignment.due_date = None
+
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "message": "Schedule updated successfully"
+    }), 200
+
+
 @app.route("/teacher/questions/<int:question_id>/edit", methods=["GET", "POST"])
 def edit_question(question_id):
     teacher = get_current_teacher()
@@ -3106,6 +3154,7 @@ def teacher_assign_questions():
     differentiation_mode = data.get("differentiation_mode", "none")
     student_ability = data.get("student_ability", "on_level")
     num_questions = data.get("num_questions", 10)
+    open_str = data.get("open_date", "").strip()
     due_str = data.get("due_date", "").strip()
 
     if not class_id or not title or not topic:
@@ -3118,13 +3167,27 @@ def teacher_assign_questions():
     if not is_owner(teacher) and cls.teacher_id != teacher.id:
         return jsonify({"error": "Not authorized for this class"}), 403
 
-    # Parse due date
+    # Parse open date (datetime-local format: YYYY-MM-DDTHH:MM)
+    open_date = None
+    if open_str:
+        try:
+            open_date = datetime.strptime(open_str, "%Y-%m-%dT%H:%M")
+        except Exception:
+            try:
+                open_date = datetime.strptime(open_str, "%Y-%m-%d")
+            except Exception:
+                open_date = None
+
+    # Parse due date (datetime-local format: YYYY-MM-DDTHH:MM)
     due_date = None
     if due_str:
         try:
-            due_date = datetime.strptime(due_str, "%Y-%m-%d")
+            due_date = datetime.strptime(due_str, "%Y-%m-%dT%H:%M")
         except Exception:
-            due_date = None
+            try:
+                due_date = datetime.strptime(due_str, "%Y-%m-%d")
+            except Exception:
+                due_date = None
 
     # Generate questions using teacher_tools.assign_questions
     payload = assign_questions(
@@ -3161,6 +3224,7 @@ def teacher_assign_questions():
         title=title,
         subject=subject,
         topic=topic,
+        open_date=open_date,
         due_date=due_date,
         differentiation_mode=differentiation_mode,
         is_published=False,  # Teacher can review before publishing

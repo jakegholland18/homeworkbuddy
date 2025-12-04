@@ -492,60 +492,97 @@
         <small>Generate differentiated questions and create an assignment.</small>
 
         <form class="inline-form" id="assignQuestionsForm" style="flex-direction: column; gap: 12px; margin-top: 16px;">
-            <input type="text" id="assignTitle" placeholder="Assignment title (required)" required>
-            <input type="text" id="assignTopic" placeholder="Topic (required)" required>
-            
-            <select id="assignClassId" required>
-                <option value="">Select class...</option>
-                {% for c in classes %}
-                <option value="{{ c.id }}">{{ c.class_name }} (Grade {{ c.grade_level or "N/A" }})</option>
-                {% endfor %}
-            </select>
+            <div>
+                <label for="assignTitle" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Assignment Title</label>
+                <input type="text" id="assignTitle" placeholder="e.g., Photosynthesis Quiz" required>
+            </div>
 
-            <select id="assignSubject">
-                <option value="terra_nova">Terra Nova (General)</option>
-                <option value="num_forge">NumForge (Math)</option>
-                <option value="atom_sphere">AtomSphere (Science)</option>
-                <option value="ink_haven">InkHaven (Writing)</option>
-                <option value="faith_realm">FaithRealm (Bible)</option>
-                <option value="chrono_core">ChronoCore (History)</option>
-                <option value="truth_forge">TruthForge (Apologetics)</option>
-                <option value="stock_star">StockStar (Investing)</option>
-                <option value="coin_quest">CoinQuest (Money)</option>
-                <option value="story_verse">StoryVerse (Reading)</option>
-            </select>
+            <div>
+                <label for="assignTopic" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Topic (what should questions cover?)</label>
+                <input type="text" id="assignTopic" placeholder="e.g., Photosynthesis and cellular respiration" required>
+            </div>
 
-            <select id="assignGradeLevel">
-                <option value="1">Grade 1</option>
-                <option value="2">Grade 2</option>
-                <option value="3">Grade 3</option>
-                <option value="4">Grade 4</option>
-                <option value="5">Grade 5</option>
-                <option value="6">Grade 6</option>
-                <option value="7">Grade 7</option>
-                <option value="8" selected>Grade 8</option>
-                <option value="9">Grade 9</option>
-                <option value="10">Grade 10</option>
-                <option value="11">Grade 11</option>
-                <option value="12">Grade 12</option>
-            </select>
+            <div>
+                <label for="assignClassId" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Assign to Class</label>
+                <select id="assignClassId" required>
+                    <option value="">Select class...</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.class_name }} (Grade {{ c.grade_level or "N/A" }})</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-            <select id="assignDiffMode">
-                <option value="none">No Differentiation</option>
-                <option value="adaptive">Adaptive</option>
-                <option value="gap_fill">Gap Fill</option>
-                <option value="mastery">Mastery</option>
-                <option value="scaffold">Scaffold</option>
-            </select>
+            <div>
+                <label for="assignSubject" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Subject Area</label>
+                <select id="assignSubject">
+                    <option value="terra_nova">Terra Nova (General)</option>
+                    <option value="num_forge">NumForge (Math)</option>
+                    <option value="atom_sphere">AtomSphere (Science)</option>
+                    <option value="ink_haven">InkHaven (Writing)</option>
+                    <option value="faith_realm">FaithRealm (Bible)</option>
+                    <option value="chrono_core">ChronoCore (History)</option>
+                    <option value="truth_forge">TruthForge (Apologetics)</option>
+                    <option value="stock_star">StockStar (Investing)</option>
+                    <option value="coin_quest">CoinQuest (Money)</option>
+                    <option value="story_verse">StoryVerse (Reading)</option>
+                </select>
+            </div>
 
-            <select id="assignAbility">
-                <option value="on_level" selected>On Level</option>
-                <option value="struggling">Struggling</option>
-                <option value="advanced">Advanced</option>
-            </select>
+            <div>
+                <label for="assignGradeLevel" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Grade Level (for question difficulty)</label>
+                <select id="assignGradeLevel">
+                    <option value="1">Grade 1</option>
+                    <option value="2">Grade 2</option>
+                    <option value="3">Grade 3</option>
+                    <option value="4">Grade 4</option>
+                    <option value="5">Grade 5</option>
+                    <option value="6">Grade 6</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8" selected>Grade 8</option>
+                    <option value="9">Grade 9</option>
+                    <option value="10">Grade 10</option>
+                    <option value="11">Grade 11</option>
+                    <option value="12">Grade 12</option>
+                </select>
+            </div>
 
-            <input type="number" id="assignNumQuestions" placeholder="Number of questions" value="10" min="1" max="20">
-            <input type="date" id="assignDueDate" placeholder="Due date (optional)">
+            <div>
+                <label for="assignDiffMode" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Differentiation Mode (how to adapt difficulty)</label>
+                <select id="assignDiffMode">
+                    <option value="none">No Differentiation</option>
+                    <option value="adaptive">Adaptive (adjusts to student performance)</option>
+                    <option value="gap_fill">Gap Fill (targets learning gaps)</option>
+                    <option value="mastery">Mastery (builds toward mastery)</option>
+                    <option value="scaffold">Scaffold (provides extra support)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="assignAbility" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Student Ability Level</label>
+                <select id="assignAbility">
+                    <option value="on_level" selected>On Level</option>
+                    <option value="struggling">Struggling (needs extra support)</option>
+                    <option value="advanced">Advanced (ready for challenge)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="assignNumQuestions" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Number of Questions</label>
+                <input type="number" id="assignNumQuestions" placeholder="Number of questions" value="10" min="1" max="20">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <div>
+                    <label for="assignOpenDate" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Open Date (when students can start)</label>
+                    <input type="datetime-local" id="assignOpenDate">
+                    <small style="color: var(--muted-3); font-size: 0.75rem; display: block; margin-top: 2px;">Leave blank to open immediately</small>
+                </div>
+                <div>
+                    <label for="assignDueDate" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Close Date (when assignment closes)</label>
+                    <input type="datetime-local" id="assignDueDate">
+                    <small style="color: var(--muted-3); font-size: 0.75rem; display: block; margin-top: 2px;">Leave blank for no deadline</small>
+                </div>
+            </div>
 
             <div style="display: flex; gap: 8px;">
                 <button class="btn" type="button" onclick="previewQuestions()" style="flex: 1; background: linear-gradient(135deg, var(--accent-2), var(--accent));">Preview Questions</button>
@@ -836,6 +873,7 @@ async function submitAssignQuestions() {
         differentiation_mode: document.getElementById('assignDiffMode').value,
         student_ability: document.getElementById('assignAbility').value,
         num_questions: parseInt(document.getElementById('assignNumQuestions').value || '10', 10),
+        open_date: document.getElementById('assignOpenDate').value,
         due_date: document.getElementById('assignDueDate').value,
     };
 
