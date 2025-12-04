@@ -5343,6 +5343,11 @@ Instead, start each bullet with a simple symbol like '•'.
 @app.route("/dashboard")
 def dashboard():
     init_user()
+    # Force admin mode to student dashboard view
+    if session.get('admin_mode'):
+        session['user_role'] = 'student'
+        session['admin_mode'] = False
+        session.modified = True
     
     # Check subscription status for students
     access_check = check_subscription_access("student")
