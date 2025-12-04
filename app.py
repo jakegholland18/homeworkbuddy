@@ -5345,8 +5345,10 @@ def dashboard():
     init_user()
     # Force admin mode to student dashboard view
     if session.get('admin_mode'):
+        # When an admin has set admin_mode, we should not clear that flag here.
+        # Preserve `admin_mode` so admin-related session flags (like `is_owner`
+        # or `bypass_auth`) remain available to templates (sidebar, admin links).
         session['user_role'] = 'student'
-        session['admin_mode'] = False
         session.modified = True
     
     # Check subscription status for students

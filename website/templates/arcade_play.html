@@ -421,6 +421,8 @@
         } else {
             isCorrect = normUser === normCorrect;
         }
+        // Debugging output
+        console.log('User answer:', userAnswer, 'Normalized:', normUser, 'Correct:', correctAnswer, 'Normalized:', normCorrect, 'isCorrect:', isCorrect);
 
         // Visual feedback
         if (question.options) {
