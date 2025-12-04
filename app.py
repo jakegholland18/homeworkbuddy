@@ -5734,23 +5734,37 @@ def parent_dashboard():
     lesson_plans_limit = 0
     assignments_limit = 0
     trial_days_remaining = 0
-    
-    if parent_id:
+
+    # Admin bypass mode - create mock parent
+    if session.get("bypass_auth") and session.get("admin_mode") == "parent":
+        class MockParent:
+            def __init__(self):
+                self.id = 1
+                self.name = "Admin (Parent View)"
+                self.email = OWNER_EMAIL
+                self.subscription_status = "premium"
+                self.trial_end_date = None
+
+        parent = MockParent()
+        student_limit = 999
+        lesson_plans_limit = 999
+        assignments_limit = 999
+    elif parent_id:
         parent = Parent.query.get(parent_id)
-        
+
         if parent:
             # Get trial days remaining
             trial_days_remaining = get_days_remaining_in_trial(parent)
-            
+
             unread_messages = Message.query.filter_by(
                 recipient_type="parent",
                 recipient_id=parent_id,
                 is_read=False,
             ).count()
-            
+
             # Get plan limits for homeschool features
             student_limit, lesson_plans_limit, assignments_limit, has_teacher_features = get_parent_plan_limits(parent)
-            
+
             # If this is a homeschool parent, redirect to homeschool dashboard
             if has_teacher_features:
                 return redirect("/homeschool/dashboard")
@@ -5835,23 +5849,39 @@ def homeschool_dashboard():
     trial_days_remaining = 0
     classes = []
     recent_assignments = []
-    
-    if parent_id:
+
+    # Admin bypass mode - create mock homeschool parent
+    if session.get("bypass_auth") and session.get("admin_mode") == "homeschool":
+        class MockParent:
+            def __init__(self):
+                self.id = 1
+                self.name = "Admin (Homeschool View)"
+                self.email = OWNER_EMAIL
+                self.subscription_status = "premium"
+                self.trial_end_date = None
+                self.students = []
+
+        parent = MockParent()
+        has_teacher_features = True
+        student_limit = 999
+        lesson_plans_limit = 999
+        assignments_limit = 999
+    elif parent_id:
         parent = Parent.query.get(parent_id)
-        
+
         if parent:
             # Get trial days remaining
             trial_days_remaining = get_days_remaining_in_trial(parent)
-            
+
             unread_messages = Message.query.filter_by(
                 recipient_type="parent",
                 recipient_id=parent_id,
                 is_read=False,
             ).count()
-            
+
             # Get plan limits for homeschool features
             student_limit, lesson_plans_limit, assignments_limit, has_teacher_features = get_parent_plan_limits(parent)
-            
+
             # If parent has teacher features, get their "classes" (which are just student groups)
             # For homeschool, we treat the parent's students as a virtual class
             if has_teacher_features and parent.students:
