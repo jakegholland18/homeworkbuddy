@@ -323,43 +323,55 @@
     }
 
     function showQuestion() {
-        if (currentIndex >= questions.length) {
-            endGame();
-            return;
-        }
-
-        isAnswering = false; // Reset for new question
-        const question = questions[currentIndex];
-        const container = document.getElementById('question-container');
-        
-        document.getElementById('current-question').textContent = currentIndex + 1;
-
-        if (question.options) {
-            // Multiple choice - check if it's a vocab question (has 'word' field)
-            let questionText;
-            if (question.word) {
-                questionText = `What does "${question.word}" mean?`;
-            } else {
-                questionText = question.question;
+        try {
+            if (currentIndex >= questions.length) {
+                endGame();
+                return;
             }
-            
-            container.innerHTML = `
-                <div class="question-text">${questionText}</div>
-                <div class="options-grid" id="options-grid">
-                    ${question.options.map((opt, i) => `
-                        <button class="option-btn" data-answer="${opt.replace(/"/g, '&quot;')}" onclick="checkAnswer(this.dataset.answer)">${opt}</button>
-                    `).join('')}
-                </div>
-            `;
-        } else {
-            // Text input
-            container.innerHTML = `
-                <div class="question-text">${question.question}</div>
-                <input type="text" class="answer-input" id="answer-input" placeholder="Your answer" 
-                       onkeypress="if(event.key === 'Enter') checkAnswer(document.getElementById('answer-input').value)">
-                <button class="submit-btn" onclick="checkAnswer(document.getElementById('answer-input').value)">Submit</button>
-            `;
-            setTimeout(() => document.getElementById('answer-input').focus(), 100);
+
+            isAnswering = false; // Reset for new question
+            const question = questions[currentIndex];
+            const container = document.getElementById('question-container');
+            container.style.display = 'flex'; // Ensure container is visible
+            document.getElementById('current-question').textContent = currentIndex + 1;
+
+            if (!question) {
+                container.innerHTML = `<div style='color:red;font-weight:bold;'>Error: Question data missing at index ${currentIndex}. Please report this bug.</div>`;
+                return;
+            }
+
+            if (question.options) {
+                // Multiple choice - check if it's a vocab question (has 'word' field)
+                let questionText;
+                if (question.word) {
+                    questionText = `What does "${question.word}" mean?`;
+                } else {
+                    questionText = question.question;
+                }
+                container.innerHTML = `
+                    <div class="question-text">${questionText}</div>
+                    <div class="options-grid" id="options-grid">
+                        ${question.options.map((opt, i) => `
+                            <button class="option-btn" data-answer="${opt.replace(/"/g, '&quot;')}" onclick="checkAnswer(this.dataset.answer)">${opt}</button>
+                        `).join('')}
+                    </div>
+                `;
+            } else if (question.question) {
+                // Text input
+                container.innerHTML = `
+                    <div class="question-text">${question.question}</div>
+                    <input type="text" class="answer-input" id="answer-input" placeholder="Your answer" 
+                           onkeypress="if(event.key === 'Enter') checkAnswer(document.getElementById('answer-input').value)">
+                    <button class="submit-btn" onclick="checkAnswer(document.getElementById('answer-input').value)">Submit</button>
+                `;
+                setTimeout(() => document.getElementById('answer-input').focus(), 100);
+            } else {
+                container.innerHTML = `<div style='color:red;font-weight:bold;'>Error: Malformed question object at index ${currentIndex}. Please report this bug.</div>`;
+            }
+        } catch (err) {
+            const container = document.getElementById('question-container');
+            container.innerHTML = `<div style='color:red;font-weight:bold;'>Unexpected error: ${err.message}</div>`;
+            console.error('Arcade question error:', err);
         }
     }
 
@@ -401,12 +413,31 @@
             CozmicEnhancements.launchConfetti(10);
         }
 
+        // Show loading spinner while waiting for next question
+        const container = document.getElementById('question-container');
+        container.innerHTML = `<div style='text-align:center;padding:40px;'><span class='loader'></span> Loading next question...</div>`;
+
         currentIndex++;
-        
         // Move to next question after brief delay
         setTimeout(() => {
+            // Force re-render in case of browser caching issues
+            container.innerHTML = '';
             showQuestion();
         }, 800);
+        .loader {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #00f2ff;
+            border-radius: 50%;
+            border-top: 4px solid #ff6fd8;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     }
 
     function endGame() {
