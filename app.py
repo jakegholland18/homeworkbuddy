@@ -555,37 +555,22 @@ def generate_parent_access_code():
             return code
 
 # ============================================================
-# SUBJECT → FUNCTION MAP (PLANETS)
+# SUBJECT CONFIGURATION (Using centralized registry)
 # ============================================================
 
-subject_map = {
-    "num_forge": math_helper.explain_math,
-    "atom_sphere": science_helper.explain_science,
-    "faith_realm": bible_helper.bible_lesson,
-    "chrono_core": history_helper.explain_history,
-    "ink_haven": writing_helper.help_write,
-    "truth_forge": apologetics_helper.apologetics_answer,
-    "stock_star": investment_helper.explain_investing,
-    "coin_quest": money_helper.explain_money,
-    "terra_nova": question_helper.answer_question,
-    "story_verse": text_helper.explain_text,
-    "power_grid": None,  # handled separately
-}
+from subjects_config import (
+    get_subject_map,
+    get_subject_labels,
+    get_subjects_for_display,
+    validate_subject,
+    validate_grade,
+    validate_grade_for_subject,
+    get_subject,
+)
 
-# Human-friendly subject labels for UI switchers
-SUBJECT_LABELS = {
-    "chrono_core": "ChronoCore (History)",
-    "num_forge": "NumForge (Math)",
-    "atom_sphere": "AtomSphere (Science)",
-    "story_verse": "StoryVerse (Reading)",
-    "ink_haven": "InkHaven (Writing)",
-    "faith_realm": "FaithRealm (Bible)",
-    "coin_quest": "CoinQuest (Money)",
-    "stock_star": "StockStar (Investing)",
-    "terra_nova": "TerraNova (General)",
-    "power_grid": "PowerGrid (Deep Study)",
-    "truth_forge": "TruthForge (Apologetics)",
-}
+# Get subject handlers and labels from centralized config
+subject_map = get_subject_map()
+SUBJECT_LABELS = get_subject_labels()
 
 # ============================================================
 # HELPERS – TEACHER + OWNER
@@ -999,24 +984,33 @@ def home():
 @app.route("/subjects")
 def subjects():
     init_user()
-    planets = [
-        ("chrono_core", "chrono_core.png", "ChronoCore", "History"),
-        ("num_forge", "num_forge.png", "NumForge", "Math"),
-        ("atom_sphere", "atom_sphere.png", "AtomSphere", "Science"),
-        ("story_verse", "story_verse.png", "StoryVerse", "Reading"),
-        ("ink_haven", "ink_haven.png", "InkHaven", "Writing"),
-        ("faith_realm", "faith_realm.png", "FaithRealm", "Bible"),
-        ("coin_quest", "coin_quest.png", "CoinQuest", "Money"),
-        ("stock_star", "stock_star.png", "StockStar", "Investing"),
-        ("terra_nova", "terra_nova.png", "TerraNova", "General Knowledge"),
-        ("power_grid", "power_grid.png", "PowerGrid", "Deep Study"),
-        ("truth_forge", "truth_forge.png", "TruthForge", "Apologetics"),
-    ]
+    # Use centralized subject configuration
+    planets = get_subjects_for_display()
     return render_template(
         "subjects.html",
         planets=planets,
         character=session.get("character", "everly"),
     )
+
+
+@app.route("/subject/<subject_name>")
+def subject_direct(subject_name):
+    """
+    Direct subject access route (e.g., /subject/atom_sphere).
+    Redirects to grade selection for the specified subject.
+    """
+    init_user()
+
+    # Validate subject exists
+    if not validate_subject(subject_name):
+        flash(f"Subject '{subject_name}' not found.", "error")
+        return redirect("/subjects")
+
+    # Get current grade from session or use default
+    current_grade = session.get("grade", "8")
+
+    # Redirect to choose grade for this subject
+    return redirect(f"/choose-grade?subject={subject_name}")
 
 
 # ============================================================
@@ -4821,16 +4815,53 @@ def select_character():
 def choose_grade():
     init_user()
     subject = request.args.get("subject")
-    return render_template("subject_select_form.html", subject=subject)
+
+    # Validate subject
+    if not validate_subject(subject):
+        flash(f"Invalid subject selected.", "error")
+        return redirect("/subjects")
+
+    # Get subject config for context
+    subject_config = get_subject(subject)
+
+    return render_template(
+        "subject_select_form.html",
+        subject=subject,
+        subject_config=subject_config,
+    )
 
 
 @app.route("/ask-question")
 def ask_question():
     init_user()
+    subject = request.args.get("subject")
+    grade = request.args.get("grade")
+
+    # Validate subject
+    if not validate_subject(subject):
+        flash(f"Invalid subject selected.", "error")
+        return redirect("/subjects")
+
+    # Validate and normalize grade
+    grade = str(validate_grade(grade))
+
+    # Check if grade is appropriate for this subject
+    if not validate_grade_for_subject(subject, grade):
+        subject_config = get_subject(subject)
+        flash(
+            f"Grade {grade} is not available for {subject_config['name']}. "
+            f"This subject is for grades {subject_config['min_grade']}-{subject_config['max_grade']}.",
+            "warning"
+        )
+        return redirect(f"/choose-grade?subject={subject}")
+
+    # Store validated grade in session
+    session["grade"] = grade
+
     return render_template(
         "ask_question.html",
-        subject=request.args.get("subject"),
-        grade=request.args.get("grade"),
+        subject=subject,
+        grade=grade,
         character=session["character"],
         characters=get_all_characters(),
         subjects=SUBJECT_LABELS,
@@ -4840,7 +4871,7 @@ def ask_question():
 @app.route("/subject", methods=["POST"])
 def subject_answer():
     init_user()
-    
+
     # Check subscription status first
     user_role = session.get("user_role")
     if user_role in ["student", "parent", "teacher"]:
@@ -4854,10 +4885,27 @@ def subject_answer():
         flash(f"You've reached your monthly limit of {limit} questions. Upgrade to Premium for unlimited access!", "warning")
         return redirect("/plans")
 
-    grade = request.form.get("grade")
+    # Get and validate inputs
     subject = request.form.get("subject")
+    grade = request.form.get("grade")
     question = request.form.get("question")
     character = session["character"]
+
+    # Validate subject
+    if not validate_subject(subject):
+        flash("Invalid subject selected.", "error")
+        return redirect("/subjects")
+
+    # Validate and normalize grade
+    grade = str(validate_grade(grade))
+
+    # Check grade is appropriate for subject
+    if not validate_grade_for_subject(subject, grade):
+        flash(f"Invalid grade for this subject.", "warning")
+        return redirect(f"/choose-grade?subject={subject}")
+
+    # Store validated grade in session
+    session["grade"] = grade
     
     # CONTENT MODERATION - Check question safety
     student_id = session.get("user_id")
