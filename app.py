@@ -593,18 +593,7 @@ SUBJECT_LABELS = {
 
 
 def get_current_teacher():
-    # Admin bypass mode - return mock teacher with owner privileges
-    if session.get("bypass_auth") and session.get("admin_mode") == "teacher":
-        # Create a mock teacher object for admin viewing
-        class MockTeacher:
-            def __init__(self):
-                self.id = 1
-                self.name = "Admin (Teacher View)"
-                self.email = OWNER_EMAIL
-                self.classes = Class.query.all()  # Admin can see all classes
-
-        return MockTeacher()
-
+    """Get currently logged-in teacher (not for admin viewing)"""
     tid = session.get("teacher_id")
     if not tid:
         return None
@@ -620,7 +609,7 @@ def is_owner(teacher: Teacher | None) -> bool:
 def is_admin() -> bool:
     """Check if current session user is admin (owner email in any role OR admin session flags)"""
     # Check for admin session flags (secret admin login)
-    if session.get("admin_authenticated") or session.get("bypass_auth") or session.get("is_owner"):
+    if session.get("admin_authenticated") or session.get("is_owner"):
         return True
 
     # Check if logged in as teacher/owner
@@ -653,8 +642,6 @@ def init_user():
     # Preserve admin flags before setting defaults
     admin_flags = {
         "admin_authenticated": session.get("admin_authenticated"),
-        "bypass_auth": session.get("bypass_auth"),
-        "admin_mode": session.get("admin_mode"),
         "is_owner": session.get("is_owner"),
     }
 
@@ -685,14 +672,11 @@ def init_user():
         "questions_this_month": 0,
         "month_start": str(datetime.today().replace(day=1).date()),
     }
-    # Always set defaults for admin mode to ensure full student experience
-    if session.get('admin_mode'):
-        for k, v in defaults.items():
+
+    # Set all defaults if not present
+    for k, v in defaults.items():
+        if k not in session:
             session[k] = v
-    else:
-        for k, v in defaults.items():
-            if k not in session:
-                session[k] = v
 
     # Restore admin flags after setting defaults
     for flag, value in admin_flags.items():
@@ -834,7 +818,7 @@ def check_subscription_access(user_role):
     ADMIN USERS BYPASS ALL SUBSCRIPTION CHECKS.
     """
     # Admin mode: bypass all subscription checks
-    if session.get("admin_authenticated") or session.get("bypass_auth") or is_admin():
+    if session.get("admin_authenticated") or is_admin():
         return True
     
     user = None
@@ -1345,9 +1329,8 @@ def secret_admin_login():
         # Simple check: ID = "admin" and password matches
         if admin_id.lower() == "admin" and password == ADMIN_PASSWORD:
             session["admin_authenticated"] = True
-            session["admin_mode"] = "portal"  # Start at portal selection
             flash("🔧 Admin access granted. Welcome!", "success")
-            return redirect("/admin_portal")
+            return redirect("/admin")
         else:
             flash("Invalid admin credentials.", "error")
     
@@ -1395,48 +1378,21 @@ def admin_portal():
                          flagged_content=flagged_content)
 
 
+# ============================================================
+# DEPRECATED: Old bypass mode routes - replaced with Option 3 admin dashboard
+# These routes are kept for backwards compatibility but redirect to new system
+# ============================================================
+
 @app.route("/admin_mode/<mode>")
 def admin_set_mode(mode):
-    """Set admin mode and redirect to appropriate view"""
+    """DEPRECATED: Old bypass mode - redirects to new admin dashboard"""
     if not session.get("admin_authenticated"):
         flash("Admin authentication required.", "error")
         return redirect("/secret_admin_login")
-    
-    valid_modes = ["student", "parent", "teacher", "homeschool"]
-    if mode not in valid_modes:
-        flash("Invalid mode.", "error")
-        return redirect("/admin_portal")
-    
-    # Clear any existing user sessions
-    session.pop("student_id", None)
-    session.pop("parent_id", None)
-    session.pop("teacher_id", None)
-    
-    # Set admin mode and bypass flag - no user required!
-    session["admin_mode"] = mode
-    session["bypass_auth"] = True  # Flag to bypass all auth checks
-    session["is_owner"] = True  # Give owner privileges
-    session.modified = True  # Force session to save
-    
-    # Set appropriate redirect based on mode
-    if mode == "student":
-        flash(f"🔧 Admin mode: Student View (Full Access)", "success")
-        return redirect("/dashboard")  # Go to student dashboard
-    
-    elif mode == "parent":
-        flash(f"🔧 Admin mode: Parent View (Full Access)", "success")
-        return redirect("/parent_dashboard")
-    
-    elif mode == "teacher":
-        flash(f"🔧 Admin mode: Teacher View (Full Access)", "success")
-        return redirect("/teacher/dashboard")
-    
-    elif mode == "homeschool":
-        session["homeschool_mode"] = True
-        flash(f"🔧 Admin mode: Homeschool View (Full Access)", "success")
-        return redirect("/homeschool/dashboard")
-    
-    return redirect("/admin_portal")
+
+    # Redirect to new admin dashboard instead of using bypass mode
+    flash("⚠️ The old admin mode system has been replaced. Please use the new Admin Dashboard.", "info")
+    return redirect("/admin")
 
 
 @app.route("/admin_logout")
@@ -1461,19 +1417,15 @@ def admin_switch_to_student(student_id):
 
     # Save admin flags before clearing
     admin_authenticated = session.get("admin_authenticated")
-    bypass_auth = session.get("bypass_auth")
     is_owner_flag = session.get("is_owner")
 
     # Clear session and log in as this student
     session.clear()
     session["student_id"] = student.id
-    session["admin_mode"] = True
 
     # Restore admin flags
     if admin_authenticated:
         session["admin_authenticated"] = True
-    if bypass_auth:
-        session["bypass_auth"] = True
     if is_owner_flag:
         session["is_owner"] = True
 
@@ -1497,19 +1449,15 @@ def admin_switch_to_parent(parent_id):
 
     # Save admin flags before clearing
     admin_authenticated = session.get("admin_authenticated")
-    bypass_auth = session.get("bypass_auth")
     is_owner_flag = session.get("is_owner")
 
     # Clear session and log in as this parent
     session.clear()
     session["parent_id"] = parent.id
-    session["admin_mode"] = True
 
     # Restore admin flags
     if admin_authenticated:
         session["admin_authenticated"] = True
-    if bypass_auth:
-        session["bypass_auth"] = True
     if is_owner_flag:
         session["is_owner"] = True
 
@@ -1531,19 +1479,15 @@ def admin_switch_to_teacher(teacher_id):
 
     # Save admin flags before clearing
     admin_authenticated = session.get("admin_authenticated")
-    bypass_auth = session.get("bypass_auth")
     is_owner_flag = session.get("is_owner")
 
     # Clear session and log in as this teacher
     session.clear()
     session["teacher_id"] = teacher.id
-    session["admin_mode"] = True
 
     # Restore admin flags
     if admin_authenticated:
         session["admin_authenticated"] = True
-    if bypass_auth:
-        session["bypass_auth"] = True
     if is_owner_flag:
         session["is_owner"] = True
 
@@ -3025,22 +2969,13 @@ def teacher_assignments():
     classes = teacher.classes or []
     assignment_map = {}
 
-    # Admin bypass mode - show ALL assignments for each class
-    if session.get("bypass_auth") and session.get("admin_mode") == "teacher":
-        for cls in classes:
-            assignment_map[cls.id] = (
-                AssignedPractice.query.filter_by(class_id=cls.id)
-                .order_by(AssignedPractice.created_at.desc())
-                .all()
-            )
-    else:
-        # Normal teacher - only show their assignments
-        for cls in classes:
-            assignment_map[cls.id] = (
-                AssignedPractice.query.filter_by(class_id=cls.id, teacher_id=teacher.id)
-                .order_by(AssignedPractice.created_at.desc())
-                .all()
-            )
+    # Show assignments for each class
+    for cls in classes:
+        assignment_map[cls.id] = (
+            AssignedPractice.query.filter_by(class_id=cls.id, teacher_id=teacher.id)
+            .order_by(AssignedPractice.created_at.desc())
+            .all()
+        )
 
     return render_template(
         "teacher_assignments.html",
@@ -3764,11 +3699,8 @@ def teacher_lesson_plans():
     if not teacher:
         return redirect("/teacher/login")
 
-    # Admin bypass mode - show ALL lesson plans
-    if session.get("bypass_auth") and session.get("admin_mode") == "teacher":
-        lesson_plans = LessonPlan.query.order_by(LessonPlan.created_at.desc()).all()
-    else:
-        lesson_plans = LessonPlan.query.filter_by(teacher_id=teacher.id).order_by(LessonPlan.created_at.desc()).all()
+    # Show lesson plans for this teacher
+    lesson_plans = LessonPlan.query.filter_by(teacher_id=teacher.id).order_by(LessonPlan.created_at.desc()).all()
 
     return render_template(
         "lesson_plans_library.html",
@@ -4101,10 +4033,9 @@ def homeschool_gradebook():
             session["parent_name"] = test_parent.name if hasattr(test_parent, 'name') else "Homeschool Parent"
             parent_id = test_parent.id
     
-    if not session.get("bypass_auth"):
-        access_check = check_subscription_access("parent")
-        if access_check != True:
-            return access_check
+    access_check = check_subscription_access("parent")
+    if access_check != True:
+        return access_check
 
     if not parent_id:
         flash("Please log in as a parent.", "error")
@@ -5859,14 +5790,7 @@ Instead, start each bullet with a simple symbol like '•'.
 @app.route("/dashboard")
 def dashboard():
     init_user()
-    # Force admin mode to student dashboard view
-    if session.get('admin_mode'):
-        # When an admin has set admin_mode, we should not clear that flag here.
-        # Preserve `admin_mode` so admin-related session flags (like `is_owner`
-        # or `bypass_auth`) remain available to templates (sidebar, admin links).
-        session['user_role'] = 'student'
-        session.modified = True
-    
+
     # Check subscription status for students
     access_check = check_subscription_access("student")
     if access_check != True:
@@ -6028,13 +5952,11 @@ def dashboard():
 @app.route("/parent_dashboard")
 def parent_dashboard():
     init_user()
-    
-    # Admin bypass - allow access without parent_id
-    if not session.get("bypass_auth"):
-        # Check subscription status for parents
-        access_check = check_subscription_access("parent")
-        if access_check != True:
-            return access_check  # Redirect to trial_expired
+
+    # Check subscription status for parents
+    access_check = check_subscription_access("parent")
+    if access_check != True:
+        return access_check  # Redirect to trial_expired
 
     parent_id = session.get("parent_id")
     parent = None
@@ -6045,21 +5967,7 @@ def parent_dashboard():
     assignments_limit = 0
     trial_days_remaining = 0
 
-    # Admin bypass mode - create mock parent
-    if session.get("bypass_auth") and session.get("admin_mode") == "parent":
-        class MockParent:
-            def __init__(self):
-                self.id = 1
-                self.name = "Admin (Parent View)"
-                self.email = OWNER_EMAIL
-                self.subscription_status = "premium"
-                self.trial_end_date = None
-
-        parent = MockParent()
-        student_limit = 999
-        lesson_plans_limit = 999
-        assignments_limit = 999
-    elif parent_id:
+    if parent_id:
         parent = Parent.query.get(parent_id)
 
         if parent:
@@ -6143,12 +6051,10 @@ def homeschool_dashboard():
             session["parent_name"] = test_parent.name if hasattr(test_parent, 'name') else "Homeschool Parent"
             parent_id = test_parent.id
     
-    # Admin bypass - allow access without parent_id
-    if not session.get("bypass_auth"):
-        # Check subscription status for homeschool
-        access_check = check_subscription_access("parent")
-        if access_check != True:
-            return access_check  # Redirect to trial_expired
+    # Check subscription status for homeschool
+    access_check = check_subscription_access("parent")
+    if access_check != True:
+        return access_check  # Redirect to trial_expired
 
     parent = None
     unread_messages = 0
@@ -6160,23 +6066,7 @@ def homeschool_dashboard():
     classes = []
     recent_assignments = []
 
-    # Admin bypass mode - create mock homeschool parent
-    if session.get("bypass_auth") and session.get("admin_mode") == "homeschool":
-        class MockParent:
-            def __init__(self):
-                self.id = 1
-                self.name = "Admin (Homeschool View)"
-                self.email = OWNER_EMAIL
-                self.subscription_status = "premium"
-                self.trial_end_date = None
-                self.students = []
-
-        parent = MockParent()
-        has_teacher_features = True
-        student_limit = 999
-        lesson_plans_limit = 999
-        assignments_limit = 999
-    elif parent_id:
+    if parent_id:
         parent = Parent.query.get(parent_id)
 
         if parent:

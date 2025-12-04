@@ -65,9 +65,9 @@
             <a href="/subjects">Planets</a>
             <a href="/parent_login">Parent Access</a>
             <a href="/student/logout">Logout</a>
-            
+
             <!-- ADMIN MODE INDICATOR (if viewing as student in admin mode) -->
-            {% if session.admin_mode %}
+            {% if session.admin_authenticated %}
                 <a href="/admin" style="border: 1px solid rgba(255,107,157,0.5); background: rgba(255,107,157,0.1); padding: 6px 12px; border-radius: 8px;">
                     <span class="nav-emoji">🔧</span> Admin Mode
                 </a>
@@ -82,9 +82,9 @@
                 <a href="/teacher/dashboard">Teacher View</a>
                 <a href="/dashboard">Student View</a>
             {% endif %}
-            
+
             <!-- ADMIN MODE INDICATOR (if viewing as parent in admin mode) -->
-            {% if session.admin_mode %}
+            {% if session.admin_authenticated %}
                 <a href="/admin" style="border: 1px solid rgba(255,107,157,0.5); background: rgba(255,107,157,0.1); padding: 6px 12px; border-radius: 8px;">
                     <span class="nav-emoji">🔧</span> Admin Mode
                 </a>

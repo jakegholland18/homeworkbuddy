@@ -321,7 +321,7 @@
         <div class="header">
             <h1>👨‍👩‍👧‍👦 Parent Dashboard</h1>
             <p>Monitor your students, explore subjects, and manage learning</p>
-            {% if session.get('admin_mode') %}
+            {% if session.get('admin_authenticated') %}
             <p style="color: var(--pink); margin-top: 8px;">🔧 Admin Mode Active</p>
             {% endif %}
         </div>
