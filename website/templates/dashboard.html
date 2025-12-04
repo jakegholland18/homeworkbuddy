@@ -2,6 +2,108 @@
 {% block content %}
 
 <style>
+    /* Top Navigation for Student Dashboard */
+    .student-topbar {
+        background: linear-gradient(135deg, rgba(92,107,255,0.15), rgba(0,242,255,0.1));
+        border: 1px solid rgba(118,131,255,0.3);
+        border-radius: 16px;
+        padding: 16px 24px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        backdrop-filter: blur(12px);
+        flex-wrap: wrap;
+        gap: 16px;
+        max-width: 1100px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .student-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .student-topbar-logo {
+        font-size: 1.3rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .student-topbar-nav {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .student-topbar-nav a {
+        color: var(--muted-2);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .student-topbar-nav a:hover {
+        background: rgba(255,255,255,0.15);
+        color: var(--text);
+        transform: translateY(-2px);
+    }
+
+    .student-topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .student-stats-mini {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .stat-mini {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: rgba(0,0,0,0.3);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .stat-mini-value {
+        color: var(--accent);
+    }
+
+    .student-logout-btn {
+        padding: 8px 16px;
+        background: linear-gradient(135deg, rgba(255,77,77,0.2), rgba(255,107,157,0.2));
+        border: 1px solid rgba(255,107,157,0.3);
+        border-radius: 8px;
+        color: var(--text);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+
+    .student-logout-btn:hover {
+        background: linear-gradient(135deg, rgba(255,77,77,0.3), rgba(255,107,157,0.3));
+        transform: translateY(-2px);
+    }
+
     .dashboard-wrapper {
         max-width: 1100px;
         margin: 0 auto;
@@ -190,6 +292,32 @@
         color: var(--muted-2);
     }
 </style>
+
+<!-- Student Top Navigation -->
+<div class="student-topbar">
+    <div class="student-topbar-left">
+        <div class="student-topbar-logo">🚀 CozmicLearning</div>
+        <div class="student-topbar-nav">
+            <a href="/dashboard">🏠 Dashboard</a>
+            <a href="/subjects">🌌 Explore</a>
+            <a href="/student/assignments">📝 Assignments</a>
+        </div>
+    </div>
+    <div class="student-topbar-right">
+        <div class="student-stats-mini">
+            <div class="stat-mini">
+                ⭐ <span class="stat-mini-value">{{ xp }}</span> XP
+            </div>
+            <div class="stat-mini">
+                🎯 <span class="stat-mini-value">Lvl {{ level }}</span>
+            </div>
+            <div class="stat-mini">
+                🔥 <span class="stat-mini-value">{{ streak }}</span> Day
+            </div>
+        </div>
+        <a href="/logout" class="student-logout-btn">Logout</a>
+    </div>
+</div>
 
 <div class="dashboard-wrapper fade-in">
 

@@ -374,26 +374,25 @@
     </div>
 
     <div class="nav-links">
-        <a href="/teacher/dashboard">Dashboard</a>
-        <a href="/subjects">Subjects</a>
-        <a href="/teacher/dashboard">My Classes</a>
+        <a href="/teacher/dashboard">🏠 Dashboard</a>
+        <a href="/teacher/assignments">📝 Assignments</a>
         <a href="/teacher/gradebook">📊 Gradebook</a>
-        <a href="/teacher/analytics">Analytics</a>
-                <a href="/teacher/messages">
-                    📬 Messages
-                    {% if unread_messages > 0 %}
-                    <span style="background: var(--accent); color: var(--bg); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 4px;">{{ unread_messages }}</span>
-                    {% endif %}
-                </a>
-        <a href="/teacher/settings">Settings</a>
+        <a href="/teacher/analytics">📈 Analytics</a>
+        <a href="/teacher/lesson_plans">📚 Lesson Plans</a>
+        <a href="/teacher/messages">
+            📬 Messages
+            {% if unread_messages > 0 %}
+            <span style="background: var(--accent); color: var(--bg); padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; margin-left: 4px;">{{ unread_messages }}</span>
+            {% endif %}
+        </a>
     </div>
 
     <div class="topbar-right">
-        {{ teacher.name }} ({{ teacher.email }})
+        <span style="color: var(--muted); margin-right: 12px;">{{ teacher.name }}</span>
         {% if is_owner %}
-            <span class="owner-pill">Owner Access</span>
+            <span class="owner-pill">👑 Owner</span>
         {% endif %}
-        <a href="/logout">Log out</a>
+        <a href="/logout" style="padding: 8px 16px; background: rgba(255,77,77,0.2); border: 1px solid rgba(255,107,157,0.3); border-radius: 8px; margin-left: 12px;">Logout</a>
     </div>
 </div>
 
