@@ -208,25 +208,45 @@
 
         <a href="/">🏠 Home</a>
 
-        {% if session.get('student_id') %}
+        {% if session.get('admin_mode') or session.get('admin_authenticated') or session.get('bypass_auth') %}
+            <hr>
+            <a href="/admin_portal">🔧 Admin Portal</a>
+            <hr>
             <a href="/dashboard">📊 Student Dashboard</a>
             <a href="/subjects">🪐 Explore Subjects</a>
             <a href="/choose-character">🎨 Choose Mentor</a>
-        {% endif %}
-
-        {% if session.get('parent_logged_in') %}
+            <hr>
             <a href="/parent_dashboard">📘 Parent Dashboard</a>
             <a href="/parent/messages">💬 Message Teacher</a>
             <a href="/parent/subjects">📚 Subjects</a>
             <a href="/parent/progress">📈 Progress Reports</a>
-        {% endif %}
-
-        {% if session.get('teacher_id') %}
+            <hr>
             <a href="/teacher/dashboard">📘 Teacher Dashboard</a>
             <a href="/teacher/dashboard">🏫 My Classes</a>
             <a href="/teacher/assignments">📝 Assign Practice</a>
             <a href="/teacher/analytics">📈 Analytics</a>
             <a href="/teacher/messages">💬 Message Parents</a>
+        {% else %}
+            {% if session.get('student_id') %}
+                <a href="/dashboard">📊 Student Dashboard</a>
+                <a href="/subjects">🪐 Explore Subjects</a>
+                <a href="/choose-character">🎨 Choose Mentor</a>
+            {% endif %}
+
+            {% if session.get('parent_logged_in') %}
+                <a href="/parent_dashboard">📘 Parent Dashboard</a>
+                <a href="/parent/messages">💬 Message Teacher</a>
+                <a href="/parent/subjects">📚 Subjects</a>
+                <a href="/parent/progress">📈 Progress Reports</a>
+            {% endif %}
+
+            {% if session.get('teacher_id') %}
+                <a href="/teacher/dashboard">📘 Teacher Dashboard</a>
+                <a href="/teacher/dashboard">🏫 My Classes</a>
+                <a href="/teacher/assignments">📝 Assign Practice</a>
+                <a href="/teacher/analytics">📈 Analytics</a>
+                <a href="/teacher/messages">💬 Message Parents</a>
+            {% endif %}
         {% endif %}
     </div>
 
