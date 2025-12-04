@@ -2730,12 +2730,23 @@ def teacher_assignments():
 
     classes = teacher.classes or []
     assignment_map = {}
-    for cls in classes:
-        assignment_map[cls.id] = (
-            AssignedPractice.query.filter_by(class_id=cls.id, teacher_id=teacher.id)
-            .order_by(AssignedPractice.created_at.desc())
-            .all()
-        )
+
+    # Admin bypass mode - show ALL assignments for each class
+    if session.get("bypass_auth") and session.get("admin_mode") == "teacher":
+        for cls in classes:
+            assignment_map[cls.id] = (
+                AssignedPractice.query.filter_by(class_id=cls.id)
+                .order_by(AssignedPractice.created_at.desc())
+                .all()
+            )
+    else:
+        # Normal teacher - only show their assignments
+        for cls in classes:
+            assignment_map[cls.id] = (
+                AssignedPractice.query.filter_by(class_id=cls.id, teacher_id=teacher.id)
+                .order_by(AssignedPractice.created_at.desc())
+                .all()
+            )
 
     return render_template(
         "teacher_assignments.html",
@@ -3459,7 +3470,11 @@ def teacher_lesson_plans():
     if not teacher:
         return redirect("/teacher/login")
 
-    lesson_plans = LessonPlan.query.filter_by(teacher_id=teacher.id).order_by(LessonPlan.created_at.desc()).all()
+    # Admin bypass mode - show ALL lesson plans
+    if session.get("bypass_auth") and session.get("admin_mode") == "teacher":
+        lesson_plans = LessonPlan.query.order_by(LessonPlan.created_at.desc()).all()
+    else:
+        lesson_plans = LessonPlan.query.filter_by(teacher_id=teacher.id).order_by(LessonPlan.created_at.desc()).all()
 
     return render_template(
         "lesson_plans_library.html",
