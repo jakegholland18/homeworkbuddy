@@ -1316,7 +1316,7 @@ def admin_set_mode(mode):
     # Set appropriate redirect based on mode
     if mode == "student":
         flash(f"🔧 Admin mode: Student View (Full Access)", "success")
-        return redirect("/subjects")  # Go to subjects page
+        return redirect("/dashboard")  # Go to student dashboard
     
     elif mode == "parent":
         flash(f"🔧 Admin mode: Parent View (Full Access)", "success")
