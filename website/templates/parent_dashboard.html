@@ -465,7 +465,7 @@
         <div class="tab-nav">
             <button class="tab-btn active" onclick="switchTab('students')">👥 My Students</button>
             <button class="tab-btn" onclick="switchTab('subjects')">🌌 Explore Subjects</button>
-            <button class="tab-btn" onclick="switchTab('messages')">📬 Messages {% if unread_messages > 0 %}<span style="background: var(--accent); padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; margin-left: 4px;">{{ unread_messages }}</span>{% endif %}</button>
+            <button class="tab-btn" onclick="switchTab('messages')">💬 Communication</button>
             <button class="tab-btn" onclick="switchTab('settings')">⚙️ Settings</button>
         </div>
 
@@ -570,14 +570,24 @@
         <!-- Messages Tab -->
         <div class="tab-content" id="tab-messages">
             <div class="card">
-                <h2 class="card-title">📬 Teacher Messages</h2>
-                {% if unread_messages > 0 %}
-                <p style="color: var(--accent); margin-bottom: 20px;">You have {{ unread_messages }} unread message{{ 's' if unread_messages != 1 else '' }}</p>
+                <h2 class="card-title">💬 Communication with Children</h2>
+                <p style="color: var(--muted-2); margin-bottom: 20px;">Monitor your children's progress, view their activity, and provide encouragement</p>
+
+                <div class="action-grid">
+                    {% for student in students %}
+                    <a href="/parent/students/{{ student.id }}/activity" class="action-card">
+                        <div class="action-icon">👤</div>
+                        <div class="action-title">{{ student.student_name }}'s Activity</div>
+                        <div style="font-size: 0.8rem; color: var(--muted-3); margin-top: 4px;">View progress & achievements</div>
+                    </a>
+                    {% endfor %}
+                </div>
+
+                {% if students|length == 0 %}
+                <p style="color: var(--muted-3); text-align: center; padding: 40px 20px;">
+                    No students added yet. <a href="/parent/students" style="color: var(--accent);">Add a student</a> to start tracking their progress.
+                </p>
                 {% endif %}
-                <a href="/parent/messages" class="action-card" style="max-width: 400px;">
-                    <div class="action-icon">📧</div>
-                    <div class="action-title">View All Messages</div>
-                </a>
             </div>
         </div>
 
