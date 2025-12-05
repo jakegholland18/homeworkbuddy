@@ -494,9 +494,9 @@ class GameLeaderboard(db.Model):
     student = db.relationship("Student", backref="leaderboard_entries")
 
 
-class LessonPlan(db.Model):
+class HomeschoolLessonPlan(db.Model):
     """AI-generated and manual lesson plans for homeschool parents"""
-    __tablename__ = "lesson_plans"
+    __tablename__ = "homeschool_lesson_plans"
 
     id = db.Column(db.Integer, primary_key=True)
     parent_id = db.Column(db.Integer, db.ForeignKey("parents.id"), nullable=False)
@@ -533,7 +533,7 @@ class LessonPlan(db.Model):
     taught_date = db.Column(db.DateTime, nullable=True)
 
     # Relationships
-    parent = db.relationship("Parent", backref="lesson_plans")
+    parent = db.relationship("Parent", backref="homeschool_lesson_plans")
 
 
 # ============================================================

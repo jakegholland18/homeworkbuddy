@@ -136,6 +136,7 @@ from models import (
     AssignedPractice,
     AssignedQuestion,
     LessonPlan,
+    HomeschoolLessonPlan,
     Message,
     StudentSubmission,
     QuestionLog,
@@ -6852,8 +6853,8 @@ def homeschool_generate_lesson():
 
     lesson_data = result.get("lesson", {})
 
-    # Create LessonPlan record
-    lesson_plan = LessonPlan(
+    # Create HomeschoolLessonPlan record
+    lesson_plan = HomeschoolLessonPlan(
         parent_id=parent.id,
         title=title,
         subject=subject,
@@ -6897,8 +6898,8 @@ def parent_lesson_plans():
         return redirect("/homeschool/dashboard")
 
     # Get all lesson plans
-    lesson_plans = LessonPlan.query.filter_by(parent_id=parent.id)\
-        .order_by(LessonPlan.created_at.desc())\
+    lesson_plans = HomeschoolLessonPlan.query.filter_by(parent_id=parent.id)\
+        .order_by(HomeschoolLessonPlan.created_at.desc())\
         .all()
 
     return render_template(
@@ -6920,7 +6921,7 @@ def parent_lesson_plan_view(plan_id):
     if not parent:
         return redirect("/parent/login")
 
-    lesson_plan = LessonPlan.query.get_or_404(plan_id)
+    lesson_plan = HomeschoolLessonPlan.query.get_or_404(plan_id)
 
     # Verify parent owns this lesson plan
     if lesson_plan.parent_id != parent.id:
@@ -6942,7 +6943,7 @@ def parent_lesson_plan_favorite(plan_id):
         return jsonify({"error": "Not authenticated"}), 401
 
     parent = Parent.query.get(parent_id)
-    lesson_plan = LessonPlan.query.get_or_404(plan_id)
+    lesson_plan = HomeschoolLessonPlan.query.get_or_404(plan_id)
 
     # Verify parent owns this lesson plan
     if lesson_plan.parent_id != parent.id:
@@ -6964,7 +6965,7 @@ def parent_lesson_plan_delete(plan_id):
         return redirect("/parent/login")
 
     parent = Parent.query.get(parent_id)
-    lesson_plan = LessonPlan.query.get_or_404(plan_id)
+    lesson_plan = HomeschoolLessonPlan.query.get_or_404(plan_id)
 
     # Verify parent owns this lesson plan
     if lesson_plan.parent_id != parent.id:
