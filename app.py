@@ -6267,8 +6267,26 @@ def parent_dashboard():
     assignments_limit = 0
     trial_days_remaining = 0
 
+    # Admin mode: get or create demo parent account
+    if not parent_id and is_admin():
+        parent = Parent.query.filter_by(email=OWNER_EMAIL).first()
+        if not parent:
+            parent = Parent(
+                name="Demo Parent (Admin)",
+                email=OWNER_EMAIL,
+                password="admin_demo",
+                subscription_tier="homeschool"  # Give full access
+            )
+            db.session.add(parent)
+            db.session.commit()
+        parent_id = parent.id
+        session["parent_id"] = parent_id
+        session["user_role"] = "parent"
+        session["parent_name"] = parent.name
+
     if parent_id:
-        parent = Parent.query.get(parent_id)
+        if not parent:  # Only query if we didn't already get it above
+            parent = Parent.query.get(parent_id)
 
         if parent:
             # Get trial days remaining
@@ -6281,7 +6299,14 @@ def parent_dashboard():
             ).count()
 
             # Get plan limits for homeschool features
-            student_limit, lesson_plans_limit, assignments_limit, has_teacher_features = get_parent_plan_limits(parent)
+            # Admin mode automatically enables all features
+            if is_admin():
+                has_teacher_features = True
+                student_limit = float('inf')
+                lesson_plans_limit = float('inf')
+                assignments_limit = float('inf')
+            else:
+                student_limit, lesson_plans_limit, assignments_limit, has_teacher_features = get_parent_plan_limits(parent)
 
             # If this is a homeschool parent, redirect to homeschool dashboard
             if has_teacher_features:
