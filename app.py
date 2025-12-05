@@ -1684,7 +1684,7 @@ def admin_switch_to_homeschool():
 @app.route("/admin/moderation")
 def admin_moderation():
     """Admin dashboard for reviewing flagged content and student questions"""
-    if not is_admin() and not is_owner():
+    if not is_admin() and not is_owner(None):
         flash("Access denied.", "error")
         return redirect("/")
     
@@ -1732,7 +1732,7 @@ def admin_moderation():
 @app.route("/admin/moderation/<int:log_id>")
 def admin_moderation_detail(log_id):
     """Get detailed information about a specific question log"""
-    if not is_admin() and not is_owner():
+    if not is_admin() and not is_owner(None):
         return jsonify({"error": "Access denied"}), 403
     
     log = QuestionLog.query.get_or_404(log_id)
@@ -1761,7 +1761,7 @@ def admin_moderation_detail(log_id):
 @app.route("/admin/moderation/<int:log_id>/review", methods=["POST"])
 def admin_moderation_review(log_id):
     """Mark a question log as reviewed with admin notes"""
-    if not is_admin() and not is_owner():
+    if not is_admin() and not is_owner(None):
         flash("Access denied.", "error")
         return redirect("/")
     
@@ -1781,7 +1781,7 @@ def admin_moderation_review(log_id):
 @app.route("/admin/moderation/<int:log_id>/notify", methods=["POST"])
 def admin_moderation_notify(log_id):
     """Send notification email to parent about flagged content"""
-    if not is_admin() and not is_owner():
+    if not is_admin() and not is_owner(None):
         return jsonify({"error": "Access denied"}), 403
     
     log = QuestionLog.query.get_or_404(log_id)
@@ -1842,7 +1842,7 @@ The CozmicLearning Team
 @app.route("/admin/moderation/stats")
 def admin_moderation_stats():
     """Statistics and reporting dashboard for moderation"""
-    if not is_admin() and not is_owner():
+    if not is_admin() and not is_owner(None):
         flash("Access denied.", "error")
         return redirect("/")
     
@@ -3870,7 +3870,7 @@ def teacher_preview_assignment():
         preview=preview_data,
         classes=classes,
         teacher=teacher,
-        is_owner=is_owner(),
+        is_owner=is_owner(teacher),
     )
 
 
