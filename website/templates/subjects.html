@@ -260,18 +260,132 @@
         <p class="planets-subtitle">Embark on an epic learning adventure across the cosmos</p>
     </div>
 
+    <!-- Search & Filter Bar -->
+    <div style="max-width: 600px; margin: 0 auto 40px; position: relative;">
+        <input type="text" id="searchSubjects" placeholder="🔍 Search subjects..." style="width: 100%; padding: 14px 20px; background: rgba(92,107,255,0.12); border: 2px solid rgba(118,131,255,0.3); border-radius: 12px; color: var(--text); font-size: 1rem; outline: none; transition: all 0.3s ease;" onfocus="this.style.borderColor='rgba(118,131,255,0.6)'; this.style.background='rgba(92,107,255,0.18)'" onblur="this.style.borderColor='rgba(118,131,255,0.3)'; this.style.background='rgba(92,107,255,0.12)'">
+    </div>
+
+    <!-- Continue Learning Section -->
+    <div id="continueSection" style="margin-bottom: 40px; background: linear-gradient(135deg, rgba(255,159,0,0.15), rgba(255,111,216,0.12)); border: 2px solid rgba(255,159,0,0.4); border-radius: 16px; padding: 24px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="font-size: 2rem;">🚀</div>
+            <div>
+                <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--text);">Continue Your Journey</h3>
+                <p style="margin: 4px 0 0 0; font-size: 0.9rem; color: var(--muted-2);">Pick up where you left off</p>
+            </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+            <!-- Sample "Continue" cards - would be dynamic based on student data -->
+            <div style="background: rgba(92,107,255,0.2); border: 1px solid rgba(118,131,255,0.4); border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s ease; cursor: pointer;" onclick="window.location.href='/choose-grade?subject=num_forge'" onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='rgba(118,131,255,0.8)'" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(118,131,255,0.4)'">
+                <div style="font-size: 2.5rem; margin-bottom: 8px;">🔢</div>
+                <div style="font-weight: 700; color: var(--text); margin-bottom: 4px;">Num Forge</div>
+                <div style="font-size: 0.8rem; color: var(--muted-2); margin-bottom: 8px;">Last visited: Today</div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 4px; margin-bottom: 4px;">
+                    <div style="background: linear-gradient(90deg, #5c6bff, #00f2ff); height: 6px; width: 65%; border-radius: 3px;"></div>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--accent);">65% Mastery</div>
+            </div>
+            <div style="background: rgba(132,255,0,0.2); border: 1px solid rgba(132,255,0,0.4); border-radius: 12px; padding: 16px; text-align: center; transition: all 0.3s ease; cursor: pointer;" onclick="window.location.href='/choose-grade?subject=atom_sphere'" onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='rgba(132,255,0,0.8)'" onmouseout="this.style.transform='translateY(0)'; this.style.borderColor='rgba(132,255,0,0.4)'">
+                <div style="font-size: 2.5rem; margin-bottom: 8px;">🔬</div>
+                <div style="font-weight: 700; color: var(--text); margin-bottom: 4px;">Atom Sphere</div>
+                <div style="font-size: 0.8rem; color: var(--muted-2); margin-bottom: 8px;">Last visited: Yesterday</div>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 6px; padding: 4px; margin-bottom: 4px;">
+                    <div style="background: linear-gradient(90deg, #84ff00, #00c853); height: 6px; width: 42%; border-radius: 3px;"></div>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--success);">42% Mastery</div>
+            </div>
+        </div>
+    </div>
+
     <div class="planets-grid">
         {% for subject, img, name, subtitle in planets %}
-        <a href="/choose-grade?subject={{ subject }}" class="planet-card">
+        <div class="planet-card" data-subject="{{ subject }}" data-name="{{ name }}" data-subtitle="{{ subtitle }}" data-img="{{ img }}" onclick="showPreview('{{ subject }}', '{{ name }}', '{{ subtitle }}', '{{ img }}', {{ [0, 0, 65, 42, 0, 28, 0][loop.index0 % 7] }})">
             <div class="planet-card-inner">
+                <!-- Star Toggle for Favorites -->
+                <button class="star-toggle" data-subject="{{ subject }}" onclick="event.stopPropagation(); toggleFavorite(this, '{{ subject }}')" style="position: absolute; top: 12px; left: 12px; z-index: 10; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,215,0,0.3); width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; transition: all 0.3s; backdrop-filter: blur(4px);" onmouseover="this.style.transform='scale(1.15)'; this.style.borderColor='rgba(255,215,0,0.6)'" onmouseout="this.style.transform='scale(1)'; this.style.borderColor='rgba(255,215,0,0.3)'">
+                    <span class="star-icon">☆</span>
+                </button>
+
+                <!-- Badges -->
+                <div style="position: absolute; top: 12px; right: 12px; z-index: 10; display: flex; gap: 6px;">
+                    {% if loop.index <= 2 %}
+                    <span style="background: linear-gradient(135deg, #ff6b9d, #ff9500); padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; color: white; box-shadow: 0 4px 12px rgba(255,107,157,0.4);">🔥 HOT</span>
+                    {% elif loop.index == planets|length %}
+                    <span style="background: linear-gradient(135deg, #00f2ff, #5c6bff); padding: 4px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; color: white; box-shadow: 0 4px 12px rgba(0,242,255,0.4);">✨ NEW</span>
+                    {% endif %}
+                </div>
+
                 <div class="planet-icon-wrapper">
                     <img src="/static/planets/{{ img }}" alt="{{ name }}" class="planet-icon">
                 </div>
                 <div class="planet-name">{{ name }}</div>
                 <div class="planet-subtitle">{{ subtitle }}</div>
+
+                <!-- Progress Indicator -->
+                <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(118,131,255,0.2);">
+                    {% set mastery = [0, 0, 65, 42, 0, 28, 0][loop.index0 % 7] %}
+                    {% if mastery > 0 %}
+                    <div style="margin-bottom: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <span style="font-size: 0.75rem; color: var(--muted-2);">Mastery</span>
+                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent);">{{ mastery }}%</span>
+                        </div>
+                        <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 3px; overflow: hidden;">
+                            <div style="height: 100%; background: linear-gradient(90deg, #5c6bff, #00f2ff); width: {{ mastery }}%; border-radius: 3px; transition: width 0.5s ease;"></div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; color: var(--muted-3); text-align: center; margin-top: 6px;">
+                        {{ (mastery * 12) // 10 }} XP earned
+                    </div>
+                    {% else %}
+                    <div style="text-align: center; padding: 8px 0;">
+                        <div style="font-size: 0.8rem; color: var(--muted-3); font-style: italic;">Not started yet</div>
+                        <div style="font-size: 0.75rem; color: var(--accent); margin-top: 4px;">Click to begin! 🚀</div>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-        </a>
+        </div>
         {% endfor %}
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; backdrop-filter: blur(8px); align-items: center; justify-content: center;">
+        <div style="background: linear-gradient(135deg, rgba(92,107,255,0.2), rgba(0,242,255,0.15)); border: 2px solid rgba(118,131,255,0.5); border-radius: 24px; padding: 40px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); position: relative;">
+            <button onclick="closePreview()" style="position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: all 0.3s;">✕</button>
+
+            <div style="text-align: center;">
+                <div style="width: 120px; height: 120px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(255,255,255,0.12), rgba(92,107,255,0.08)); border-radius: 50%;">
+                    <img id="modalImg" src="" alt="" style="width: 90px; height: 90px; object-fit: contain; filter: drop-shadow(0 8px 16px rgba(92,107,255,0.6));">
+                </div>
+
+                <h2 id="modalTitle" style="font-size: 2rem; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, #00f2ff, #ffffff, #5c6bff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;"></h2>
+
+                <p id="modalSubtitle" style="font-size: 1rem; color: var(--muted-2); margin-bottom: 24px;"></p>
+
+                <div id="modalStats" style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: center;">
+                        <div>
+                            <div style="font-size: 2rem; font-weight: 800; color: var(--accent);" id="modalMastery">0%</div>
+                            <div style="font-size: 0.85rem; color: var(--muted-2);">Mastery</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 2rem; font-weight: 800; color: var(--success);" id="modalXP">0</div>
+                            <div style="font-size: 0.85rem; color: var(--muted-2);">XP Earned</div>
+                        </div>
+                    </div>
+                    <div id="modalProgress" style="margin-top: 16px;">
+                        <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.4); border-radius: 4px; overflow: hidden;">
+                            <div id="modalProgressBar" style="height: 100%; background: linear-gradient(90deg, #5c6bff, #00f2ff); width: 0%; border-radius: 4px; transition: width 0.5s ease;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <a id="modalStartBtn" href="#" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #5c6bff, #00f2ff); color: white; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 1.1rem; transition: all 0.3s; box-shadow: 0 8px 24px rgba(92,107,255,0.4);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 12px 32px rgba(92,107,255,0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(92,107,255,0.4)'">
+                    Start Learning 🚀
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -280,6 +394,150 @@
 if (typeof drawStars === 'function') {
     try { document.addEventListener('DOMContentLoaded', drawStars); } catch (e) { console.error(e); }
 }
+
+// Search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchSubjects');
+    const planetCards = document.querySelectorAll('.planet-card');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+
+            planetCards.forEach(card => {
+                const name = card.dataset.name.toLowerCase();
+                const subject = card.dataset.subject.toLowerCase();
+
+                if (name.includes(searchTerm) || subject.includes(searchTerm) || searchTerm === '') {
+                    card.style.display = '';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+
+// Preview Modal Functions
+function showPreview(subject, name, subtitle, img, mastery) {
+    const modal = document.getElementById('previewModal');
+    const modalImg = document.getElementById('modalImg');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSubtitle = document.getElementById('modalSubtitle');
+    const modalMastery = document.getElementById('modalMastery');
+    const modalXP = document.getElementById('modalXP');
+    const modalProgressBar = document.getElementById('modalProgressBar');
+    const modalStartBtn = document.getElementById('modalStartBtn');
+
+    // Set modal content
+    modalImg.src = '/static/planets/' + img;
+    modalImg.alt = name;
+    modalTitle.textContent = name;
+    modalSubtitle.textContent = subtitle;
+    modalMastery.textContent = mastery + '%';
+    modalXP.textContent = Math.floor(mastery * 1.2);
+    modalProgressBar.style.width = mastery + '%';
+    modalStartBtn.href = '/choose-grade?subject=' + subject;
+
+    // Show modal
+    modal.style.display = 'flex';
+
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+}
+
+function closePreview() {
+    const modal = document.getElementById('previewModal');
+    modal.style.display = 'none';
+
+    // Restore body scroll
+    document.body.style.overflow = '';
+}
+
+// Close modal on background click
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('previewModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closePreview();
+            }
+        });
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closePreview();
+        }
+    });
+
+    // Load favorites from localStorage on page load
+    loadFavorites();
+});
+
+// Favorites System
+function toggleFavorite(button, subject) {
+    const starIcon = button.querySelector('.star-icon');
+    const favorites = getFavorites();
+
+    if (favorites.includes(subject)) {
+        // Remove from favorites
+        const index = favorites.indexOf(subject);
+        favorites.splice(index, 1);
+        starIcon.textContent = '☆';
+        button.style.background = 'rgba(0,0,0,0.4)';
+        button.style.boxShadow = 'none';
+    } else {
+        // Add to favorites
+        favorites.push(subject);
+        starIcon.textContent = '★';
+        button.style.background = 'linear-gradient(135deg, rgba(255,215,0,0.4), rgba(255,165,0,0.3))';
+        button.style.boxShadow = '0 0 20px rgba(255,215,0,0.5)';
+
+        // Animation
+        button.style.animation = 'none';
+        setTimeout(() => {
+            button.style.animation = 'starPulse 0.5s ease-out';
+        }, 10);
+    }
+
+    saveFavorites(favorites);
+}
+
+function getFavorites() {
+    const saved = localStorage.getItem('cozmicFavorites');
+    return saved ? JSON.parse(saved) : [];
+}
+
+function saveFavorites(favorites) {
+    localStorage.setItem('cozmicFavorites', JSON.stringify(favorites));
+}
+
+function loadFavorites() {
+    const favorites = getFavorites();
+    document.querySelectorAll('.star-toggle').forEach(button => {
+        const subject = button.dataset.subject;
+        const starIcon = button.querySelector('.star-icon');
+
+        if (favorites.includes(subject)) {
+            starIcon.textContent = '★';
+            button.style.background = 'linear-gradient(135deg, rgba(255,215,0,0.4), rgba(255,165,0,0.3))';
+            button.style.boxShadow = '0 0 20px rgba(255,215,0,0.5)';
+        }
+    });
+}
+
+// Add animation CSS
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes starPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.3); }
+        100% { transform: scale(1); }
+    }
+`;
+document.head.appendChild(style);
 </script>
 
 {% endblock %}
