@@ -58,37 +58,37 @@ def apply_differentiation(base_prompt: str, mode: str) -> str:
     if mode == "adaptive":
         return base_prompt + """
 DIFFERENTIATION MODE: ADAPTIVE
-• Start medium.
-• Harder after correct answers.
-• Easier after incorrect answers.
-• Smooth difficulty curve.
+- Start medium.
+- Harder after correct answers.
+- Easier after incorrect answers.
+- Smooth difficulty curve.
 """
 
     if mode == "gap_fill":
         return base_prompt + """
 DIFFERENTIATION MODE: GAP FILL
-• Include prerequisite/foundation skills.
-• Target common misconceptions.
-• Step-by-step reasoning.
-• Aim to fix misunderstandings.
+- Include prerequisite/foundation skills.
+- Target common misconceptions.
+- Step-by-step reasoning.
+- Aim to fix misunderstandings.
 """
 
     if mode == "mastery":
         return base_prompt + """
 DIFFERENTIATION MODE: MASTERY
-• Push difficulty higher.
-• Include multi-step reasoning.
-• Real-world application.
-• At least 3 synthesis/rigor problems.
+- Push difficulty higher.
+- Include multi-step reasoning.
+- Real-world application.
+- At least 3 synthesis/rigor problems.
 """
 
     if mode == "scaffold":
         return base_prompt + """
 DIFFERENTIATION MODE: SCAFFOLDED SUPPORT
-• Below grade-level entry.
-• Break tasks into smaller steps.
-• Simpler vocabulary & numbers.
-• Confidence-building approach.
+- Below grade-level entry.
+- Break tasks into smaller steps.
+- Simpler vocabulary & numbers.
+- Confidence-building approach.
 """
 
     return base_prompt
@@ -139,22 +139,22 @@ ALL questions must be SPECIFICALLY about: {topic}
 
 GOAL:
 Generate {num_questions} clear, grade-appropriate practice questions:
-• Mix of multiple-choice and free-response
-• ALL focused specifically on: {topic}
-• Subject area: {flavor}
-• Difficulty: {difficulty}
-• Grade level: {depth_rule}
+- Mix of multiple-choice and free-response
+- ALL focused specifically on: {topic}
+- Subject area: {flavor}
+- Difficulty: {difficulty}
+- Grade level: {depth_rule}
 
 STUDENT CONTEXT:
-• Student ability level: {student_ability}
-• Applied differentiation mode: {differentiation_mode}
+- Student ability level: {student_ability}
+- Applied differentiation mode: {differentiation_mode}
 
 FORMAT REQUIREMENTS:
-• Direct, professional question prompts (no narrative framing)
-• Clear, unambiguous wording
-• Concise hints that guide without giving away the answer
-• Brief, instructional explanations
-• Standard academic tone
+- Direct, professional question prompts (no narrative framing)
+- Clear, unambiguous wording
+- Concise hints that guide without giving away the answer
+- Brief, instructional explanations
+- Standard academic tone
 
 RETURN FORMAT - VALID JSON ONLY:
 {{
@@ -210,24 +210,24 @@ CRITICAL: Generate EXACTLY {num_questions} questions.
 
 GOAL:
 Generate a {num_questions}-question interactive practice mission:
-• Some multiple-choice questions
-• Some free-response questions
-• Some word problems (if subject allows)
-• ALL tightly focused on this specific skill/topic: {topic}
-• Subject flavor: {flavor}
-• Difficulty: {difficulty}
-• Tone & style: use the tutor voice/personality: {voice}
-• Grade level rule: {depth_rule}
+- Some multiple-choice questions
+- Some free-response questions
+- Some word problems (if subject allows)
+- ALL tightly focused on this specific skill/topic: {topic}
+- Subject flavor: {flavor}
+- Difficulty: {difficulty}
+- Tone & style: use the tutor voice/personality: {voice}
+- Grade level rule: {depth_rule}
 
 STUDENT CONTEXT:
-• Student ability level: {student_ability}
-• Applied differentiation mode: {differentiation_mode}
+- Student ability level: {student_ability}
+- Applied differentiation mode: {differentiation_mode}
 
 THE EXPERIENCE:
-• It should feel like a learning "mission" on a CozmicLearning planet.
-• Questions should be clear, unambiguous, and age-appropriate.
-• Hints should gently guide.
-• Explanations should be supportive, like a real tutor.
+- It should feel like a learning "mission" on a CozmicLearning planet.
+- Questions should be clear, unambiguous, and age-appropriate.
+- Hints should gently guide.
+- Explanations should be supportive, like a real tutor.
 
 RETURN ONLY VALID JSON:
 
