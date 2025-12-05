@@ -5216,6 +5216,10 @@ CozmicLearning Team
     result = func(question, grade, character)
     answer = result.get("raw_text") if isinstance(result, dict) else result
 
+    # Parse answer into sections for enhanced display
+    from modules.answer_formatter import parse_into_sections
+    sections = parse_into_sections(answer) if answer else None
+
     # Update log with AI response (only if log_entry exists)
     if log_entry:
         log_entry.ai_response = answer[:5000]  # Store first 5000 chars
@@ -5226,7 +5230,7 @@ CozmicLearning Team
 
     add_xp(20)
     session["tokens"] += 2
-    
+
     # Log question activity
     student_id = session.get("student_id")
     if student_id:
@@ -5241,16 +5245,17 @@ CozmicLearning Team
             )
         except Exception as e:
             print(f"Failed to log question activity: {e}")
-    
+
     # Increment question count for Basic plan tracking
     increment_question_count()
 
     return render_template(
-        "subject.html",
+        "subject_enhanced.html",
         subject=subject,
         grade=grade,
         question=question,
         answer=answer,
+        sections=sections,
         character=character,
         conversation=session["conversation"],
         pdf_url=None,
@@ -6963,6 +6968,78 @@ def parent_lesson_plan_delete(plan_id):
 
     flash("Lesson plan deleted successfully.", "success")
     return redirect("/parent/lesson-plans")
+
+
+# ============================================================
+# ANSWER PAGE ENHANCEMENTS - FEEDBACK & CLARIFICATION
+# ============================================================
+
+@app.route("/section_feedback", methods=["POST"])
+@csrf.exempt
+def section_feedback():
+    """Record section-level feedback (thumbs up/down)."""
+    init_user()
+
+    data = request.get_json() or {}
+    subject = data.get("subject")
+    question = data.get("question")
+    section = data.get("section")
+    feedback = data.get("feedback")
+
+    student_id = session.get("user_id")
+
+    # Log feedback (could be stored in database for analytics)
+    app.logger.info(f"Section feedback: student={student_id}, subject={subject}, section={section}, feedback={feedback}")
+
+    # TODO: Store in database for analytics
+    # Could create a SectionFeedback model to track this
+
+    return jsonify({"success": True, "message": "Feedback recorded"})
+
+
+@app.route("/request_clarification", methods=["POST"])
+@csrf.exempt
+def request_clarification():
+    """Handle clarification requests for specific sections."""
+    init_user()
+
+    # Check subscription status
+    user_role = session.get("user_role")
+    if user_role in ["student", "parent", "teacher"]:
+        access_check = check_subscription_access(user_role)
+        if access_check != True:
+            return jsonify({"error": "Your trial has expired. Please upgrade to continue."})
+
+    data = request.get_json() or {}
+    subject = data.get("subject")
+    question = data.get("question")
+    section = data.get("section")
+    clarification = data.get("clarification", "")
+
+    grade = session.get("grade", "8")
+    character = session.get("character", "everly")
+
+    # Generate clarification response using AI
+    prompt = f"""A student asked: "{question}"
+
+They're reading Section {section} of the answer and requested clarification:
+"{clarification}"
+
+Provide a clear, concise clarification (2-3 sentences) that directly addresses their confusion while maintaining a friendly, encouraging tone."""
+
+    from modules.ai_client import simple_ai_call
+
+    try:
+        reply = simple_ai_call(prompt, grade, character)
+        reply_text = reply.get("raw_text") if isinstance(reply, dict) else reply
+    except Exception as e:
+        app.logger.error(f"Clarification request failed: {e}")
+        reply_text = "I'd be happy to clarify! Could you ask your question in a different way? Sometimes rephrasing helps me understand what you need better."
+
+    # Increment question count
+    increment_question_count()
+
+    return jsonify({"reply": reply_text})
 
 
 # ============================================================

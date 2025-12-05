@@ -1,0 +1,1604 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+    :root {
+        --section-1-color: #c084fc;
+        --section-2-color: #5c6bff;
+        --section-3-color: #00f2ff;
+        --section-4-color: #84ff00;
+        --section-5-color: #ff6fd8;
+        --section-6-color: #ffdd55;
+    }
+
+    body {
+        background: radial-gradient(circle at top, #0f1a2b, #000814);
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+        color: white;
+        font-family: "Poppins", sans-serif;
+    }
+
+    /* Utility bar */
+    .utility-bar {
+        max-width: 1100px;
+        margin: 14px auto 0;
+        padding: 8px 12px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(92,107,255,0.12), rgba(71,200,255,0.08));
+        border: 1px solid rgba(118,131,255,0.35);
+        display: grid;
+        grid-template-columns: 1.1fr 2fr auto;
+        gap: 10px;
+        align-items: center;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        backdrop-filter: blur(10px);
+    }
+    .utility-item label { display:block; font-size:0.8rem; color:#8a92b3; margin-bottom:4px; }
+    .utility-select, .utility-input {
+        width: 100%; border-radius: 10px; border: 1px solid rgba(118,131,255,0.35);
+        background: rgba(0,0,0,0.3); color: #f7fbff; padding: 10px 12px; font-size: 0.95rem; outline: none;
+    }
+    .utility-actions { display:flex; gap:8px; align-items:center; }
+    .utility-btn { padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(118,131,255,0.35);
+        background: linear-gradient(135deg, #5c6bff, #7683ff); color: white; font-weight:700; cursor:pointer; box-shadow: 0 6px 18px rgba(92,107,255,0.3);
+    }
+    .utility-logout { background: rgba(255,111,216,0.2); color:#ff6fd8; border-color: rgba(255,111,216,0.35); }
+
+    /* FEATURE #1: Progress Indicator */
+    .progress-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(10, 14, 39, 0.95);
+        backdrop-filter: blur(12px);
+        border-bottom: 2px solid rgba(192, 132, 252, 0.3);
+        padding: 12px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    }
+
+    .section-indicator {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #c084fc;
+    }
+
+    .progress-dots {
+        display: flex;
+        gap: 10px;
+    }
+
+    .progress-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .progress-dot:hover {
+        transform: scale(1.3);
+    }
+
+    .progress-dot.active {
+        background: linear-gradient(135deg, #c084fc, #ff6fd8);
+        box-shadow: 0 0 12px rgba(192, 132, 252, 0.6);
+        transform: scale(1.4);
+    }
+
+    .progress-dot::after {
+        content: attr(data-section);
+        position: absolute;
+        bottom: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.7rem;
+        color: #8a92b3;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .progress-dot:hover::after,
+    .progress-dot.active::after {
+        opacity: 1;
+    }
+
+    /* FEATURE #11: Time Estimates */
+    .time-estimate {
+        font-size: 0.85rem;
+        color: #84ff00;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .stars {
+        position: fixed;
+        inset: 0;
+        background: url('/static/stars.png');
+        background-size: cover;
+        opacity: 0.28;
+        z-index: -1;
+        animation: drift 40s linear infinite;
+    }
+
+    @keyframes drift {
+        from { transform: translateY(0); }
+        to { transform: translateY(-900px); }
+    }
+
+    /* CHARACTER */
+    .character-wrapper {
+        text-align: center;
+        margin-top: 40px;
+    }
+
+    .character-img {
+        width: 180px;
+        filter: drop-shadow(0 0 18px rgba(255,255,255,0.4));
+        animation: float 3.6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+        100% { transform: translateY(0); }
+    }
+
+    .character-name {
+        font-size: 1.4rem;
+        margin-top: 10px;
+        color: #ffd86a;
+        font-weight: bold;
+        text-shadow: 0 0 12px rgba(255,215,0,0.6);
+    }
+
+    /* FEATURE #8: Adaptive Difficulty Toggle */
+    .difficulty-controls {
+        max-width: 860px;
+        margin: 20px auto;
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .difficulty-btn {
+        padding: 10px 18px;
+        border-radius: 10px;
+        border: 2px solid rgba(132, 255, 0, 0.3);
+        background: rgba(132, 255, 0, 0.1);
+        color: #84ff00;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+
+    .difficulty-btn:hover {
+        background: rgba(132, 255, 0, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .difficulty-btn.active {
+        background: linear-gradient(135deg, #84ff00, #4caf50);
+        color: #0b0f1a;
+        border-color: #84ff00;
+        box-shadow: 0 0 16px rgba(132, 255, 0, 0.4);
+    }
+
+    /* ANSWER BOX - Enhanced with Card Design */
+    .answer-container {
+        max-width: 900px;
+        margin: 28px auto 20px;
+        padding: 0;
+    }
+
+    .answer-title {
+        text-align: center;
+        font-size: 2rem;
+        background: linear-gradient(135deg, #c084fc, #ff9500);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+        margin-bottom: 30px;
+    }
+
+    /* FEATURE #3: Enhanced Visual Hierarchy - Card-based sections with icons */
+    .section-card {
+        background: linear-gradient(135deg, rgba(192, 132, 252, 0.12), rgba(71, 200, 255, 0.08));
+        border: 2px solid rgba(192, 132, 252, 0.35);
+        border-radius: 18px;
+        padding: 28px;
+        margin-bottom: 24px;
+        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        scroll-margin-top: 80px;
+        transition: all 0.3s;
+        position: relative;
+    }
+
+    .section-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 32px rgba(192, 132, 252, 0.4);
+    }
+
+    .section-card.section-1 { border-color: rgba(192, 132, 252, 0.5); }
+    .section-card.section-2 { border-color: rgba(92, 107, 255, 0.5); }
+    .section-card.section-3 { border-color: rgba(0, 242, 255, 0.5); }
+    .section-card.section-4 { border-color: rgba(132, 255, 0, 0.5); }
+    .section-card.section-5 { border-color: rgba(255, 111, 216, 0.5); }
+    .section-card.section-6 { border-color: rgba(255, 221, 85, 0.5); }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 18px;
+    }
+
+    .section-title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-icon {
+        font-size: 2rem;
+        filter: drop-shadow(0 0 8px currentColor);
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #f7fbff;
+        margin: 0;
+    }
+
+    .section-meta {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    /* FEATURE #11: Reading time per section */
+    .reading-time {
+        font-size: 0.8rem;
+        color: #8a92b3;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 4px 10px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* FEATURE #5: Bookmark & Note buttons */
+    .section-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .action-btn {
+        padding: 6px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(0, 0, 0, 0.3);
+        color: #c4d1ff;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .action-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .action-btn.active {
+        background: linear-gradient(135deg, #ffdd55, #ff9500);
+        color: #1b0500;
+        border-color: #ffdd55;
+    }
+
+    .section-content {
+        color: #c4d1ff;
+        font-size: 1.05rem;
+        line-height: 1.8;
+    }
+
+    .section-content p {
+        margin-bottom: 14px;
+    }
+
+    /* Highlight functionality */
+    .highlighted {
+        background: linear-gradient(135deg, rgba(255, 221, 85, 0.3), rgba(255, 149, 0, 0.2));
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+
+    /* FEATURE #4: Inline Practice Questions */
+    .inline-practice {
+        margin-top: 24px;
+        background: linear-gradient(135deg, rgba(132, 255, 0, 0.12), rgba(76, 175, 80, 0.08));
+        border: 2px solid rgba(132, 255, 0, 0.35);
+        border-radius: 14px;
+        padding: 20px;
+    }
+
+    .practice-question-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #84ff00;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .practice-question-text {
+        font-size: 1rem;
+        color: #e0ff80;
+        margin-bottom: 16px;
+    }
+
+    .practice-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .practice-option {
+        padding: 12px 16px;
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(132, 255, 0, 0.3);
+        border-radius: 10px;
+        color: #c4d1ff;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .practice-option:hover {
+        background: rgba(132, 255, 0, 0.15);
+        border-color: rgba(132, 255, 0, 0.5);
+        transform: translateX(6px);
+    }
+
+    .practice-option.correct {
+        background: linear-gradient(135deg, rgba(132, 255, 0, 0.3), rgba(76, 175, 80, 0.2));
+        border-color: #84ff00;
+        color: #84ff00;
+    }
+
+    .practice-option.incorrect {
+        background: rgba(255, 107, 107, 0.15);
+        border-color: rgba(255, 107, 107, 0.5);
+        color: #ff8787;
+    }
+
+    .practice-feedback {
+        margin-top: 12px;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        display: none;
+    }
+
+    .practice-feedback.show {
+        display: block;
+    }
+
+    .practice-feedback.correct {
+        background: rgba(132, 255, 0, 0.15);
+        color: #84ff00;
+        border-left: 4px solid #84ff00;
+    }
+
+    .practice-feedback.incorrect {
+        background: rgba(255, 107, 107, 0.15);
+        color: #ff8787;
+        border-left: 4px solid #ff6b6b;
+    }
+
+    /* FEATURE #6: Real-Time Feedback */
+    .section-feedback {
+        margin-top: 20px;
+        padding: 16px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .feedback-question {
+        font-size: 0.95rem;
+        color: #8a92b3;
+    }
+
+    .feedback-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .feedback-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(0, 0, 0, 0.3);
+        color: #c4d1ff;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.9rem;
+    }
+
+    .feedback-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .feedback-btn.thumbs-up:hover,
+    .feedback-btn.thumbs-up.active {
+        background: linear-gradient(135deg, rgba(132, 255, 0, 0.3), rgba(76, 175, 80, 0.2));
+        border-color: #84ff00;
+        color: #84ff00;
+    }
+
+    .feedback-btn.thumbs-down:hover,
+    .feedback-btn.thumbs-down.active {
+        background: rgba(255, 107, 107, 0.15);
+        border-color: #ff6b6b;
+        color: #ff8787;
+    }
+
+    .feedback-btn.clarify:hover {
+        background: rgba(0, 242, 255, 0.15);
+        border-color: #00f2ff;
+        color: #00f2ff;
+    }
+
+    /* FEATURE #13: Enhanced Practice Options */
+    .practice-options-section {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 28px;
+        background: linear-gradient(135deg, rgba(255, 111, 216, 0.12), rgba(192, 132, 252, 0.08));
+        border: 2px solid rgba(255, 111, 216, 0.35);
+        border-radius: 18px;
+        backdrop-filter: blur(12px);
+    }
+
+    .practice-options-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        text-align: center;
+        background: linear-gradient(135deg, #ff6fd8, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 24px;
+    }
+
+    .practice-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 16px;
+    }
+
+    .practice-card {
+        padding: 20px;
+        background: linear-gradient(135deg, rgba(192, 132, 252, 0.15), rgba(71, 200, 255, 0.08));
+        border: 2px solid rgba(192, 132, 252, 0.3);
+        border-radius: 14px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+
+    .practice-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 32px rgba(192, 132, 252, 0.35);
+        border-color: rgba(192, 132, 252, 0.6);
+    }
+
+    .practice-card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+    }
+
+    .practice-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #f7fbff;
+        margin-bottom: 8px;
+    }
+
+    .practice-card-description {
+        font-size: 0.9rem;
+        color: #8a92b3;
+        line-height: 1.5;
+    }
+
+    /* FEATURE #5: Notes Panel */
+    .notes-panel {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 24px;
+        background: linear-gradient(135deg, rgba(255, 221, 85, 0.12), rgba(255, 149, 0, 0.08));
+        border: 2px solid rgba(255, 221, 85, 0.35);
+        border-radius: 18px;
+        backdrop-filter: blur(12px);
+        display: none;
+    }
+
+    .notes-panel.show {
+        display: block;
+    }
+
+    .notes-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .notes-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffdd55;
+    }
+
+    .notes-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .note-item {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 14px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        border-left: 4px solid #ffdd55;
+    }
+
+    .note-section-ref {
+        font-size: 0.85rem;
+        color: #8a92b3;
+        margin-bottom: 6px;
+    }
+
+    .note-content {
+        color: #f7fbff;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+
+    /* CHAT SECTION */
+    .chat-section {
+        max-width: 900px;
+        margin: 40px auto 80px;
+        padding: 25px;
+        background: rgba(255,255,255,0.08);
+        border-radius: 20px;
+        box-shadow: 0 0 12px rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,255,255,0.12);
+        backdrop-filter: blur(6px);
+    }
+
+    .chat-title {
+        font-size: 1.4rem;
+        margin-bottom: 15px;
+        color: #d8ecff;
+        text-shadow: 0 0 8px rgba(80,180,255,0.5);
+    }
+
+    .chat-log {
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 15px;
+        background: rgba(0,0,0,0.22);
+        border-radius: 15px;
+        margin-bottom: 15px;
+    }
+
+    .chat-msg {
+        padding: 12px 16px;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        font-size: 1rem;
+    }
+
+    .msg-user {
+        background: rgba(255,255,255,0.25);
+        text-align: right;
+    }
+
+    .msg-ai {
+        background: rgba(255,255,255,0.13);
+        text-align: left;
+    }
+
+    .chat-input {
+        display: flex;
+        gap: 10px;
+    }
+
+    .chat-input textarea {
+        flex: 1;
+        height: 70px;
+        padding: 12px;
+        font-size: 1rem;
+        border-radius: 10px;
+        border: none;
+        resize: none;
+        outline: none;
+    }
+
+    .chat-input button {
+        width: 130px;
+        background: #1a72ff;
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 1.15rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.25s;
+    }
+
+    .chat-input button:hover {
+        background: #3c8aff;
+        transform: translateY(-3px);
+    }
+
+    #thinking {
+        display: none;
+        text-align: center;
+        margin-top: 10px;
+        color: #9ecaff;
+        font-size: 1.1rem;
+        animation: pulse 1.5s infinite;
+        font-style: italic;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 0.4; }
+        50% { opacity: 1; }
+        100% { opacity: 0.4; }
+    }
+
+    /* Modal for clarification requests */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+    }
+
+    .modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: linear-gradient(135deg, rgba(92, 107, 255, 0.15), rgba(71, 200, 255, 0.1));
+        padding: 32px;
+        border-radius: 20px;
+        max-width: 500px;
+        width: 90%;
+        border: 2px solid rgba(118, 131, 255, 0.4);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-header {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #f7fbff;
+        margin-bottom: 16px;
+    }
+
+    .modal-body textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(118, 131, 255, 0.3);
+        background: rgba(0, 0, 0, 0.3);
+        color: #f7fbff;
+        font-size: 1rem;
+        resize: vertical;
+        font-family: inherit;
+    }
+
+    .modal-footer {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .modal-btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .modal-btn.primary {
+        background: linear-gradient(135deg, #5c6bff, #7683ff);
+        color: white;
+    }
+
+    .modal-btn.secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: #c4d1ff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Quick View Mode */
+    .quick-view-mode .section-content {
+        max-height: 120px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .quick-view-mode .section-content::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: linear-gradient(to bottom, transparent, rgba(18, 30, 50, 0.95));
+    }
+
+    .expand-btn {
+        margin-top: 10px;
+        padding: 6px 14px;
+        background: rgba(192, 132, 252, 0.2);
+        border: 1px solid rgba(192, 132, 252, 0.3);
+        border-radius: 8px;
+        color: #c084fc;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+    }
+
+    .expand-btn:hover {
+        background: rgba(192, 132, 252, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        .progress-header {
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .difficulty-controls {
+            flex-direction: column;
+        }
+
+        .practice-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="stars"></div>
+
+<!-- FEATURE #1: Sticky Progress Header -->
+<div class="progress-header">
+    <div class="section-indicator" id="section-indicator">Section 1 of 6</div>
+    <div class="progress-dots">
+        <div class="progress-dot active" data-section="Overview" onclick="scrollToSection(1)"></div>
+        <div class="progress-dot" data-section="Key Facts" onclick="scrollToSection(2)"></div>
+        <div class="progress-dot" data-section="Christian View" onclick="scrollToSection(3)"></div>
+        <div class="progress-dot" data-section="Agreement" onclick="scrollToSection(4)"></div>
+        <div class="progress-dot" data-section="Difference" onclick="scrollToSection(5)"></div>
+        <div class="progress-dot" data-section="Practice" onclick="scrollToSection(6)"></div>
+    </div>
+    <div class="time-estimate" id="total-time">⏱️ <span id="total-minutes">8</span> min read</div>
+</div>
+
+<!-- Top Utility Bar -->
+<div class="utility-bar" role="navigation" aria-label="Quick actions">
+    <div class="utility-item">
+        <label>🪐 Subject</label>
+        <select id="subject-switcher" class="utility-select">
+            {% for key, val in subjects.items() %}
+                <option value="{{ key }}" {% if key == subject %}selected{% endif %}>{{ val }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="utility-item">
+        <label>🔭 Search topics or questions</label>
+        <input id="global-search" class="utility-input" type="text" placeholder="e.g., percentages, thesis statement, photosynthesis...">
+    </div>
+    <div class="utility-actions">
+        <button id="go-practice" class="utility-btn">🚀 Practice</button>
+        <button id="go-study" class="utility-btn">📚 Deep Study</button>
+        <a href="/logout" class="utility-btn utility-logout" aria-label="Logout">👩‍🚀 Logout</a>
+    </div>
+</div>
+
+<!-- CHARACTER -->
+<div class="character-wrapper fade-in">
+    <img src="/static/characters/{{ character }}.png" class="character-img">
+    <div class="character-name">{{ character|title }}</div>
+</div>
+
+<h1 class="answer-title">✨ {{ subject.replace("_"," ") | title }}</h1>
+
+<!-- FEATURE #8: Adaptive Difficulty Controls -->
+<div class="difficulty-controls">
+    <button class="difficulty-btn active" data-level="grade-appropriate" onclick="setDifficulty('grade-appropriate')">
+        📚 Grade {{ grade }} Level
+    </button>
+    <button class="difficulty-btn" data-level="simple" onclick="setDifficulty('simple')">
+        🎈 Explain Like I'm 5
+    </button>
+    <button class="difficulty-btn" data-level="advanced" onclick="setDifficulty('advanced')">
+        🎓 Advanced Detail
+    </button>
+    <button class="difficulty-btn" onclick="toggleQuickView()">
+        ⚡ Quick View Mode
+    </button>
+    <button class="difficulty-btn" onclick="toggleNotesPanel()">
+        📝 View My Notes
+    </button>
+</div>
+
+<!-- ANSWER CONTAINER -->
+<div class="answer-container">
+    {% if sections %}
+        <!-- SECTION 1: Overview -->
+        <div class="section-card section-1" id="section-1" data-section="1">
+            <div class="section-header">
+                <div class="section-title-group">
+                    <span class="section-icon">💡</span>
+                    <h2 class="section-title">Overview</h2>
+                </div>
+                <div class="section-meta">
+                    <span class="reading-time">⏱️ <span class="reading-minutes">1</span> min</span>
+                    <div class="section-actions">
+                        <button class="action-btn bookmark-btn" onclick="toggleBookmark(1)">
+                            <span class="bookmark-icon">☆</span> Bookmark
+                        </button>
+                        <button class="action-btn note-btn" onclick="openNoteModal(1)">
+                            📝 Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                {{ sections.overview }}
+            </div>
+
+            <!-- FEATURE #6: Real-Time Feedback -->
+            <div class="section-feedback">
+                <span class="feedback-question">Was this section helpful?</span>
+                <div class="feedback-actions">
+                    <button class="feedback-btn thumbs-up" onclick="sendFeedback(1, 'helpful')">👍 Yes</button>
+                    <button class="feedback-btn thumbs-down" onclick="sendFeedback(1, 'not-helpful')">👎 No</button>
+                    <button class="feedback-btn clarify" onclick="requestClarification(1)">💬 Need Clarification</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: Key Facts -->
+        <div class="section-card section-2" id="section-2" data-section="2">
+            <div class="section-header">
+                <div class="section-title-group">
+                    <span class="section-icon">📋</span>
+                    <h2 class="section-title">Key Facts</h2>
+                </div>
+                <div class="section-meta">
+                    <span class="reading-time">⏱️ <span class="reading-minutes">2</span> min</span>
+                    <div class="section-actions">
+                        <button class="action-btn bookmark-btn" onclick="toggleBookmark(2)">
+                            <span class="bookmark-icon">☆</span> Bookmark
+                        </button>
+                        <button class="action-btn note-btn" onclick="openNoteModal(2)">
+                            📝 Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                {{ sections.key_facts }}
+            </div>
+
+            <!-- FEATURE #4: Inline Practice Question -->
+            <div class="inline-practice">
+                <div class="practice-question-title">✅ Check Your Understanding</div>
+                <div class="practice-question-text" id="q2-text">Based on the key facts above, which statement is most accurate?</div>
+                <div class="practice-options" id="q2-options">
+                    <!-- Options will be generated dynamically -->
+                </div>
+                <div class="practice-feedback" id="q2-feedback"></div>
+            </div>
+
+            <div class="section-feedback">
+                <span class="feedback-question">Was this section helpful?</span>
+                <div class="feedback-actions">
+                    <button class="feedback-btn thumbs-up" onclick="sendFeedback(2, 'helpful')">👍 Yes</button>
+                    <button class="feedback-btn thumbs-down" onclick="sendFeedback(2, 'not-helpful')">👎 No</button>
+                    <button class="feedback-btn clarify" onclick="requestClarification(2)">💬 Need Clarification</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: Christian View -->
+        <div class="section-card section-3" id="section-3" data-section="3">
+            <div class="section-header">
+                <div class="section-title-group">
+                    <span class="section-icon">✝️</span>
+                    <h2 class="section-title">Christian View</h2>
+                </div>
+                <div class="section-meta">
+                    <span class="reading-time">⏱️ <span class="reading-minutes">2</span> min</span>
+                    <div class="section-actions">
+                        <button class="action-btn bookmark-btn" onclick="toggleBookmark(3)">
+                            <span class="bookmark-icon">☆</span> Bookmark
+                        </button>
+                        <button class="action-btn note-btn" onclick="openNoteModal(3)">
+                            📝 Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                {{ sections.christian_view }}
+            </div>
+
+            <div class="section-feedback">
+                <span class="feedback-question">Was this section helpful?</span>
+                <div class="feedback-actions">
+                    <button class="feedback-btn thumbs-up" onclick="sendFeedback(3, 'helpful')">👍 Yes</button>
+                    <button class="feedback-btn thumbs-down" onclick="sendFeedback(3, 'not-helpful')">👎 No</button>
+                    <button class="feedback-btn clarify" onclick="requestClarification(3)">💬 Need Clarification</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: Agreement -->
+        <div class="section-card section-4" id="section-4" data-section="4">
+            <div class="section-header">
+                <div class="section-title-group">
+                    <span class="section-icon">🤝</span>
+                    <h2 class="section-title">Agreement</h2>
+                </div>
+                <div class="section-meta">
+                    <span class="reading-time">⏱️ <span class="reading-minutes">1</span> min</span>
+                    <div class="section-actions">
+                        <button class="action-btn bookmark-btn" onclick="toggleBookmark(4)">
+                            <span class="bookmark-icon">☆</span> Bookmark
+                        </button>
+                        <button class="action-btn note-btn" onclick="openNoteModal(4)">
+                            📝 Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                {{ sections.agreement }}
+            </div>
+
+            <div class="inline-practice">
+                <div class="practice-question-title">✅ Check Your Understanding</div>
+                <div class="practice-question-text" id="q4-text">What is one area where Christian and secular views align?</div>
+                <div class="practice-options" id="q4-options">
+                    <!-- Options will be generated dynamically -->
+                </div>
+                <div class="practice-feedback" id="q4-feedback"></div>
+            </div>
+
+            <div class="section-feedback">
+                <span class="feedback-question">Was this section helpful?</span>
+                <div class="feedback-actions">
+                    <button class="feedback-btn thumbs-up" onclick="sendFeedback(4, 'helpful')">👍 Yes</button>
+                    <button class="feedback-btn thumbs-down" onclick="sendFeedback(4, 'not-helpful')">👎 No</button>
+                    <button class="feedback-btn clarify" onclick="requestClarification(4)">💬 Need Clarification</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: Difference -->
+        <div class="section-card section-5" id="section-5" data-section="5">
+            <div class="section-header">
+                <div class="section-title-group">
+                    <span class="section-icon">⚖️</span>
+                    <h2 class="section-title">Difference</h2>
+                </div>
+                <div class="section-meta">
+                    <span class="reading-time">⏱️ <span class="reading-minutes">1</span> min</span>
+                    <div class="section-actions">
+                        <button class="action-btn bookmark-btn" onclick="toggleBookmark(5)">
+                            <span class="bookmark-icon">☆</span> Bookmark
+                        </button>
+                        <button class="action-btn note-btn" onclick="openNoteModal(5)">
+                            📝 Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                {{ sections.difference }}
+            </div>
+
+            <div class="section-feedback">
+                <span class="feedback-question">Was this section helpful?</span>
+                <div class="feedback-actions">
+                    <button class="feedback-btn thumbs-up" onclick="sendFeedback(5, 'helpful')">👍 Yes</button>
+                    <button class="feedback-btn thumbs-down" onclick="sendFeedback(5, 'not-helpful')">👎 No</button>
+                    <button class="feedback-btn clarify" onclick="requestClarification(5)">💬 Need Clarification</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 6: Practice -->
+        <div class="section-card section-6" id="section-6" data-section="6">
+            <div class="section-header">
+                <div class="section-title-group">
+                    <span class="section-icon">🎯</span>
+                    <h2 class="section-title">Practice</h2>
+                </div>
+                <div class="section-meta">
+                    <span class="reading-time">⏱️ <span class="reading-minutes">1</span> min</span>
+                    <div class="section-actions">
+                        <button class="action-btn bookmark-btn" onclick="toggleBookmark(6)">
+                            <span class="bookmark-icon">☆</span> Bookmark
+                        </button>
+                        <button class="action-btn note-btn" onclick="openNoteModal(6)">
+                            📝 Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="section-content">
+                {{ sections.practice }}
+            </div>
+
+            <div class="section-feedback">
+                <span class="feedback-question">Was this section helpful?</span>
+                <div class="feedback-actions">
+                    <button class="feedback-btn thumbs-up" onclick="sendFeedback(6, 'helpful')">👍 Yes</button>
+                    <button class="feedback-btn thumbs-down" onclick="sendFeedback(6, 'not-helpful')">👎 No</button>
+                    <button class="feedback-btn clarify" onclick="requestClarification(6)">💬 Need Clarification</button>
+                </div>
+            </div>
+        </div>
+
+    {% else %}
+        <div class="section-card section-1">
+            <pre class="section-content">{{ answer }}</pre>
+        </div>
+    {% endif %}
+</div>
+
+<!-- FEATURE #13: Enhanced Practice Options -->
+<div class="practice-options-section">
+    <h2 class="practice-options-title">🚀 Ready to Practice?</h2>
+    <div class="practice-grid">
+        <div class="practice-card" onclick="startPractice('quick')">
+            <div class="practice-card-icon">⚡</div>
+            <div class="practice-card-title">Quick Quiz</div>
+            <div class="practice-card-description">5 quick questions to test your understanding</div>
+        </div>
+        <div class="practice-card" onclick="startPractice('full')">
+            <div class="practice-card-icon">📚</div>
+            <div class="practice-card-title">Full Practice</div>
+            <div class="practice-card-description">Comprehensive practice with step-by-step help</div>
+        </div>
+        <div class="practice-card" onclick="startPractice('timed')">
+            <div class="practice-card-icon">⏱️</div>
+            <div class="practice-card-title">Timed Challenge</div>
+            <div class="practice-card-description">Race against the clock for mastery</div>
+        </div>
+        <div class="practice-card" onclick="startPractice('teach')">
+            <div class="practice-card-icon">🎓</div>
+            <div class="practice-card-title">Teach Me More</div>
+            <div class="practice-card-description">Deeper dive into advanced concepts</div>
+        </div>
+        <div class="practice-card" onclick="startPractice('related')">
+            <div class="practice-card-icon">🔗</div>
+            <div class="practice-card-title">Related Topics</div>
+            <div class="practice-card-description">Explore connected ideas and themes</div>
+        </div>
+    </div>
+</div>
+
+<!-- FEATURE #5: Notes Panel -->
+<div class="notes-panel" id="notes-panel">
+    <div class="notes-header">
+        <h3 class="notes-title">📝 My Notes & Bookmarks</h3>
+        <div class="notes-actions">
+            <button class="action-btn" onclick="exportNotes()">📄 Export PDF</button>
+            <button class="action-btn" onclick="toggleNotesPanel()">✕ Close</button>
+        </div>
+    </div>
+    <div id="notes-list">
+        <div class="note-item">
+            <div class="note-section-ref">No notes yet. Click "Note" on any section to add one!</div>
+        </div>
+    </div>
+</div>
+
+<!-- CHAT SECTION -->
+<div class="chat-section fade-in">
+    <h3 class="chat-title">💬 Continue the Conversation</h3>
+
+    <div class="chat-log" id="chat-log">
+        {% for msg in conversation %}
+            <div class="chat-msg {{ 'msg-user' if msg.role=='user' else 'msg-ai' }}">
+                {{ msg.content }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div id="thinking">🤖 Your Galaxy Navigator is thinking…</div>
+
+    <div class="chat-input">
+        <textarea id="chat-msg" placeholder="Ask a follow-up question…"></textarea>
+        <button onclick="sendFollowup()">Send</button>
+    </div>
+</div>
+
+<!-- Clarification Modal -->
+<div class="modal" id="clarification-modal">
+    <div class="modal-content">
+        <div class="modal-header">Request Clarification</div>
+        <div class="modal-body">
+            <textarea id="clarification-text" placeholder="What would you like me to explain better?"></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn secondary" onclick="closeClarificationModal()">Cancel</button>
+            <button class="modal-btn primary" onclick="submitClarification()">Send Request</button>
+        </div>
+    </div>
+</div>
+
+<!-- Note Modal -->
+<div class="modal" id="note-modal">
+    <div class="modal-content">
+        <div class="modal-header">Add Note to Section <span id="note-section-num"></span></div>
+        <div class="modal-body">
+            <textarea id="note-text" placeholder="Write your note here..."></textarea>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn secondary" onclick="closeNoteModal()">Cancel</button>
+            <button class="modal-btn primary" onclick="saveNote()">Save Note</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global state
+let currentDifficulty = 'grade-appropriate';
+let currentSection = 1;
+let notes = JSON.parse(localStorage.getItem('notes_{{ subject }}_{{ question[:50] }}') || '[]');
+let bookmarks = JSON.parse(localStorage.getItem('bookmarks_{{ subject }}_{{ question[:50] }}') || '[]');
+let currentNoteSection = 1;
+let currentClarificationSection = 1;
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+    calculateReadingTimes();
+    loadBookmarks();
+    loadNotes();
+    setupScrollTracking();
+    setupTextSelection();
+});
+
+// FEATURE #11: Calculate Reading Times
+function calculateReadingTimes() {
+    const sections = document.querySelectorAll('.section-card');
+    let totalMinutes = 0;
+
+    sections.forEach(section => {
+        const content = section.querySelector('.section-content');
+        if (content) {
+            const words = content.textContent.trim().split(/\s+/).length;
+            const minutes = Math.max(1, Math.round(words / 200)); // 200 words per minute
+            section.querySelector('.reading-minutes').textContent = minutes;
+            totalMinutes += minutes;
+        }
+    });
+
+    document.getElementById('total-minutes').textContent = totalMinutes;
+}
+
+// FEATURE #1: Scroll Tracking for Progress Indicator
+function setupScrollTracking() {
+    window.addEventListener('scroll', function() {
+        const sections = document.querySelectorAll('.section-card');
+        const dots = document.querySelectorAll('.progress-dot');
+        const indicator = document.getElementById('section-indicator');
+
+        let currentVisible = 1;
+        sections.forEach((section, index) => {
+            const rect = section.getBoundingClientRect();
+            if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                currentVisible = index + 1;
+            }
+        });
+
+        // Update dots
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index + 1 === currentVisible);
+        });
+
+        // Update indicator text
+        const sectionNames = ['Overview', 'Key Facts', 'Christian View', 'Agreement', 'Difference', 'Practice'];
+        indicator.textContent = `Section ${currentVisible} of 6: ${sectionNames[currentVisible - 1]}`;
+        currentSection = currentVisible;
+    });
+}
+
+function scrollToSection(num) {
+    const section = document.getElementById(`section-${num}`);
+    if (section) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// FEATURE #8: Adaptive Difficulty
+function setDifficulty(level) {
+    currentDifficulty = level;
+
+    // Update button states
+    document.querySelectorAll('.difficulty-btn[data-level]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.level === level);
+    });
+
+    // In a real implementation, this would fetch alternative content
+    // For now, we'll show a visual indication
+    const indicator = document.querySelector('.section-indicator');
+    if (level === 'simple') {
+        indicator.textContent += ' (Simplified)';
+    } else if (level === 'advanced') {
+        indicator.textContent += ' (Advanced)';
+    }
+}
+
+function toggleQuickView() {
+    document.querySelector('.answer-container').classList.toggle('quick-view-mode');
+    const btn = event.target;
+    btn.textContent = btn.textContent.includes('Quick') ? '📖 Full View Mode' : '⚡ Quick View Mode';
+}
+
+// FEATURE #5: Bookmark System
+function toggleBookmark(sectionNum) {
+    const btn = event.target.closest('.bookmark-btn');
+    const icon = btn.querySelector('.bookmark-icon');
+
+    const index = bookmarks.indexOf(sectionNum);
+    if (index > -1) {
+        bookmarks.splice(index, 1);
+        icon.textContent = '☆';
+        btn.classList.remove('active');
+    } else {
+        bookmarks.push(sectionNum);
+        icon.textContent = '★';
+        btn.classList.add('active');
+    }
+
+    localStorage.setItem('bookmarks_{{ subject }}_{{ question[:50] }}', JSON.stringify(bookmarks));
+}
+
+function loadBookmarks() {
+    bookmarks.forEach(sectionNum => {
+        const section = document.getElementById(`section-${sectionNum}`);
+        if (section) {
+            const btn = section.querySelector('.bookmark-btn');
+            const icon = btn.querySelector('.bookmark-icon');
+            icon.textContent = '★';
+            btn.classList.add('active');
+        }
+    });
+}
+
+// FEATURE #5: Notes System
+function openNoteModal(sectionNum) {
+    currentNoteSection = sectionNum;
+    document.getElementById('note-section-num').textContent = sectionNum;
+    document.getElementById('note-text').value = '';
+    document.getElementById('note-modal').classList.add('show');
+}
+
+function closeNoteModal() {
+    document.getElementById('note-modal').classList.remove('show');
+}
+
+function saveNote() {
+    const text = document.getElementById('note-text').value.trim();
+    if (!text) return;
+
+    const sectionNames = ['Overview', 'Key Facts', 'Christian View', 'Agreement', 'Difference', 'Practice'];
+
+    notes.push({
+        section: currentNoteSection,
+        sectionName: sectionNames[currentNoteSection - 1],
+        text: text,
+        timestamp: new Date().toISOString()
+    });
+
+    localStorage.setItem('notes_{{ subject }}_{{ question[:50] }}', JSON.stringify(notes));
+    loadNotes();
+    closeNoteModal();
+}
+
+function loadNotes() {
+    const notesList = document.getElementById('notes-list');
+
+    if (notes.length === 0) {
+        notesList.innerHTML = '<div class="note-item"><div class="note-section-ref">No notes yet. Click "Note" on any section to add one!</div></div>';
+        return;
+    }
+
+    notesList.innerHTML = notes.map(note => `
+        <div class="note-item">
+            <div class="note-section-ref">Section ${note.section}: ${note.sectionName}</div>
+            <div class="note-content">${note.text}</div>
+        </div>
+    `).join('');
+}
+
+function toggleNotesPanel() {
+    document.getElementById('notes-panel').classList.toggle('show');
+}
+
+function exportNotes() {
+    // In a real implementation, this would generate a PDF
+    // For now, we'll create a simple text export
+    let content = `My Notes - {{ subject.replace("_"," ") | title }}\n`;
+    content += `Question: {{ question }}\n\n`;
+
+    notes.forEach(note => {
+        content += `Section ${note.section}: ${note.sectionName}\n`;
+        content += `${note.text}\n\n`;
+    });
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'my-notes.txt';
+    a.click();
+}
+
+// FEATURE #6: Feedback System
+function sendFeedback(sectionNum, feedbackType) {
+    const btn = event.target;
+    const btnGroup = btn.parentElement;
+
+    // Visual feedback
+    btnGroup.querySelectorAll('.feedback-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Send to backend
+    fetch('/section_feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            subject: '{{ subject }}',
+            question: '{{ question }}',
+            section: sectionNum,
+            feedback: feedbackType
+        })
+    });
+}
+
+function requestClarification(sectionNum) {
+    currentClarificationSection = sectionNum;
+    document.getElementById('clarification-modal').classList.add('show');
+}
+
+function closeClarificationModal() {
+    document.getElementById('clarification-modal').classList.remove('show');
+}
+
+function submitClarification() {
+    const text = document.getElementById('clarification-text').value.trim();
+    if (!text) return;
+
+    // Send clarification request
+    fetch('/request_clarification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            subject: '{{ subject }}',
+            question: '{{ question }}',
+            section: currentClarificationSection,
+            clarification: text
+        })
+    }).then(res => res.json()).then(data => {
+        // Add response to chat
+        const chatLog = document.getElementById('chat-log');
+        chatLog.innerHTML += `<div class="chat-msg msg-user">${text}</div>`;
+        chatLog.innerHTML += `<div class="chat-msg msg-ai">${data.reply || 'Thank you for your question! Let me help clarify...'}</div>`;
+        chatLog.scrollTop = chatLog.scrollHeight;
+    });
+
+    closeClarificationModal();
+}
+
+// FEATURE #5: Text Selection for Highlighting
+function setupTextSelection() {
+    document.querySelectorAll('.section-content').forEach(content => {
+        content.addEventListener('mouseup', function() {
+            const selection = window.getSelection();
+            const text = selection.toString().trim();
+
+            if (text.length > 10) {
+                const range = selection.getRangeAt(0);
+                const span = document.createElement('span');
+                span.className = 'highlighted';
+                range.surroundContents(span);
+            }
+        });
+    });
+}
+
+// FEATURE #13: Practice Mode Selection
+function startPractice(mode) {
+    const modes = {
+        'quick': `/practice?topic=${encodeURIComponent('{{ question }}')}&subject={{ subject }}&mode=quick&questions=5`,
+        'full': `/practice?topic=${encodeURIComponent('{{ question }}')}&subject={{ subject }}&mode=full`,
+        'timed': `/practice?topic=${encodeURIComponent('{{ question }}')}&subject={{ subject }}&mode=timed&duration=10`,
+        'teach': `/deep_study?topic=${encodeURIComponent('{{ question }}')}&subject={{ subject }}`,
+        'related': `/related_topics?topic=${encodeURIComponent('{{ question }}')}&subject={{ subject }}`
+    };
+
+    window.location.href = modes[mode] || modes['full'];
+}
+
+// FEATURE #4: Inline Practice Questions
+// These would ideally be generated by the backend, but for now we'll use placeholders
+document.addEventListener('DOMContentLoaded', function() {
+    // Example for section 2
+    const q2Options = document.getElementById('q2-options');
+    if (q2Options) {
+        const sampleOptions = [
+            'This content helps build foundational understanding',
+            'The facts presented contradict each other',
+            'No practical applications are mentioned'
+        ];
+
+        sampleOptions.forEach((opt, idx) => {
+            const div = document.createElement('div');
+            div.className = 'practice-option';
+            div.textContent = opt;
+            div.onclick = function() {
+                checkAnswer(2, idx, 0); // First option is correct
+            };
+            q2Options.appendChild(div);
+        });
+    }
+});
+
+function checkAnswer(questionNum, selectedIdx, correctIdx) {
+    const options = document.getElementById(`q${questionNum}-options`).children;
+    const feedback = document.getElementById(`q${questionNum}-feedback`);
+
+    Array.from(options).forEach((opt, idx) => {
+        opt.onclick = null; // Disable further clicks
+        if (idx === correctIdx) {
+            opt.classList.add('correct');
+        } else if (idx === selectedIdx) {
+            opt.classList.add('incorrect');
+        }
+    });
+
+    feedback.classList.add('show');
+    if (selectedIdx === correctIdx) {
+        feedback.classList.add('correct');
+        feedback.textContent = '✅ Correct! Great job understanding this concept.';
+    } else {
+        feedback.classList.add('incorrect');
+        feedback.textContent = `❌ Not quite. The correct answer emphasizes the foundational understanding provided.`;
+    }
+}
+
+// Chat functionality (existing)
+const thinkingMessages = [
+    "✨ Calculating cozmic wisdom...",
+    "🌌 Checking the star database...",
+    "🛸 Summoning intergalactic tutors...",
+    "🔭 Scanning the knowledge nebula...",
+    "🌠 Preparing your stellar response..."
+];
+
+document.getElementById("chat-msg").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendFollowup();
+    }
+});
+
+async function sendFollowup() {
+    const msgBox = document.getElementById("chat-msg");
+    const log = document.getElementById("chat-log");
+    const thinking = document.getElementById("thinking");
+
+    const text = msgBox.value.trim();
+    if (!text) return;
+
+    msgBox.value = "";
+
+    log.innerHTML += `<div class="chat-msg msg-user">${text}</div>`;
+    log.scrollTop = log.scrollHeight;
+
+    thinking.innerText = thinkingMessages[Math.floor(Math.random() * thinkingMessages.length)];
+    thinking.style.display = "block";
+
+    const response = await fetch("/followup_message", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            subject: "{{ subject }}",
+            grade: "{{ grade }}",
+            character: "{{ character }}",
+            message: text
+        })
+    });
+
+    thinking.style.display = "none";
+
+    const data = await response.json();
+    const reply = data.reply || "I'm not sure — try rephrasing it!";
+
+    log.innerHTML += `<div class="chat-msg msg-ai">${reply}</div>`;
+    log.scrollTop = log.scrollHeight;
+}
+
+// Utility bar behavior
+document.addEventListener("DOMContentLoaded", () => {
+    const subjectSel = document.getElementById("subject-switcher");
+    const searchInput = document.getElementById("global-search");
+    const grade = "{{ grade }}";
+
+    subjectSel?.addEventListener("change", () => {
+        const subj = subjectSel.value;
+        window.location.href = "/ask-question?subject=" + encodeURIComponent(subj) + "&grade=" + encodeURIComponent(grade);
+    });
+
+    searchInput?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && searchInput.value.trim()) {
+            const subj = subjectSel?.value || "{{ subject }}";
+            const q = searchInput.value.trim();
+            window.location.href = "/ask-question?subject=" + encodeURIComponent(subj) + "&grade=" + encodeURIComponent(grade) + "&q=" + encodeURIComponent(q);
+        }
+    });
+
+    document.getElementById("go-practice")?.addEventListener("click", () => {
+        const subj = subjectSel?.value || "{{ subject }}";
+        window.location.href = "/practice?subject=" + encodeURIComponent(subj) + "&grade=" + encodeURIComponent(grade);
+    });
+
+    document.getElementById("go-study")?.addEventListener("click", () => {
+        window.location.href = "/ask-question?subject=power_grid&grade=" + encodeURIComponent(grade);
+    });
+});
+</script>
+
+{% endblock %}
