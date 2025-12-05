@@ -167,10 +167,11 @@ def assign_questions(
         differentiation_mode=differentiation_mode,
         student_ability=student_ability,
         context="teacher",  # Clean, professional format for assignments
+        num_questions=num_questions,  # Pass the requested number to generation
     )
 
     steps = session.get("steps", [])
-    # Trim to requested number of questions
+    # Ensure we got the right number (fallback trim if AI returned more)
     if isinstance(num_questions, int) and num_questions > 0:
         steps = steps[:num_questions]
 

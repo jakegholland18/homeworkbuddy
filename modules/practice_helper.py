@@ -106,6 +106,7 @@ def generate_practice_session(
     differentiation_mode: str = "none",
     student_ability: str = "on_level",
     context: str = "student",  # "student" or "teacher"
+    num_questions: int = 10,
 ) -> Dict[str, Any]:
     """
     Generate a 10-question practice 'mission' with differentiation support.
@@ -128,10 +129,18 @@ def generate_practice_session(
         base_prompt = f"""
 You are an educational content generator creating practice questions for teacher assignments.
 
+CRITICAL REQUIREMENT: Generate EXACTLY {num_questions} questions.
+
+TOPIC FOCUS:
+ALL questions must be SPECIFICALLY about: {topic}
+- Do NOT ask generic questions like "What do you remember about..."
+- Every question must test specific knowledge, skills, or concepts from this topic
+- Questions should be detailed and require applying knowledge of {topic}
+
 GOAL:
-Generate 10 clear, grade-appropriate practice questions:
+Generate {num_questions} clear, grade-appropriate practice questions:
 • Mix of multiple-choice and free-response
-• Focused on: {topic}
+• ALL focused specifically on: {topic}
 • Subject area: {flavor}
 • Difficulty: {difficulty}
 • Grade level: {depth_rule}
@@ -145,19 +154,23 @@ FORMAT REQUIREMENTS:
 • Clear, unambiguous wording
 • Concise hints that guide without giving away the answer
 • Brief, instructional explanations
-• Standard academic tone"""
+• Standard academic tone
+
+REMEMBER: Generate EXACTLY {num_questions} questions, not more, not less."""
     else:
         # Gamified mission style for student practice
         base_prompt = f"""
 You are COZMICLEARNING PRACTICE MODE, a galaxy-themed tutor
 guiding students through "missions" of questions.
 
+CRITICAL: Generate EXACTLY {num_questions} questions.
+
 GOAL:
-Generate a 10-question interactive practice mission:
+Generate a {num_questions}-question interactive practice mission:
 • Some multiple-choice questions
 • Some free-response questions
 • Some word problems (if subject allows)
-• ALL tightly focused on this skill/topic: {topic}
+• ALL tightly focused on this specific skill/topic: {topic}
 • Subject flavor: {flavor}
 • Difficulty: {difficulty}
 • Tone & style: use the tutor voice/personality: {voice}
@@ -188,6 +201,8 @@ RETURN ONLY VALID JSON:
   ],
   "final_message": "..."
 }}
+
+REMEMBER: Generate EXACTLY {num_questions} questions in the steps array.
 """
 
     # ------------------------------------------------------------
@@ -195,7 +210,7 @@ RETURN ONLY VALID JSON:
     # ------------------------------------------------------------
     system_prompt = apply_differentiation(base_prompt, differentiation_mode)
 
-    user_prompt = "Generate all 10 questions now. Return ONLY valid JSON."
+    user_prompt = f"Generate all {num_questions} questions about {topic} now. Return ONLY valid JSON. Each question must be specific to the topic."
 
     # ------------------------------------------------------------
     # OPENAI CALL
@@ -203,7 +218,7 @@ RETURN ONLY VALID JSON:
     client = get_client()
     response = client.responses.create(
         model="gpt-4.1-mini",
-        max_output_tokens=1800,
+        max_output_tokens=4000,  # Increased from 1800 to accommodate more questions with full details
         input=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
@@ -218,19 +233,21 @@ RETURN ONLY VALID JSON:
     try:
         data = json.loads(raw)
     except:
-        # fallback safe question
+        # fallback: generate requested number of basic questions
+        print(f"⚠️ JSON parsing failed for {topic}. Using fallback questions. Raw response: {raw[:200]}")
+        fallback_steps = []
+        for i in range(num_questions):
+            fallback_steps.append({
+                "prompt": f"Question {i+1} about {topic}: Explain a key concept or solve a problem related to this topic.",
+                "type": "free",
+                "choices": [],
+                "expected": [""],
+                "hint": "Think about what you've learned.",
+                "explanation": "Your answer should demonstrate understanding of the topic.",
+                "status": "unanswered",
+            })
         return {
-            "steps": [
-                {
-                    "prompt": f"What is one thing you know about {topic}?",
-                    "type": "free",
-                    "choices": [],
-                    "expected": [""],
-                    "hint": "Anything related works!",
-                    "explanation": "Just share what you remember.",
-                    "status": "unanswered",
-                }
-            ],
+            "steps": fallback_steps,
             "final_message": "Great job completing your mission! 🚀",
             "topic": topic,
             "differentiation_mode": differentiation_mode,
