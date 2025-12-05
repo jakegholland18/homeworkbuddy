@@ -156,7 +156,50 @@ FORMAT REQUIREMENTS:
 • Brief, instructional explanations
 • Standard academic tone
 
-REMEMBER: Generate EXACTLY {num_questions} questions, not more, not less."""
+RETURN FORMAT - VALID JSON ONLY:
+{{
+  "steps": [
+    {{
+      "prompt": "What is 3/4 + 1/2?",
+      "type": "multiple_choice",
+      "choices": ["A. 5/6", "B. 4/6", "C. 5/4", "D. 1 1/4"],
+      "expected": ["d"],
+      "hint": "Find a common denominator first.",
+      "explanation": "Convert both fractions to fourths: 3/4 + 2/4 = 5/4 = 1 1/4"
+    }},
+    {{
+      "prompt": "Simplify: 8/12",
+      "type": "free",
+      "choices": [],
+      "expected": ["2/3"],
+      "hint": "Find the GCF of 8 and 12.",
+      "explanation": "Both 8 and 12 are divisible by 4. 8÷4=2, 12÷4=3, so 8/12 = 2/3"
+    }}
+  ],
+  "final_message": "Great work on {topic}!"
+}}
+
+Example for word problems:
+{{
+  "steps": [
+    {{
+      "prompt": "Sarah ate 1/4 of a pizza and John ate 3/8 of the same pizza. What fraction of the pizza did they eat together?",
+      "type": "multiple_choice",
+      "choices": ["A. 4/12", "B. 5/8", "C. 1/2", "D. 7/12"],
+      "expected": ["b"],
+      "hint": "Add the fractions using a common denominator of 8.",
+      "explanation": "1/4 = 2/8. So 2/8 + 3/8 = 5/8"
+    }}
+  ],
+  "final_message": "Excellent work!"
+}}
+
+CRITICAL RULES:
+1. Generate EXACTLY {num_questions} questions in the "steps" array
+2. Every question must be a SPECIFIC problem about {topic}
+3. Return ONLY valid JSON - no other text before or after
+4. For multiple choice, use format "A. answer", "B. answer", etc.
+5. Expected answers for MC should be lowercase letters: ["a"], ["b"], etc.
     else:
         # Gamified mission style for student practice
         base_prompt = f"""
@@ -210,7 +253,15 @@ REMEMBER: Generate EXACTLY {num_questions} questions in the steps array.
     # ------------------------------------------------------------
     system_prompt = apply_differentiation(base_prompt, differentiation_mode)
 
-    user_prompt = f"Generate all {num_questions} questions about {topic} now. Return ONLY valid JSON. Each question must be specific to the topic."
+    user_prompt = f"""Generate {num_questions} specific practice questions about: {topic}
+
+IMPORTANT:
+- Create actual problems to solve (not "what do you remember" questions)
+- For math topics: include calculations, word problems, and concept questions
+- Use a mix of multiple-choice and free-response questions
+- Return ONLY the JSON object, no additional text
+
+Begin your response with {{ and end with }}"""
 
     # ------------------------------------------------------------
     # OPENAI CALL
@@ -228,13 +279,26 @@ REMEMBER: Generate EXACTLY {num_questions} questions in the steps array.
     raw = response.output_text.strip()
 
     # ------------------------------------------------------------
-    # TRY PARSING JSON
+    # CLEAN AND PARSE JSON
     # ------------------------------------------------------------
+    # Try to extract JSON if AI added extra text
+    json_str = raw
+    if not raw.startswith('{'):
+        # Look for JSON object in the response
+        start = raw.find('{')
+        end = raw.rfind('}') + 1
+        if start != -1 and end > start:
+            json_str = raw[start:end]
+        else:
+            print(f"⚠️ No JSON object found in response for {topic}")
+            json_str = raw
+
     try:
-        data = json.loads(raw)
-    except:
+        data = json.loads(json_str)
+    except Exception as e:
         # fallback: generate requested number of basic questions
-        print(f"⚠️ JSON parsing failed for {topic}. Using fallback questions. Raw response: {raw[:200]}")
+        print(f"⚠️ JSON parsing failed for {topic}. Error: {str(e)}")
+        print(f"Raw response (first 500 chars): {raw[:500]}")
         fallback_steps = []
         for i in range(num_questions):
             fallback_steps.append({
