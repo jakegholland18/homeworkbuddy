@@ -429,7 +429,10 @@
         <div class="questions-section">
             <div class="section-header">
                 <h2>Questions ({{ preview.questions|length }})</h2>
-                <button onclick="addQuestion()" class="btn btn-add">+ Add Question</button>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="regenerateAllQuestions()" class="btn btn-add" style="background: linear-gradient(135deg, #ff9900, #ffbb00); font-size: 0.85rem;">🔄 Regenerate All</button>
+                    <button onclick="addQuestion()" class="btn btn-add">+ Add Manual Question</button>
+                </div>
             </div>
 
             <div id="questions-container">
@@ -441,6 +444,7 @@
                             <span class="type-badge">{{ q.type or 'multiple_choice' }}</span>
                         </div>
                         <div class="question-actions">
+                            <button class="icon-btn" onclick="regenerateQuestion({{ loop.index0 }})" title="Generate a new version of this question">🔄 Regenerate</button>
                             <button class="icon-btn delete" onclick="deleteQuestion({{ loop.index0 }})">🗑️ Delete</button>
                         </div>
                     </div>
@@ -782,6 +786,140 @@
             setTimeout(() => {
                 flash.remove();
             }, 3000);
+        }
+
+        async function regenerateQuestion(index) {
+            const cards = document.querySelectorAll('.question-card');
+            const card = cards[index];
+
+            if (!confirm('Generate a new version of this question? Your current edits will be replaced.')) {
+                return;
+            }
+
+            // Show loading state
+            const questionContent = card.querySelector('.question-content');
+            const originalHTML = questionContent.innerHTML;
+            questionContent.innerHTML = '<p style="text-align: center; color: #4facfe; padding: 40px;">⏳ Generating new question...</p>';
+
+            try {
+                const response = await fetch('/teacher/regenerate_question', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        subject: previewData.subject,
+                        topic: previewData.topic,
+                        grade: previewData.grade,
+                        character: previewData.character,
+                        differentiation_mode: previewData.differentiation_mode,
+                        student_ability: previewData.student_ability
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.question) {
+                    const q = data.question;
+                    const questionIndex = card.getAttribute('data-index');
+
+                    // Rebuild question HTML
+                    let choicesHTML = '';
+                    if (q.type === 'multiple_choice' || !q.type) {
+                        choicesHTML = `
+                            <div class="choices-list">
+                                <label class="form-label">Answer Choices (select correct answer)</label>
+                                ${q.choices.map((choice, i) => `
+                                    <div class="choice-item">
+                                        <input type="radio" name="correct_${questionIndex}" class="choice-radio"
+                                               ${choice === q.expected[0] ? 'checked' : ''}
+                                               data-choice-index="${i}">
+                                        <input type="text" class="choice-input" value="${choice}" placeholder="Choice ${i + 1}">
+                                        ${q.choices.length > 2 ? '<button class="choice-delete" onclick="deleteChoice(this)">✕</button>' : ''}
+                                    </div>
+                                `).join('')}
+                                <button class="add-choice-btn" onclick="addChoice(this)">+ Add Choice</button>
+                            </div>
+                        `;
+                    } else if (q.type === 'short_answer') {
+                        choicesHTML = `
+                            <div class="form-group">
+                                <label class="form-label">Expected Answer</label>
+                                <input type="text" class="choice-input expected-answer" value="${q.expected || ''}" placeholder="Enter expected answer...">
+                                <div class="short-answer-note">Students will type their answer. You can review and grade manually.</div>
+                            </div>
+                        `;
+                    }
+
+                    questionContent.innerHTML = `
+                        <label class="form-label">Question Prompt</label>
+                        <textarea class="editable-field question-prompt" placeholder="Enter question...">${q.prompt}</textarea>
+                        ${choicesHTML}
+                        <div class="explanation-field">
+                            <label class="form-label">Explanation (Optional)</label>
+                            <textarea class="editable-field question-explanation" placeholder="Provide an explanation for the answer...">${q.explanation || ''}</textarea>
+                        </div>
+                    `;
+
+                    // Update type badge
+                    card.querySelector('.type-badge').textContent = q.type || 'multiple_choice';
+
+                    showFlash('Question regenerated!', 'success');
+                } else {
+                    questionContent.innerHTML = originalHTML;
+                    showFlash(data.error || 'Failed to regenerate question', 'error');
+                }
+            } catch (error) {
+                console.error('Regenerate error:', error);
+                questionContent.innerHTML = originalHTML;
+                showFlash('Network error while regenerating', 'error');
+            }
+        }
+
+        async function regenerateAllQuestions() {
+            if (!confirm('Generate a completely new set of questions? All current questions and edits will be replaced.')) {
+                return;
+            }
+
+            const container = document.getElementById('questions-container');
+            const originalHTML = container.innerHTML;
+            const numQuestions = document.querySelectorAll('.question-card').length;
+
+            container.innerHTML = '<p style="text-align: center; color: #4facfe; padding: 80px; font-size: 1.2rem;">⏳ Generating ' + numQuestions + ' new questions...<br><small style="color: #8a92b3; font-size: 0.9rem;">This may take 20-30 seconds</small></p>';
+
+            try {
+                const response = await fetch('/teacher/preview_questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        class_id: previewData.class_id,
+                        title: document.getElementById('title').value,
+                        subject: previewData.subject,
+                        topic: previewData.topic,
+                        grade: previewData.grade,
+                        character: previewData.character,
+                        differentiation_mode: previewData.differentiation_mode,
+                        student_ability: previewData.student_ability,
+                        num_questions: numQuestions,
+                        open_date: document.getElementById('open_date').value || null,
+                        due_date: document.getElementById('due_date').value || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.redirect) {
+                    // Reload the page to show new questions
+                    window.location.reload();
+                } else {
+                    container.innerHTML = originalHTML;
+                    updateDragHandlers();
+                    showFlash(data.error || 'Failed to regenerate questions', 'error');
+                }
+            } catch (error) {
+                console.error('Regenerate all error:', error);
+                container.innerHTML = originalHTML;
+                updateDragHandlers();
+                showFlash('Network error while regenerating', 'error');
+            }
         }
     </script>
 </body>

@@ -3875,6 +3875,48 @@ def teacher_preview_assignment():
 
 
 @csrf.exempt
+@app.route("/teacher/regenerate_question", methods=["POST"])
+def teacher_regenerate_question():
+    """Regenerate a single question using AI."""
+    teacher = get_teacher_or_admin()
+    if not teacher:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    data = request.get_json() or {}
+
+    subject = safe_text(data.get("subject", "terra_nova"), 50)
+    topic = safe_text(data.get("topic", ""), 500)
+    grade = safe_text(data.get("grade", "8"), 10)
+    character = safe_text(data.get("character", "everly"), 50)
+    differentiation_mode = data.get("differentiation_mode", "none")
+    student_ability = data.get("student_ability", "on_level")
+    question_type = data.get("question_type", "multiple_choice")  # User can request specific type
+
+    if not topic:
+        return jsonify({"error": "Topic is required"}), 400
+
+    # Generate a single question
+    payload = assign_questions(
+        subject=subject,
+        topic=topic,
+        grade=grade,
+        character=character,
+        differentiation_mode=differentiation_mode,
+        student_ability=student_ability,
+        num_questions=1,  # Generate just one question
+    )
+
+    questions = payload.get("questions", [])
+    if not questions:
+        return jsonify({"error": "Failed to generate question"}), 500
+
+    return jsonify({
+        "success": True,
+        "question": questions[0]
+    }), 200
+
+
+@csrf.exempt
 @app.route("/teacher/save_preview_assignment", methods=["POST"])
 def teacher_save_preview_assignment():
     """Save edited assignment from preview page to database."""
