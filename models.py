@@ -32,6 +32,10 @@ class Parent(db.Model):
     email_reports_enabled = db.Column(db.Boolean, default=True)
     last_report_sent = db.Column(db.DateTime, nullable=True)
 
+    # Password reset tokens
+    reset_token = db.Column(db.String(255), nullable=True)
+    reset_token_expires = db.Column(db.DateTime, nullable=True)
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # One parent → many students
@@ -56,6 +60,10 @@ class Teacher(db.Model):
     trial_start = db.Column(db.DateTime)
     trial_end = db.Column(db.DateTime)
     subscription_active = db.Column(db.Boolean, default=False)
+
+    # Password reset tokens
+    reset_token = db.Column(db.String(255), nullable=True)
+    reset_token_expires = db.Column(db.DateTime, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -116,6 +124,10 @@ class Student(db.Model):
     # Time tracking (Phase 3)
     last_login = db.Column(db.DateTime, nullable=True)
     today_minutes = db.Column(db.Integer, default=0)  # resets daily
+
+    # Password reset tokens
+    reset_token = db.Column(db.String(255), nullable=True)
+    reset_token_expires = db.Column(db.DateTime, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

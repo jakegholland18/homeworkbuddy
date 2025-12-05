@@ -7658,6 +7658,145 @@ def debug_teacher_id():
     return f"Your teacher ID is: {t.id}"
 
 # ============================================================
+# PASSWORD RESET SYSTEM
+# ============================================================
+
+@app.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    """Handle password reset requests."""
+    if request.method == "POST":
+        email = safe_email(request.form.get("email", ""))
+        user_type = request.form.get("user_type", "student")  # student, parent, or teacher
+
+        if not email:
+            flash("Please enter your email address.", "error")
+            return redirect("/forgot-password")
+
+        # Generate reset token
+        token = secrets.token_urlsafe(32)
+        expires = datetime.utcnow() + timedelta(hours=1)  # Token expires in 1 hour
+
+        # Find user and store reset token
+        user = None
+        user_name = ""
+
+        if user_type == "student":
+            user = Student.query.filter_by(student_email=email).first()
+            if user:
+                user_name = user.student_name
+                user.reset_token = token
+                user.reset_token_expires = expires
+        elif user_type == "parent":
+            user = Parent.query.filter_by(email=email).first()
+            if user:
+                user_name = user.name
+                user.reset_token = token
+                user.reset_token_expires = expires
+        elif user_type == "teacher":
+            user = Teacher.query.filter_by(email=email).first()
+            if user:
+                user_name = user.name
+                user.reset_token = token
+                user.reset_token_expires = expires
+
+        if user:
+            db.session.commit()
+
+            # Send reset email
+            try:
+                reset_url = request.url_root.rstrip('/') + f"/reset-password?token={token}&type={user_type}"
+                msg = EmailMessage(
+                    subject="Reset Your CozmicLearning Password",
+                    recipients=[email]
+                )
+                msg.html = f"""
+                <html>
+                <body style="font-family: 'Poppins', Arial, sans-serif; background: #02020a; color: #ffffff; padding: 40px;">
+                    <div style="max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, rgba(92, 107, 255, 0.12), rgba(0, 242, 255, 0.08)); border: 2px solid rgba(118, 131, 255, 0.4); border-radius: 18px; padding: 40px;">
+                        <h1 style="text-align: center; background: linear-gradient(135deg, #ffffff, #00f2ff, #5c6bff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 2rem;">🚀 CozmicLearning</h1>
+                        <h2 style="color: #00f2ff;">Password Reset Request</h2>
+                        <p>Hi {user_name},</p>
+                        <p>We received a request to reset your password. Click the button below to set a new password:</p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="{reset_url}" style="display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #5c6bff, #00f2ff); color: white; text-decoration: none; border-radius: 12px; font-weight: 700;">Reset Password</a>
+                        </div>
+                        <p style="color: #8a92b3; font-size: 0.9rem;">This link expires in 1 hour.</p>
+                        <p style="color: #8a92b3; font-size: 0.9rem;">If you didn't request this, you can safely ignore this email.</p>
+                        <hr style="border: 1px solid rgba(118, 131, 255, 0.3); margin: 30px 0;">
+                        <p style="text-align: center; color: #8a92b3; font-size: 0.8rem;">Keep reaching for the stars! 🌟</p>
+                    </div>
+                </body>
+                </html>
+                """
+                mail.send(msg)
+                flash("Password reset instructions sent to your email!", "success")
+            except Exception as e:
+                app.logger.error(f"Failed to send reset email: {str(e)}")
+                flash("Password reset email sent (if account exists).", "info")  # Don't reveal if email exists
+        else:
+            # Don't reveal if email doesn't exist (security best practice)
+            flash("Password reset email sent (if account exists).", "info")
+
+        return redirect("/forgot-password")
+
+    return render_template("forgot_password.html")
+
+
+@app.route("/reset-password", methods=["GET", "POST"])
+def reset_password():
+    """Handle password reset confirmation."""
+    token = request.args.get("token") or request.form.get("token")
+    user_type = request.args.get("type") or request.form.get("type", "student")
+
+    if not token:
+        flash("Invalid reset link.", "error")
+        return redirect("/forgot-password")
+
+    # Find user with this token
+    user = None
+    if user_type == "student":
+        user = Student.query.filter_by(reset_token=token).first()
+    elif user_type == "parent":
+        user = Parent.query.filter_by(reset_token=token).first()
+    elif user_type == "teacher":
+        user = Teacher.query.filter_by(reset_token=token).first()
+
+    if not user or not user.reset_token_expires or user.reset_token_expires < datetime.utcnow():
+        flash("This reset link has expired or is invalid. Please request a new one.", "error")
+        return redirect("/forgot-password")
+
+    if request.method == "POST":
+        new_password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        if not new_password or len(new_password) < 6:
+            flash("Password must be at least 6 characters long.", "error")
+            return redirect(f"/reset-password?token={token}&type={user_type}")
+
+        if new_password != confirm_password:
+            flash("Passwords don't match. Please try again.", "error")
+            return redirect(f"/reset-password?token={token}&type={user_type}")
+
+        # Update password
+        user.password_hash = generate_password_hash(new_password)
+        user.reset_token = None
+        user.reset_token_expires = None
+        db.session.commit()
+
+        flash("Password reset successful! You can now log in with your new password.", "success")
+
+        # Redirect to appropriate login page
+        if user_type == "student":
+            return redirect("/student/login")
+        elif user_type == "parent":
+            return redirect("/parent/login")
+        elif user_type == "teacher":
+            return redirect("/teacher/login")
+
+    return render_template("reset_password.html", token=token, user_type=user_type)
+
+
+# ============================================================
 # ERROR HANDLERS
 # ============================================================
 
