@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Assignments - Homeschool</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #050813 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .page-title {
+            font-size: 2.2rem;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #5c6bff, #00f2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .content-box {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .assignments-section {
+            background: linear-gradient(135deg,
+                rgba(92, 107, 255, 0.12),
+                rgba(71, 200, 255, 0.08)
+            );
+            border: 1px solid rgba(118, 131, 255, 0.35);
+            border-radius: 18px;
+            padding: 28px;
+            margin-bottom: 30px;
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.3),
+                inset 1px 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+        }
+
+        .btn-blue {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #5c6bff, #7683ff);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 24px rgba(92, 107, 255, 0.3);
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-blue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(92, 107, 255, 0.5);
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .assignment-list {
+            display: grid;
+            gap: 18px;
+            margin-top: 20px;
+        }
+
+        .assignment-item {
+            background: linear-gradient(135deg,
+                rgba(71, 200, 255, 0.08),
+                rgba(92, 107, 255, 0.06)
+            );
+            border: 1px solid rgba(118, 131, 255, 0.25);
+            border-radius: 14px;
+            padding: 20px;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .assignment-item:hover {
+            transform: translateY(-6px);
+            border-color: rgba(118, 131, 255, 0.5);
+            background: linear-gradient(135deg,
+                rgba(71, 200, 255, 0.12),
+                rgba(92, 107, 255, 0.08)
+            );
+            box-shadow:
+                0 12px 32px rgba(92, 107, 255, 0.25),
+                inset 0 0 20px rgba(92, 107, 255, 0.08);
+        }
+
+        .assignment-item h3 {
+            font-size: 1.25rem;
+            color: #f7fbff;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .assignment-item p {
+            color: #c4d1ff;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .btn-light {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 18px;
+            background: rgba(118, 131, 255, 0.25);
+            color: #00f2ff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid rgba(118, 131, 255, 0.3);
+        }
+
+        .btn-light:hover {
+            background: rgba(118, 131, 255, 0.4);
+            border-color: rgba(118, 131, 255, 0.6);
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            color: #8a92b3;
+            font-size: 1.05rem;
+            padding: 20px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body class="fade-in">
+
+<div style="max-width: 1000px; margin: 0 auto; padding-top: 20px;">
+    <a href="/homeschool_dashboard" class="btn-back">← Back to Dashboard</a>
+</div>
+
+<div class="page-title">📚 My Assignments</div>
+
+<div class="content-box">
+    <div class="assignments-section">
+        <h2 style="color: #f7fbff; margin-bottom: 20px;">All Assignments</h2>
+
+        <div class="action-buttons">
+            <a href="/homeschool/assignments/create" class="btn-blue">+ Create Manual Assignment</a>
+            <a href="/homeschool_dashboard" class="btn-blue" style="background: linear-gradient(135deg, #c084fc, #ff6fd8);">🤖 Generate AI Questions</a>
+        </div>
+
+        {% if assignments %}
+            <div class="assignment-list">
+                {% for a in assignments %}
+                    <div class="assignment-item">
+                        <h3>{{ a.title }}</h3>
+                        <p><strong>Subject:</strong> {{ a.subject }}</p>
+
+                        {% if a.open_date %}
+                            <p><strong>Opens:</strong> {{ a.open_date.strftime("%b %d, %Y") }}</p>
+                        {% endif %}
+
+                        {% if a.due_date %}
+                            <p><strong>Due:</strong> {{ a.due_date.strftime("%b %d, %Y") }}</p>
+                        {% endif %}
+
+                        <p><strong>Questions:</strong> {{ a.questions|length if a.questions else 0 }}</p>
+
+                        <a class="btn-light" href="/homeschool/assignments/{{ a.id }}">
+                            View / Manage
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                No assignments created yet.
+                <div style="margin-top:12px;">
+                    <a href="/homeschool/assignments/create" class="btn-blue">+ Create Your First Assignment</a>
+                </div>
+                <div style="margin-top:10px; font-size:0.9rem; color:#c4d1ff;">
+                    Tip: Use "Generate AI Questions" for instant assignments or create custom ones manually!
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+</body>
+</html>

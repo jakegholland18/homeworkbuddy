@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Assignment - Homeschool</title>
+    <link rel="stylesheet" href="/static/style.css?v=20251202">
+    <style>
+        body {
+            background: var(--bg-gradient-main);
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #c084fc, #ff9500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .content-box {
+            width: 90%;
+            max-width: 600px;
+            margin: 0 auto;
+            background: linear-gradient(135deg,
+                rgba(92, 107, 255, 0.12),
+                rgba(71, 200, 255, 0.08)
+            );
+            border: 1px solid rgba(118, 131, 255, 0.35);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow:
+                0 12px 40px rgba(0, 0, 0, 0.3),
+                inset 1px 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #c4d1ff;
+            margin-bottom: 4px;
+        }
+
+        input, select, textarea {
+            padding: 12px 16px;
+            border: 1px solid rgba(118, 131, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #f7fbff;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: rgba(118, 131, 255, 0.6);
+            box-shadow: 0 0 20px rgba(92, 107, 255, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #8a92b3;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-blue {
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #c084fc, #ff6fd8);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 24px rgba(92, 107, 255, 0.3);
+            margin-top: 8px;
+        }
+
+        .btn-blue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(92, 107, 255, 0.5);
+        }
+
+        .btn-back {
+            display: inline-block;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        select option {
+            background: #0a0e27;
+            color: #f7fbff;
+        }
+
+        .info-box {
+            background: rgba(79, 172, 254, 0.15);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #bfe6ff;
+        }
+    </style>
+</head>
+<body class="fade-in">
+
+<div style="max-width: 600px; margin: 0 auto; padding-top: 20px;">
+    <a href="/homeschool_dashboard" class="btn-back">← Back to Dashboard</a>
+</div>
+
+<div class="page-title">📝 Create Manual Assignment</div>
+
+<div class="content-box">
+    <div class="info-box">
+        ℹ️ This assignment will be assigned to all your students. After creating it, you can add questions manually.
+    </div>
+
+    <form method="POST" action="/homeschool/assignments/create">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div>
+            <label>Title</label>
+            <input type="text" name="title" placeholder="e.g., Fractions Mastery Quiz" required>
+        </div>
+
+        <div>
+            <label>Subject</label>
+            <select name="subject">
+                <option value="math">📐 Math</option>
+                <option value="science">🔬 Science</option>
+                <option value="history">📚 History</option>
+                <option value="reading">📖 Reading</option>
+                <option value="writing">✍️ Writing</option>
+                <option value="bible">📕 Bible</option>
+                <option value="money">💰 Money</option>
+                <option value="investing">📈 Investing</option>
+                <option value="general">📚 General</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Topic</label>
+            <input type="text" name="topic" placeholder="e.g., Adding and Subtracting Fractions">
+        </div>
+
+        <div>
+            <label>Instructions (optional)</label>
+            <textarea name="instructions" placeholder="Any special instructions for students..."></textarea>
+        </div>
+
+        <div>
+            <label>Open Date (optional)</label>
+            <input type="date" name="open_date">
+        </div>
+
+        <div>
+            <label>Due Date (optional)</label>
+            <input type="date" name="due_date">
+        </div>
+
+        <button class="btn-blue" type="submit">✓ Create Assignment</button>
+    </form>
+
+</div>
+
+</body>
+</html>

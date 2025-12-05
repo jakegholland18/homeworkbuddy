@@ -649,12 +649,12 @@
                         <div class="action-title">Generate AI Questions</div>
                     </div>
                     
-                    <a href="/teacher/assignments" class="action-card teacher-feature">
+                    <a href="/homeschool/assignments" class="action-card teacher-feature">
                         <div class="action-icon">📋</div>
                         <div class="action-title">View All Assignments</div>
                     </a>
-                    
-                    <a href="/teacher/assignments/create" class="action-card teacher-feature">
+
+                    <a href="/homeschool/assignments/create" class="action-card teacher-feature">
                         <div class="action-icon">➕</div>
                         <div class="action-title">Create Manual Assignment</div>
                     </a>
@@ -764,12 +764,153 @@
         }
 
         function openAssignModal() {
-            alert('AI Assignment Generator coming soon! Use the teacher dashboard for full access.');
+            document.getElementById('assignModal').style.display = 'flex';
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assignModal').style.display = 'none';
+        }
+
+        async function generateAssignment() {
+            const resultDiv = document.getElementById('assignResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Generating AI questions... (this may take 15-30 seconds)<br><small style="color: var(--muted-3);">Creating your assignment...</small>';
+
+            const payload = {
+                title: document.getElementById('assignTitle').value.trim(),
+                topic: document.getElementById('assignTopic').value.trim(),
+                subject: document.getElementById('assignSubject').value,
+                grade: document.getElementById('assignGradeLevel').value,
+                num_questions: parseInt(document.getElementById('assignNumQuestions').value || '10', 10),
+                open_date: document.getElementById('assignOpenDate').value || null,
+                due_date: document.getElementById('assignDueDate').value || null,
+            };
+
+            if (!payload.title || !payload.topic) {
+                resultDiv.innerHTML = '<span style="color: var(--warning);">Please enter both title and topic.</span>';
+                return;
+            }
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+                const res = await fetch('/homeschool/assign_questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                const data = await res.json();
+
+                if (res.ok) {
+                    resultDiv.innerHTML = `<span style="color: var(--success);">✅ Assignment created successfully!</span><br><small>Refresh to see it in your list.</small>`;
+                    setTimeout(() => {
+                        closeAssignModal();
+                        location.reload();
+                    }, 2000);
+                } else {
+                    resultDiv.innerHTML = `<span style="color: var(--warning);">Error: ${data.error || 'Failed to create assignment'}</span>`;
+                }
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    resultDiv.innerHTML = '<span style="color: var(--warning);">Request timed out. Try fewer questions (5-7).</span>';
+                } else {
+                    resultDiv.innerHTML = `<span style="color: var(--warning);">Network Error: ${err.message}</span>`;
+                }
+            }
         }
 
         function openLessonModal() {
             alert('Lesson Plan Generator coming soon! Use the parent lesson plans for full access.');
         }
     </script>
+
+    <!-- AI Assignment Generation Modal -->
+    <div id="assignModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 20px; overflow-y: auto;">
+        <div style="max-width: 600px; width: 100%; background: var(--glass-1); border: 2px solid var(--border-soft); border-radius: 20px; padding: 32px; backdrop-filter: blur(16px); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="margin: 0; font-size: 1.8rem; color: var(--text);">🤖 Generate AI Assignment</h2>
+                <button onclick="closeAssignModal()" style="background: none; border: none; color: var(--muted); font-size: 2rem; cursor: pointer; line-height: 1;">&times;</button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div>
+                    <label style="display: block; color: var(--muted-2); font-weight: 600; margin-bottom: 6px;">Assignment Title *</label>
+                    <input type="text" id="assignTitle" placeholder="e.g., Fractions Practice" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-soft); border-radius: 8px; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 1rem;">
+                </div>
+
+                <div>
+                    <label style="display: block; color: var(--muted-2); font-weight: 600; margin-bottom: 6px;">Topic *</label>
+                    <input type="text" id="assignTopic" placeholder="e.g., Adding and subtracting fractions" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-soft); border-radius: 8px; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 1rem;">
+                </div>
+
+                <div>
+                    <label style="display: block; color: var(--muted-2); font-weight: 600; margin-bottom: 6px;">Subject</label>
+                    <select id="assignSubject" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-soft); border-radius: 8px; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 1rem;">
+                        <option value="num_forge">NumForge (Math)</option>
+                        <option value="atom_sphere">AtomSphere (Science)</option>
+                        <option value="chrono_core">ChronoCore (History)</option>
+                        <option value="story_verse">StoryVerse (Reading)</option>
+                        <option value="ink_haven">InkHaven (Writing)</option>
+                        <option value="faith_realm">FaithRealm (Bible)</option>
+                        <option value="coin_quest">CoinQuest (Money)</option>
+                        <option value="stock_star">StockStar (Investing)</option>
+                        <option value="truth_forge">TruthForge (Apologetics)</option>
+                        <option value="terra_nova">Terra Nova (General)</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="display: block; color: var(--muted-2); font-weight: 600; margin-bottom: 6px;">Grade Level</label>
+                        <select id="assignGradeLevel" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-soft); border-radius: 8px; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 1rem;">
+                            <option value="1">Grade 1</option>
+                            <option value="2">Grade 2</option>
+                            <option value="3">Grade 3</option>
+                            <option value="4">Grade 4</option>
+                            <option value="5">Grade 5</option>
+                            <option value="6">Grade 6</option>
+                            <option value="7">Grade 7</option>
+                            <option value="8" selected>Grade 8</option>
+                            <option value="9">Grade 9</option>
+                            <option value="10">Grade 10</option>
+                            <option value="11">Grade 11</option>
+                            <option value="12">Grade 12</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; color: var(--muted-2); font-weight: 600; margin-bottom: 6px;"># of Questions</label>
+                        <select id="assignNumQuestions" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-soft); border-radius: 8px; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 1rem;">
+                            <option value="5">5 questions</option>
+                            <option value="10" selected>10 questions</option>
+                            <option value="15">15 questions</option>
+                            <option value="20">20 questions</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="display: block; color: var(--muted-2); font-weight: 600; margin-bottom: 6px;">Open Date (Optional)</label>
+                        <input type="date" id="assignOpenDate" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-soft); border-radius: 8px; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 1rem;">
+                    </div>
+                    <div>
+                        <label style="display: block; color: var(--muted-2); font-weight: 600; margin-bottom: 6px;">Due Date (Optional)</label>
+                        <input type="date" id="assignDueDate" style="width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-soft); border-radius: 8px; color: var(--text); font-family: 'Poppins', sans-serif; font-size: 1rem;">
+                    </div>
+                </div>
+
+                <button onclick="generateAssignment()" style="width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; border-radius: 12px; color: var(--text); font-weight: 700; font-size: 1.1rem; cursor: pointer; font-family: 'Poppins', sans-serif; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 6px 20px rgba(92,107,255,0.4);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(92,107,255,0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(92,107,255,0.4)';">
+                    Generate Assignment
+                </button>
+
+                <div id="assignResult" style="display: none; padding: 16px; background: rgba(0,0,0,0.3); border-radius: 10px; font-size: 0.95rem; color: var(--muted); text-align: center;"></div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

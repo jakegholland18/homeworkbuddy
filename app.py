@@ -6502,6 +6502,292 @@ def homeschool_dashboard():
     )
 
 
+@csrf.exempt
+@app.route("/homeschool/assign_questions", methods=["POST"])
+def homeschool_assign_questions():
+    """Generate AI questions and create assignment for homeschool parent's students."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        return jsonify({"error": "Not authenticated"}), 401
+
+    parent = Parent.query.get(parent_id)
+    if not parent:
+        return jsonify({"error": "Parent not found"}), 404
+
+    # Check if parent has homeschool plan (teacher features)
+    _, _, _, has_teacher_features = get_parent_plan_limits(parent)
+    if not has_teacher_features:
+        return jsonify({"error": "Homeschool plan required for this feature"}), 403
+
+    data = request.get_json() or {}
+
+    title = safe_text(data.get("title", ""), 120)
+    subject = safe_text(data.get("subject", "terra_nova"), 50)
+    topic = safe_text(data.get("topic", ""), 500)
+    grade = safe_text(data.get("grade", "8"), 10)
+    num_questions = data.get("num_questions", 10)
+    open_str = data.get("open_date", "").strip() if data.get("open_date") else ""
+    due_str = data.get("due_date", "").strip() if data.get("due_date") else ""
+
+    if not title or not topic:
+        return jsonify({"error": "Missing required fields: title, topic"}), 400
+
+    # Parse dates
+    open_date = None
+    if open_str:
+        try:
+            open_date = datetime.strptime(open_str, "%Y-%m-%d")
+        except Exception:
+            pass
+
+    due_date = None
+    if due_str:
+        try:
+            due_date = datetime.strptime(due_str, "%Y-%m-%d")
+        except Exception:
+            pass
+
+    # Generate questions using teacher_tools.assign_questions
+    from modules.teacher_tools import assign_questions
+
+    payload = assign_questions(
+        subject=subject,
+        topic=topic,
+        grade=grade,
+        character="everly",
+        differentiation_mode="none",
+        student_ability="on_level",
+        num_questions=num_questions,
+    )
+
+    # Build preview JSON in mission format
+    questions_data = payload.get("questions", [])
+    mission_json = {
+        "steps": [
+            {
+                "prompt": q.get("prompt", ""),
+                "type": q.get("type", "free"),
+                "choices": q.get("choices", []),
+                "expected": q.get("expected", []),
+                "hint": q.get("hint", ""),
+                "explanation": q.get("explanation", "")
+            }
+            for q in questions_data
+        ],
+        "final_message": payload.get("final_message", "Great work! Review your answers and submit when ready.")
+    }
+
+    # Create Practice record (not AssignedPractice since no class)
+    # For homeschool, we'll create individual practice records for each student
+    assignment = Practice(
+        teacher_id=None,  # No teacher, this is a homeschool parent
+        title=title,
+        subject=subject,
+        open_date=open_date,
+        due_date=due_date,
+        is_published=True,
+    )
+    db.session.add(assignment)
+    db.session.flush()
+
+    # Add questions to the practice
+    for idx, q in enumerate(questions_data):
+        question = PracticeQuestion(
+            practice_id=assignment.id,
+            question_order=idx + 1,
+            prompt=safe_text(q.get("prompt", ""), 1000),
+            question_type=q.get("type", "multiple_choice"),
+            choices=q.get("choices", []),
+            expected_answer=q.get("expected", ""),
+            explanation=safe_text(q.get("explanation", ""), 2000),
+        )
+        db.session.add(question)
+
+    # Assign to all parent's students
+    for student in parent.students:
+        assigned = AssignedPractice(
+            student_id=student.id,
+            practice_id=assignment.id,
+            assigned_date=datetime.utcnow(),
+        )
+        db.session.add(assigned)
+
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "assignment_id": assignment.id,
+        "message": f"Assignment created and assigned to {len(parent.students)} student(s)"
+    }), 200
+
+
+@app.route("/homeschool/assignments")
+def homeschool_assignments():
+    """View all assignments created by homeschool parent."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        flash("Please log in as a parent.", "error")
+        return redirect("/parent/login")
+
+    parent = Parent.query.get(parent_id)
+    if not parent:
+        flash("Parent not found.", "error")
+        return redirect("/parent/login")
+
+    # Check if parent has homeschool plan
+    _, _, _, has_teacher_features = get_parent_plan_limits(parent)
+    if not has_teacher_features:
+        flash("Homeschool plan required for assignment features.", "error")
+        return redirect("/homeschool_dashboard")
+
+    # Get all Practice records created for this parent's students
+    # We'll find practices that are assigned to this parent's students
+    student_ids = [s.id for s in parent.students]
+
+    assignments = (
+        db.session.query(Practice)
+        .join(AssignedPractice, Practice.id == AssignedPractice.practice_id)
+        .filter(AssignedPractice.student_id.in_(student_ids))
+        .group_by(Practice.id)
+        .order_by(Practice.created_at.desc())
+        .all()
+    )
+
+    return render_template(
+        "homeschool_assignments.html",
+        parent=parent,
+        assignments=assignments,
+        is_homeschool=True,
+    )
+
+
+@app.route("/homeschool/assignments/create", methods=["GET", "POST"])
+def homeschool_create_assignment():
+    """Create manual assignment for homeschool parent's students."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        flash("Please log in as a parent.", "error")
+        return redirect("/parent/login")
+
+    parent = Parent.query.get(parent_id)
+    if not parent:
+        flash("Parent not found.", "error")
+        return redirect("/parent/login")
+
+    # Check if parent has homeschool plan
+    _, _, _, has_teacher_features = get_parent_plan_limits(parent)
+    if not has_teacher_features:
+        flash("Homeschool plan required for assignment features.", "error")
+        return redirect("/homeschool_dashboard")
+
+    if request.method == "POST":
+        title = safe_text(request.form.get("title", ""), 120)
+        subject = safe_text((request.form.get("subject", "") or "general"), 50).lower()
+        topic = safe_text((request.form.get("topic", "") or ""), 500)
+        instructions = safe_text(request.form.get("instructions", ""), 2000)
+        due_str = request.form.get("due_date", "").strip()
+        open_str = request.form.get("open_date", "").strip()
+
+        if not title:
+            flash("Please give this assignment a title.", "error")
+            return redirect("/homeschool/assignments/create")
+
+        # Parse dates
+        due_date = None
+        if due_str:
+            try:
+                due_date = datetime.strptime(due_str, "%Y-%m-%d")
+            except Exception:
+                pass
+
+        open_date = None
+        if open_str:
+            try:
+                open_date = datetime.strptime(open_str, "%Y-%m-%d")
+            except Exception:
+                pass
+
+        # Create Practice record
+        practice = Practice(
+            teacher_id=None,  # No teacher, this is a homeschool parent
+            title=title,
+            subject=subject,
+            open_date=open_date,
+            due_date=due_date,
+            is_published=True,
+        )
+        db.session.add(practice)
+        db.session.flush()
+
+        # Assign to all parent's students
+        for student in parent.students:
+            assigned = AssignedPractice(
+                student_id=student.id,
+                practice_id=practice.id,
+                assigned_date=datetime.utcnow(),
+            )
+            db.session.add(assigned)
+
+        db.session.commit()
+
+        flash("Assignment created. Now add questions to it.", "success")
+        return redirect(f"/homeschool/assignments/{practice.id}")
+
+    return render_template(
+        "homeschool_create_assignment.html",
+        parent=parent,
+        is_homeschool=True,
+    )
+
+
+@app.route("/homeschool/assignments/<int:practice_id>")
+def homeschool_assignment_overview(practice_id):
+    """View specific assignment details."""
+    parent_id = session.get("parent_id")
+    if not parent_id:
+        flash("Please log in as a parent.", "error")
+        return redirect("/parent/login")
+
+    parent = Parent.query.get(parent_id)
+    if not parent:
+        flash("Parent not found.", "error")
+        return redirect("/parent/login")
+
+    # Check if parent has homeschool plan
+    _, _, _, has_teacher_features = get_parent_plan_limits(parent)
+    if not has_teacher_features:
+        flash("Homeschool plan required for assignment features.", "error")
+        return redirect("/homeschool_dashboard")
+
+    practice = Practice.query.get_or_404(practice_id)
+
+    # Verify this assignment is for one of this parent's students
+    student_ids = [s.id for s in parent.students]
+    assigned_students = (
+        db.session.query(AssignedPractice)
+        .filter(
+            AssignedPractice.practice_id == practice_id,
+            AssignedPractice.student_id.in_(student_ids)
+        )
+        .all()
+    )
+
+    if not assigned_students:
+        flash("This assignment is not for your students.", "error")
+        return redirect("/homeschool/assignments")
+
+    questions = practice.questions or []
+
+    return render_template(
+        "homeschool_assignment_overview.html",
+        parent=parent,
+        assignment=practice,
+        questions=questions,
+        assigned_students=assigned_students,
+        is_homeschool=True,
+    )
+
+
 # ============================================================
 # PARENT - MESSAGING SYSTEM
 # ============================================================
