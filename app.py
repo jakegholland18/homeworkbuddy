@@ -3864,46 +3864,65 @@ def teacher_save_preview_assignment():
 @app.route("/teacher/generate_lesson_plan", methods=["POST"])
 def teacher_generate_lesson_plan():
     """Generate a six-section lesson plan and save to database."""
-    teacher = get_current_teacher()
-    if not teacher:
-        return jsonify({"error": "Not authenticated"}), 401
+    try:
+        # Check if admin mode or regular teacher
+        teacher = get_current_teacher()
+        if not teacher and is_admin():
+            # Get or create demo teacher account for admin mode
+            teacher = Teacher.query.filter_by(email=OWNER_EMAIL).first()
+            if not teacher:
+                teacher = Teacher(
+                    name="Demo Teacher (Admin)",
+                    email=OWNER_EMAIL,
+                    password="admin_demo"  # Placeholder, won't be used for login
+                )
+                db.session.add(teacher)
+                db.session.commit()
 
-    data = request.get_json() or {}
+        if not teacher:
+            return jsonify({"error": "Not authenticated"}), 401
 
-    subject = safe_text(data.get("subject", "terra_nova"), 50)
-    topic = safe_text(data.get("topic", ""), 500)
-    grade = safe_text(data.get("grade", "8"), 10)
-    character = safe_text(data.get("character", "everly"), 50)
+        data = request.get_json() or {}
 
-    if not topic:
-        return jsonify({"error": "Topic is required"}), 400
+        subject = safe_text(data.get("subject", "terra_nova"), 50)
+        topic = safe_text(data.get("topic", ""), 500)
+        grade = safe_text(data.get("grade", "8"), 10)
+        character = safe_text(data.get("character", "everly"), 50)
 
-    # Generate lesson plan using teacher_tools
-    lesson = generate_lesson_plan(
-        subject=subject,
-        topic=topic,
-        grade=grade,
-        character=character,
-    )
+        if not topic:
+            return jsonify({"error": "Topic is required"}), 400
 
-    # Save to database
-    lesson_plan = LessonPlan(
-        teacher_id=teacher.id,
-        title=f"{subject.replace('_', ' ').title()}: {topic}",
-        subject=subject,
-        topic=topic,
-        grade=grade,
-        sections_json=json.dumps(lesson.get("sections", {})),
-        full_text=lesson.get("raw", ""),
-    )
-    db.session.add(lesson_plan)
-    db.session.commit()
+        # Generate lesson plan using teacher_tools
+        lesson = generate_lesson_plan(
+            subject=subject,
+            topic=topic,
+            grade=grade,
+            character=character,
+        )
 
-    return jsonify({
-        "success": True,
-        "lesson_plan_id": lesson_plan.id,
-        "redirect_url": f"/teacher/lesson_plans/{lesson_plan.id}",
-    }), 201
+        # Save to database
+        lesson_plan = LessonPlan(
+            teacher_id=teacher.id,
+            title=f"{subject.replace('_', ' ').title()}: {topic}",
+            subject=subject,
+            topic=topic,
+            grade=grade,
+            sections_json=json.dumps(lesson.get("sections", {})),
+            full_text=lesson.get("raw", ""),
+        )
+        db.session.add(lesson_plan)
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "lesson_plan_id": lesson_plan.id,
+            "redirect_url": f"/teacher/lesson_plans/{lesson_plan.id}",
+        }), 201
+
+    except Exception as e:
+        app.logger.error(f"Error generating lesson plan: {str(e)}")
+        db.session.rollback()
+        return jsonify({"error": f"Failed to generate lesson plan: {str(e)}"}), 500
 
 # ============================================================
 # TEACHER - LESSON PLAN LIBRARY
