@@ -73,22 +73,29 @@
             justify-content: space-between;
             align-items: center;
             padding: 18px 36px;
-            background: linear-gradient(135deg, var(--glass-1), var(--glass-2));
-            border-bottom: 1px solid var(--border-soft);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, rgba(92, 107, 255, 0.15), rgba(0, 242, 255, 0.12));
+            border-bottom: 2px solid var(--border-mid);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 60px rgba(92, 107, 255, 0.1);
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
         .logo {
-            font-size: 1.4rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffffff, #00f2ff, #5c6bff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            animation: logoShimmer 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.4));
+        }
+
+        @keyframes logoShimmer {
+            0%, 100% { filter: brightness(1) drop-shadow(0 0 8px rgba(0, 242, 255, 0.4)); }
+            50% { filter: brightness(1.3) drop-shadow(0 0 12px rgba(0, 242, 255, 0.6)); }
         }
 
         .nav-links {
@@ -130,13 +137,20 @@
         .owner-pill {
             display: inline-block;
             margin-left: 8px;
-            padding: 4px 10px;
+            padding: 6px 14px;
             border-radius: 20px;
-            background: rgba(255, 213, 79, 0.2);
-            border: 1px solid var(--gold);
+            background: linear-gradient(135deg, rgba(255, 213, 79, 0.25), rgba(255, 159, 28, 0.2));
+            border: 2px solid var(--gold);
             font-size: 0.75rem;
             color: var(--gold);
-            font-weight: 600;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(255, 213, 79, 0.3);
+            animation: ownerGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes ownerGlow {
+            0%, 100% { box-shadow: 0 4px 12px rgba(255, 213, 79, 0.3); }
+            50% { box-shadow: 0 6px 20px rgba(255, 213, 79, 0.5); }
         }
 
         /* ======================== LAYOUT ======================== */
@@ -152,12 +166,38 @@
         }
 
         .card {
-            background: var(--glass-1);
-            border: 1px solid var(--border-soft);
+            background: linear-gradient(135deg, rgba(92, 107, 255, 0.12), rgba(0, 242, 255, 0.08));
+            border: 2px solid var(--border-mid);
             border-radius: 18px;
-            padding: 24px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 1px 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 28px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 1px 1px 0 rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(12px);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+            transform: rotate(45deg);
+            animation: cardShine 4s infinite;
+        }
+
+        @keyframes cardShine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 16px 50px rgba(0, 242, 255, 0.3), inset 1px 1px 0 rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
         }
 
         .card.full-width {
@@ -166,12 +206,20 @@
 
         .card h2 {
             margin: 0 0 8px;
-            font-size: 1.35rem;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #ffffff, #00f2ff, #5c6bff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            font-weight: 700;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+            animation: cardTitleGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes cardTitleGlow {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
         }
 
         .card small {
@@ -186,21 +234,24 @@
         }
 
         .class-item {
-            padding: 14px;
-            border-radius: 12px;
-            background: var(--glass-2);
-            border: 1px solid var(--border-soft);
+            padding: 16px 18px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(92, 107, 255, 0.08));
+            border: 2px solid var(--border-soft);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            margin-bottom: 14px;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            z-index: 1;
         }
 
         .class-item:hover {
-            background: var(--glass-1);
-            border-color: var(--border-mid);
-            transform: translateX(4px);
+            background: linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(92, 107, 255, 0.12));
+            border-color: var(--accent);
+            transform: translateX(6px);
+            box-shadow: 0 8px 24px rgba(0, 242, 255, 0.2);
         }
 
         .class-main {
@@ -242,22 +293,23 @@
             gap: 8px;
         }
 
-        input, select {
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid var(--border-soft);
-            background: rgba(0, 0, 0, 0.3);
+        input, select, textarea {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid var(--border-soft);
+            background: rgba(0, 0, 0, 0.4);
             color: var(--text);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-family: inherit;
             outline: none;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        input:focus, select:focus {
-            border-color: var(--border-mid);
-            box-shadow: 0 0 16px var(--shadow-soft);
-            background: rgba(0, 0, 0, 0.4);
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.3), 0 4px 16px var(--shadow-soft);
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-1px);
         }
 
         input::placeholder {
@@ -265,21 +317,41 @@
         }
 
         .btn {
-            padding: 10px 18px;
-            border-radius: 10px;
+            padding: 11px 20px;
+            border-radius: 12px;
             border: none;
-            background: linear-gradient(135deg, var(--primary), var(--primary-2));
+            background: linear-gradient(135deg, var(--primary), var(--accent));
             color: var(--text);
             font-size: 0.9rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 6px 16px var(--shadow-soft);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 6px 18px var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px var(--shadow-strong);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 28px var(--shadow-strong), 0 0 40px rgba(0, 242, 255, 0.3);
         }
 
         /* ======================== FLASH MESSAGES ======================== */
@@ -406,6 +478,111 @@
     {% endif %}
     {% endwith %}
 </div>
+
+<!-- ================= WELCOME SECTION ================= -->
+<div style="max-width: 1400px; margin: 30px auto 20px; padding: 0 20px; position: relative; z-index: 1;">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h1 style="font-size: 3rem; font-weight: 900; margin-bottom: 10px; background: linear-gradient(135deg, #ffffff, #00f2ff, #5c6bff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: titleShimmer 3s ease-in-out infinite;">
+            Teacher Dashboard
+        </h1>
+        <div style="font-size: 1.1rem; color: var(--muted); font-weight: 500;">
+            {% set hour = now().hour if now is defined else 12 %}
+            {% if hour < 12 %}
+                Good morning, {{ teacher.name }}! Ready to inspire young minds today? ☀️
+            {% elif hour < 17 %}
+                Good afternoon, {{ teacher.name }}! Keep making a difference! 🌟
+            {% else %}
+                Good evening, {{ teacher.name }}! You're doing amazing work! 🌙
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Quick Stats Overview -->
+    <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-top: 30px;">
+        <div class="stat-box-teacher">
+            <div style="font-size: 2rem; margin-bottom: 8px;">🏫</div>
+            <h3>Classes</h3>
+            <p>{{ classes|length }}</p>
+        </div>
+        <div class="stat-box-teacher">
+            <div style="font-size: 2rem; margin-bottom: 8px;">👥</div>
+            <h3>Students</h3>
+            <p>{% set total_students = namespace(count=0) %}{% for c in classes %}{% set total_students.count = total_students.count + c.students|length %}{% endfor %}{{ total_students.count }}</p>
+        </div>
+        <div class="stat-box-teacher">
+            <div style="font-size: 2rem; margin-bottom: 8px;">📬</div>
+            <h3>Messages</h3>
+            <p>{{ unread_messages }}</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes titleShimmer {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.3); }
+    }
+
+    .stat-box-teacher {
+        background: linear-gradient(135deg, rgba(92,107,255,0.15), rgba(0,242,255,0.08));
+        border: 2px solid rgba(118,131,255,0.4);
+        padding: 25px 40px;
+        border-radius: 18px;
+        backdrop-filter: blur(12px);
+        width: 200px;
+        text-align: center;
+        transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 8px 24px rgba(92,107,255,0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-box-teacher::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+        transform: rotate(45deg);
+        animation: statShine 3s infinite;
+    }
+
+    @keyframes statShine {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    .stat-box-teacher:hover {
+        transform: translateY(-6px) scale(1.03);
+        border-color: var(--accent);
+        box-shadow: 0 16px 40px rgba(0,242,255,0.4);
+    }
+
+    .stat-box-teacher h3 {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--muted-2);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 8px 0 4px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .stat-box-teacher p {
+        font-size: 2.2rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #ffffff, #00f2ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+</style>
 
 <!-- ================= MAIN LAYOUT ================= -->
 <div class="layout">
@@ -648,8 +825,8 @@
     </div>
 
     <!-- ============ TEACHER'S PET AI ASSISTANT ============ -->
-    <div class="card full-width">
-        <h2>🐾 Teacher's Pet — Your AI Assistant</h2>
+    <div class="card full-width" style="background: linear-gradient(135deg, rgba(132, 255, 0, 0.1), rgba(92, 107, 255, 0.08)); border-color: rgba(132, 255, 0, 0.3);">
+        <h2 style="background: linear-gradient(135deg, #84ff00, #00f2ff, #5c6bff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">🐾 Teacher's Pet — Your AI Assistant</h2>
         <small>Quick answers about CozmicLearning, teaching tips, and Biblical encouragement!</small>
 
         <div id="teachersPetMessages" class="chat-messages">
