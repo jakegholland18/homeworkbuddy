@@ -9,3 +9,7 @@ apt-get install -y tesseract-ocr
 
 # Install Python dependencies
 pip install -r requirements.txt
+
+# Run database migrations
+echo "Running database migrations..."
+python migrations/add_password_reset_tokens.py
