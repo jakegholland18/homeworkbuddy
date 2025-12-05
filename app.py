@@ -82,6 +82,21 @@ app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER', 'norep
 mail = Mail(app)
 
 # ============================================================
+# RATE LIMITING (FLASK-LIMITER)
+# ============================================================
+
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],  # Global default limits
+    storage_uri="memory://",  # Use memory storage (upgrade to Redis for production)
+    strategy="fixed-window"
+)
+
+# ============================================================
 # OWNER + ADMIN
 # ============================================================
 
@@ -2526,6 +2541,7 @@ def student_signup():
 
 
 @app.route("/student/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")  # Prevent brute force login attacks
 def student_login():
     init_user()
     if request.method == "POST":
@@ -2636,6 +2652,7 @@ def parent_signup():
 
 @csrf.exempt
 @app.route("/parent/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")  # Prevent brute force login attacks
 def parent_login():
     init_user()
     if request.method == "POST":
@@ -2724,6 +2741,7 @@ def teacher_signup():
 
 
 @app.route("/teacher/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")  # Prevent brute force login attacks
 def teacher_login():
     if request.method == "POST":
         email = safe_email(request.form.get("email", ""))
@@ -5113,6 +5131,7 @@ def choose_grade():
 
 
 @app.route("/ask-question")
+@limiter.limit("30 per hour")  # Limit AI question asking to 30 per hour
 def ask_question():
     init_user()
     subject = request.args.get("subject")
@@ -5494,6 +5513,7 @@ Rules:
 
 @app.route("/powergrid_submit", methods=["POST"])
 @csrf.exempt
+@limiter.limit("20 per hour")  # PowerGrid is computationally expensive
 def powergrid_submit():
     init_user()
 
@@ -5858,6 +5878,7 @@ def navigate_question():
 
 @app.route("/practice_step", methods=["POST"])
 @csrf.exempt
+@limiter.limit("100 per hour")  # Practice steps - reasonable limit for active learners
 def practice_step():
     init_user()
 
@@ -6403,6 +6424,7 @@ def parent_dashboard():
 # ============================================================
 
 @app.route("/homeschool/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")  # Prevent brute force login attacks
 def homeschool_login():
     """Dedicated login portal for homeschool users."""
     init_user()
@@ -6909,6 +6931,7 @@ def homeschool_assignment_overview(practice_id):
 
 @csrf.exempt
 @app.route("/homeschool/generate-lesson", methods=["POST"])
+@limiter.limit("10 per hour")  # Lesson generation is very expensive - strict limit
 def homeschool_generate_lesson():
     """Generate AI lesson plan for homeschool parent."""
     parent_id = session.get("parent_id")
@@ -7662,6 +7685,7 @@ def debug_teacher_id():
 # ============================================================
 
 @app.route("/forgot-password", methods=["GET", "POST"])
+@limiter.limit("5 per hour")  # Prevent password reset abuse
 def forgot_password():
     """Handle password reset requests."""
     if request.method == "POST":
@@ -7826,6 +7850,11 @@ def handle_exception(e):
 
     # Return 500 error page
     return render_template('errors/500.html', error=str(e)), 500
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    """Handle rate limit exceeded errors."""
+    return render_template('errors/429.html'), 429
 
 
 # ============================================================
