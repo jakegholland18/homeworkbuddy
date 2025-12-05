@@ -36,7 +36,7 @@ print(f"📁 Database exists: {os.path.exists(DB_PATH)}")
 
 from flask import (
     Flask, render_template, request, redirect, session,
-    flash, jsonify, send_file, abort
+    flash, jsonify, send_file, abort, make_response
 )
 from flask import got_request_exception
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -2933,14 +2933,19 @@ def teacher_dashboard():
         ).count()
 
     classes = teacher.classes or []
-    return render_template(
+    response = make_response(render_template(
         "teacher_dashboard.html",
         teacher=teacher,
         classes=classes,
         is_owner=is_owner(teacher),
         unread_messages=unread_messages,
         trial_days_remaining=trial_days_remaining,
-    )
+    ))
+    # Prevent caching to ensure layout updates are immediately visible
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @app.route("/teacher/settings", methods=["GET", "POST"])
