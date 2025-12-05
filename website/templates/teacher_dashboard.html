@@ -721,19 +721,19 @@
         <h2>Assign AI Questions</h2>
         <small>Generate differentiated questions and create an assignment.</small>
 
-        <form class="inline-form" id="assignQuestionsForm" style="flex-direction: column; gap: 12px; margin-top: 16px;">
+        <form class="inline-form" id="assignQuestionsForm" style="flex-direction: column; gap: 8px; margin-top: 12px;">
             <div>
-                <label for="assignTitle" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Assignment Title</label>
+                <label for="assignTitle" style="display: block; font-size: 0.7rem; color: var(--muted-2); margin-bottom: 2px; font-weight: 500;">Assignment Title</label>
                 <input type="text" id="assignTitle" placeholder="e.g., Photosynthesis Quiz" required>
             </div>
 
             <div>
-                <label for="assignTopic" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Topic (what should questions cover?)</label>
+                <label for="assignTopic" style="display: block; font-size: 0.7rem; color: var(--muted-2); margin-bottom: 2px; font-weight: 500;">Topic</label>
                 <input type="text" id="assignTopic" placeholder="e.g., Photosynthesis and cellular respiration" required>
             </div>
 
             <div>
-                <label for="assignClassId" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Assign to Class</label>
+                <label for="assignClassId" style="display: block; font-size: 0.7rem; color: var(--muted-2); margin-bottom: 2px; font-weight: 500;">Assign to Class</label>
                 <select id="assignClassId" required>
                     <option value="">Select class...</option>
                     {% for c in classes %}
@@ -743,7 +743,7 @@
             </div>
 
             <div>
-                <label for="assignSubject" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Subject Area</label>
+                <label for="assignSubject" style="display: block; font-size: 0.7rem; color: var(--muted-2); margin-bottom: 2px; font-weight: 500;">Subject Area</label>
                 <select id="assignSubject">
                     <option value="terra_nova">Terra Nova (General)</option>
                     <option value="num_forge">NumForge (Math)</option>
@@ -759,7 +759,7 @@
             </div>
 
             <div>
-                <label for="assignGradeLevel" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Grade Level (for question difficulty)</label>
+                <label for="assignGradeLevel" style="display: block; font-size: 0.7rem; color: var(--muted-2); margin-bottom: 2px; font-weight: 500;">Grade Level</label>
                 <select id="assignGradeLevel">
                     <option value="1">Grade 1</option>
                     <option value="2">Grade 2</option>
@@ -777,7 +777,7 @@
             </div>
 
             <div>
-                <label for="assignDiffMode" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Differentiation Mode (how to adapt difficulty)</label>
+                <label for="assignDiffMode" style="display: block; font-size: 0.7rem; color: var(--muted-2); margin-bottom: 2px; font-weight: 500;">Differentiation Mode</label>
                 <select id="assignDiffMode">
                     <option value="none">No Differentiation</option>
                     <option value="adaptive">Adaptive (adjusts to student performance)</option>
@@ -788,7 +788,7 @@
             </div>
 
             <div>
-                <label for="assignAbility" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Student Ability Level</label>
+                <label for="assignAbility" style="display: block; font-size: 0.7rem; color: var(--muted-2); margin-bottom: 2px; font-weight: 500;">Student Ability Level</label>
                 <select id="assignAbility">
                     <option value="on_level" selected>On Level</option>
                     <option value="struggling">Struggling (needs extra support)</option>
@@ -797,21 +797,20 @@
             </div>
 
             <div>
-                <label for="assignNumQuestions" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Number of Questions</label>
+                <label for="assignNumQuestions" style="display: block; font-size: 0.7rem; color: var(--muted-2); margin-bottom: 2px; font-weight: 500;">Number of Questions</label>
                 <input type="number" id="assignNumQuestions" placeholder="Number of questions" value="10" min="1" max="20">
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <div>
-                    <label for="assignOpenDate" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Open Date (when students can start)</label>
-                    <input type="datetime-local" id="assignOpenDate">
-                    <small style="color: var(--muted-3); font-size: 0.75rem; display: block; margin-top: 2px;">Leave blank to open immediately</small>
-                </div>
-                <div>
-                    <label for="assignDueDate" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Close Date (when assignment closes)</label>
-                    <input type="datetime-local" id="assignDueDate">
-                    <small style="color: var(--muted-3); font-size: 0.75rem; display: block; margin-top: 2px;">Leave blank for no deadline</small>
-                </div>
+            <div>
+                <label for="assignOpenDate" style="display: block; font-size: 0.7rem; color: var(--muted-2); margin-bottom: 2px; font-weight: 500;">Open Date</label>
+                <input type="datetime-local" id="assignOpenDate" style="margin-bottom: 8px;">
+                <small style="color: var(--muted-3); font-size: 0.65rem; display: block; margin-top: -6px; margin-bottom: 8px;">Leave blank to open immediately</small>
+            </div>
+
+            <div>
+                <label for="assignDueDate" style="display: block; font-size: 0.7rem; color: var(--muted-2); margin-bottom: 2px; font-weight: 500;">Close Date</label>
+                <input type="datetime-local" id="assignDueDate">
+                <small style="color: var(--muted-3); font-size: 0.65rem; display: block; margin-top: -6px;">Leave blank for no deadline</small>
             </div>
 
             <div style="display: flex; gap: 8px;">
