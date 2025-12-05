@@ -3800,9 +3800,11 @@ def teacher_preview_questions():
     """Generate AI questions and redirect to preview/edit page."""
     teacher = get_teacher_or_admin()
     if not teacher:
+        print("❌ [PREVIEW_QUESTIONS] Not authenticated")
         return jsonify({"error": "Not authenticated"}), 401
 
     data = request.get_json() or {}
+    print(f"✅ [PREVIEW_QUESTIONS] Received data: topic={data.get('topic')}, num_questions={data.get('num_questions')}")
 
     class_id = data.get("class_id")
     title = safe_text(data.get("title", ""), 200)
@@ -3828,6 +3830,7 @@ def teacher_preview_questions():
         if not topic:
             return jsonify({"error": "Topic is required for AI generation"}), 400
 
+        print(f"🔧 [PREVIEW_QUESTIONS] Generating {num_questions} AI questions for topic: {topic}")
         payload = assign_questions(
             subject=subject,
             topic=topic,
@@ -3838,6 +3841,7 @@ def teacher_preview_questions():
             num_questions=num_questions,
         )
         questions = payload.get("questions", [])
+        print(f"✅ [PREVIEW_QUESTIONS] Generated {len(questions)} questions")
 
     # Store in session for preview/edit page
     session["preview_assignment"] = {
@@ -3853,6 +3857,7 @@ def teacher_preview_questions():
         "open_date": open_date,
         "due_date": due_date,
     }
+    print(f"💾 [PREVIEW_QUESTIONS] Stored preview data in session with {len(questions)} questions")
 
     return jsonify({
         "success": True,
@@ -3865,13 +3870,18 @@ def teacher_preview_assignment():
     """Show preview/edit page for generated assignment."""
     teacher = get_teacher_or_admin()
     if not teacher:
+        print("❌ [PREVIEW_ASSIGNMENT] Not authenticated, redirecting to login")
         return redirect("/teacher/login")
 
     # Get preview data from session
     preview_data = session.get("preview_assignment")
     if not preview_data:
+        print("❌ [PREVIEW_ASSIGNMENT] No session data found - redirecting to dashboard")
+        print(f"   Session keys: {list(session.keys())}")
         flash("No preview data found. Please generate questions first.", "error")
         return redirect("/teacher/dashboard")
+
+    print(f"✅ [PREVIEW_ASSIGNMENT] Found session data with {len(preview_data.get('questions', []))} questions")
 
     # Get classes for dropdown (if admin, show all classes)
     if is_admin() or (hasattr(teacher, '__class__') and teacher.__class__.__name__ == 'AdminTeacher'):
