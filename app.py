@@ -297,6 +297,50 @@ with app.app_context():
         else:
             print("✅ Database schema up to date: open_date column exists")
 
+        # ============================================================
+        # DATABASE MIGRATION: Add password reset tokens
+        # ============================================================
+
+        # Check which tables exist
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        existing_tables = [row[0] for row in cursor.fetchall()]
+
+        # Migrate students table
+        if 'students' in existing_tables:
+            cursor.execute("PRAGMA table_info(students)")
+            student_columns = [col[1] for col in cursor.fetchall()]
+
+            if 'reset_token' not in student_columns:
+                print("🔧 Adding password reset columns to students table...")
+                cursor.execute("ALTER TABLE students ADD COLUMN reset_token VARCHAR(255)")
+                cursor.execute("ALTER TABLE students ADD COLUMN reset_token_expires DATETIME")
+                conn.commit()
+                print("✅ Students table updated with password reset columns")
+
+        # Migrate parents table
+        if 'parents' in existing_tables:
+            cursor.execute("PRAGMA table_info(parents)")
+            parent_columns = [col[1] for col in cursor.fetchall()]
+
+            if 'reset_token' not in parent_columns:
+                print("🔧 Adding password reset columns to parents table...")
+                cursor.execute("ALTER TABLE parents ADD COLUMN reset_token VARCHAR(255)")
+                cursor.execute("ALTER TABLE parents ADD COLUMN reset_token_expires DATETIME")
+                conn.commit()
+                print("✅ Parents table updated with password reset columns")
+
+        # Migrate teachers table
+        if 'teachers' in existing_tables:
+            cursor.execute("PRAGMA table_info(teachers)")
+            teacher_columns = [col[1] for col in cursor.fetchall()]
+
+            if 'reset_token' not in teacher_columns:
+                print("🔧 Adding password reset columns to teachers table...")
+                cursor.execute("ALTER TABLE teachers ADD COLUMN reset_token VARCHAR(255)")
+                cursor.execute("ALTER TABLE teachers ADD COLUMN reset_token_expires DATETIME")
+                conn.commit()
+                print("✅ Teachers table updated with password reset columns")
+
         conn.close()
     except Exception as e:
         print(f"⚠️ Migration warning: {e}")
