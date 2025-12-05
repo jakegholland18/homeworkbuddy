@@ -7658,6 +7658,38 @@ def debug_teacher_id():
     return f"Your teacher ID is: {t.id}"
 
 # ============================================================
+# ERROR HANDLERS
+# ============================================================
+
+@app.errorhandler(404)
+def page_not_found(e):
+    """Handle 404 errors with a friendly page."""
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(403)
+def forbidden(e):
+    """Handle 403 errors (forbidden access)."""
+    return render_template('errors/403.html'), 403
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    """Handle 500 errors (server crashes)."""
+    app.logger.error(f"500 Error: {str(e)}")
+    app.logger.error(traceback.format_exc())
+    return render_template('errors/500.html'), 500
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    """Catch-all for any unhandled exceptions."""
+    # Log the full error
+    app.logger.error(f"Unhandled exception: {str(e)}")
+    app.logger.error(traceback.format_exc())
+
+    # Return 500 error page
+    return render_template('errors/500.html', error=str(e)), 500
+
+
+# ============================================================
 # MAIN ENTRY (LOCAL DEV)
 # ============================================================
 

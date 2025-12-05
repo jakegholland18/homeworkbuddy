@@ -1,0 +1,138 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+    .error-container {
+        max-width: 800px;
+        margin: 80px auto;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .error-code {
+        font-size: 8rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #ff3838, #ff6b9d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0;
+        line-height: 1;
+        animation: errorShake 0.5s ease-in-out infinite;
+    }
+
+    @keyframes errorShake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    .error-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--text);
+        margin: 20px 0;
+    }
+
+    .error-message {
+        font-size: 1.2rem;
+        color: var(--muted);
+        margin: 20px 0 40px;
+        line-height: 1.6;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .error-btn {
+        padding: 14px 28px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white;
+        text-decoration: none;
+        font-weight: 700;
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 6px 18px var(--shadow-soft);
+    }
+
+    .error-btn:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 10px 28px var(--shadow-strong);
+    }
+
+    .error-btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid var(--border-mid);
+    }
+
+    .error-technical {
+        margin-top: 40px;
+        padding: 20px;
+        background: rgba(255, 56, 56, 0.1);
+        border: 1px solid rgba(255, 56, 56, 0.3);
+        border-radius: 12px;
+        font-size: 0.9rem;
+        color: var(--muted-3);
+        text-align: left;
+        display: none;
+    }
+
+    .show-technical-btn {
+        margin-top: 20px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-soft);
+        border-radius: 8px;
+        color: var(--muted-3);
+        cursor: pointer;
+        font-size: 0.85rem;
+    }
+</style>
+
+<div class="error-container">
+    <div class="error-code">500</div>
+    <h1 class="error-title">🛸 Houston, We Have a Problem!</h1>
+    <p class="error-message">
+        Our spaceship hit a cosmic glitch and something went wrong on our end.<br>
+        Don't worry—our engineers are already working on it!
+    </p>
+
+    <div class="error-actions">
+        <a href="javascript:window.location.reload()" class="error-btn">
+            🔄 Try Again
+        </a>
+        <a href="/" class="error-btn error-btn-secondary">
+            🏠 Return Home
+        </a>
+        {% if session.get('student_id') %}
+            <a href="/dashboard" class="error-btn error-btn-secondary">
+                📊 Dashboard
+            </a>
+        {% elif session.get('parent_id') %}
+            <a href="/parent_dashboard" class="error-btn error-btn-secondary">
+                📘 Parent Dashboard
+            </a>
+        {% elif session.get('teacher_id') %}
+            <a href="/teacher/dashboard" class="error-btn error-btn-secondary">
+                📘 Teacher Dashboard
+            </a>
+        {% endif %}
+    </div>
+
+    <button class="show-technical-btn" onclick="document.getElementById('technical-details').style.display='block'; this.style.display='none';">
+        🔍 Show Technical Details (for debugging)
+    </button>
+
+    {% if error %}
+    <div id="technical-details" class="error-technical">
+        <strong>Error Details:</strong><br>
+        {{ error }}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}
