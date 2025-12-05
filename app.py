@@ -3810,20 +3810,29 @@ def teacher_preview_questions():
     num_questions = data.get("num_questions", 10)
     open_date = data.get("open_date")
     due_date = data.get("due_date")
+    manual_questions = data.get("manual_questions")  # For manual assignment creation
 
-    if not topic:
-        return jsonify({"error": "Topic is required"}), 400
+    # Check if this is a manual assignment (blank questions)
+    if manual_questions:
+        questions = manual_questions
+    elif num_questions == 0:
+        # num_questions=0 signals manual mode but questions weren't provided
+        return jsonify({"error": "No questions provided for manual assignment"}), 400
+    else:
+        # Generate AI questions
+        if not topic:
+            return jsonify({"error": "Topic is required for AI generation"}), 400
 
-    # Generate questions using teacher_tools.assign_questions
-    payload = assign_questions(
-        subject=subject,
-        topic=topic,
-        grade=grade,
-        character=character,
-        differentiation_mode=differentiation_mode,
-        student_ability=student_ability,
-        num_questions=num_questions,
-    )
+        payload = assign_questions(
+            subject=subject,
+            topic=topic,
+            grade=grade,
+            character=character,
+            differentiation_mode=differentiation_mode,
+            student_ability=student_ability,
+            num_questions=num_questions,
+        )
+        questions = payload.get("questions", [])
 
     # Store in session for preview/edit page
     session["preview_assignment"] = {
@@ -3835,7 +3844,7 @@ def teacher_preview_questions():
         "character": character,
         "differentiation_mode": differentiation_mode,
         "student_ability": student_ability,
-        "questions": payload.get("questions", []),
+        "questions": questions,
         "open_date": open_date,
         "due_date": due_date,
     }

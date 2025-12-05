@@ -782,6 +782,63 @@
         </div>
     </div>
 
+    <!-- ============ CREATE MANUAL ASSIGNMENT ============ -->
+    <div class="card">
+        <h2>Create Manual Assignment</h2>
+        <small>Write your own questions from scratch with full control.</small>
+
+        <form class="inline-form" id="manualAssignmentForm" style="flex-direction: column; gap: 12px; margin-top: 16px;">
+            <div>
+                <label for="manualTitle" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Assignment Title</label>
+                <input type="text" id="manualTitle" placeholder="e.g., Chapter 5 Review" required>
+            </div>
+
+            <div>
+                <label for="manualClassId" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Assign to Class</label>
+                <select id="manualClassId" required>
+                    <option value="">Select class...</option>
+                    {% for c in classes %}
+                    <option value="{{ c.id }}">{{ c.class_name }} (Grade {{ c.grade_level or "N/A" }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label for="manualSubject" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Subject Area</label>
+                <select id="manualSubject">
+                    <option value="terra_nova">Terra Nova (General)</option>
+                    <option value="num_forge">NumForge (Math)</option>
+                    <option value="atom_sphere">AtomSphere (Science)</option>
+                    <option value="ink_haven">InkHaven (Writing)</option>
+                    <option value="faith_realm">FaithRealm (Bible)</option>
+                    <option value="chrono_core">ChronoCore (History)</option>
+                    <option value="truth_forge">TruthForge (Apologetics)</option>
+                    <option value="word_weaver">WordWeaver (Language Arts)</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="manualNumQuestions" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Number of Blank Questions</label>
+                <input type="number" id="manualNumQuestions" placeholder="How many questions?" value="5" min="1" max="20">
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                    <label for="manualOpenDate" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Open Date (optional)</label>
+                    <input type="datetime-local" id="manualOpenDate">
+                </div>
+                <div>
+                    <label for="manualDueDate" style="display: block; font-size: 0.85rem; color: var(--muted-2); margin-bottom: 4px; font-weight: 500;">Due Date (optional)</label>
+                    <input type="datetime-local" id="manualDueDate">
+                </div>
+            </div>
+
+            <button class="btn" type="button" onclick="createManualAssignment()">✏️ Create Blank Assignment</button>
+        </form>
+
+        <div id="manualAssignmentResult" style="margin-top: 12px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 8px; font-size: 0.85rem; color: var(--muted); display: none;"></div>
+    </div>
+
     <!-- ============ GENERATE LESSON PLAN ============ -->
     <div class="card">
         <h2>Generate Lesson Plan</h2>
@@ -1117,6 +1174,76 @@ async function loadReport(){
     const sid = parseInt(document.getElementById('reportStudentId').value,10);
     const res = await fetch(`/teacher/tools/report/${sid}`, { credentials: 'same-origin' });
     document.getElementById('reportResult').textContent = JSON.stringify(await res.json(), null, 2);
+}
+
+function createManualAssignment() {
+    const title = document.getElementById('manualTitle').value.trim();
+    const classId = document.getElementById('manualClassId').value;
+    const subject = document.getElementById('manualSubject').value;
+    const numQuestions = parseInt(document.getElementById('manualNumQuestions').value || '5', 10);
+    const openDate = document.getElementById('manualOpenDate').value || null;
+    const dueDate = document.getElementById('manualDueDate').value || null;
+
+    const resultDiv = document.getElementById('manualAssignmentResult');
+
+    if (!title) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<span style="color: var(--warning);">⚠️ Please enter an assignment title</span>';
+        return;
+    }
+
+    if (!classId) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<span style="color: var(--warning);">⚠️ Please select a class</span>';
+        return;
+    }
+
+    // Create blank questions array
+    const questions = [];
+    for (let i = 0; i < numQuestions; i++) {
+        questions.push({
+            prompt: '',
+            type: 'multiple_choice',
+            choices: ['', '', '', ''],
+            expected: '',
+            explanation: ''
+        });
+    }
+
+    // Store in session and redirect to preview
+    fetch('/teacher/preview_questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            class_id: classId,
+            title: title,
+            subject: subject,
+            topic: 'Manual Assignment',  // Placeholder topic
+            grade: '8',  // Default grade
+            character: 'everly',
+            differentiation_mode: 'none',
+            student_ability: 'on_level',
+            num_questions: 0,  // Signal to skip AI generation
+            open_date: openDate,
+            due_date: dueDate,
+            manual_questions: questions  // Pass blank questions directly
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.redirect) {
+            window.location.href = data.redirect;
+        } else {
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<span style="color: var(--warning);">⚠️ ${data.error || 'Failed to create assignment'}</span>`;
+        }
+    })
+    .catch(error => {
+        console.error('Manual assignment error:', error);
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<span style="color: var(--warning);">⚠️ Network error. Please try again.</span>';
+    });
 }
 </script>
 </html>
