@@ -2,8 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>CozmicLearning – Teacher Dashboard</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -533,7 +536,7 @@
 <div style="max-width: 1400px; margin: 30px auto 20px; padding: 0 20px; position: relative; z-index: 1;">
     <div style="text-align: center; margin-bottom: 20px;">
         <h1 style="font-size: 3rem; font-weight: 900; margin-bottom: 10px; background: linear-gradient(135deg, #ffffff, #00f2ff, #5c6bff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: titleShimmer 3s ease-in-out infinite;">
-            Teacher Dashboard
+            Teacher Dashboard <span style="font-size: 0.5rem; color: #4facfe; opacity: 0.7;">[v2]</span>
         </h1>
         <div style="font-size: 1.1rem; color: var(--muted); font-weight: 500;">
             {% set hour = now().hour if now is defined else 12 %}
