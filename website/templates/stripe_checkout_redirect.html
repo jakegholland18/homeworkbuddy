@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting to Checkout...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .loading-container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="spinner"></div>
+        <h2>Setting up your free trial...</h2>
+        <p>You'll be redirected to enter your payment details.</p>
+        <p>Don't worry - you won't be charged until your 14-day trial ends!</p>
+    </div>
+
+    <form id="checkoutForm" action="/create-checkout-session" method="POST" style="display:none;">
+        <input type="hidden" name="role" value="{{ role }}">
+        <input type="hidden" name="plan" value="{{ plan }}">
+        <input type="hidden" name="billing" value="{{ billing }}">
+        <input type="hidden" name="user_id" value="{{ user_id }}">
+        <input type="hidden" name="trial_days" value="{{ trial_days }}">
+    </form>
+
+    <script>
+        // Auto-submit form after 2 seconds
+        setTimeout(function() {
+            document.getElementById('checkoutForm').submit();
+        }, 2000);
+    </script>
+</body>
+</html>

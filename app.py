@@ -2728,6 +2728,14 @@ def create_checkout_session():
             flash(f"Invalid plan configuration: {role} {plan} {billing}", "error")
             return redirect(f"/trial_expired?role={role}")
         
+        # Check if this is a new signup (with trial)
+        trial_days = request.form.get("trial_days")
+
+        subscription_data = {}
+        if trial_days:
+            # Add trial period (card collected but not charged until trial ends)
+            subscription_data['trial_period_days'] = int(trial_days)
+
         # Create Stripe checkout session
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -2736,6 +2744,7 @@ def create_checkout_session():
                 'quantity': 1,
             }],
             mode='subscription',
+            subscription_data=subscription_data if subscription_data else None,
             success_url=request.host_url.rstrip('/') + f'/subscription-success?session_id={{CHECKOUT_SESSION_ID}}&role={role}&user_id={user_id}',
             cancel_url=request.host_url.rstrip('/') + f'/trial_expired?role={role}',
             client_reference_id=f"{role}:{user_id}",  # Track which user is subscribing
@@ -2744,6 +2753,7 @@ def create_checkout_session():
                 'user_id': user_id,
                 'plan': plan,
                 'billing': billing,
+                'trial_days': trial_days or '0',
             }
         )
         
@@ -2872,9 +2882,19 @@ def handle_checkout_completed(session_obj):
 
         if user:
             user.subscription_active = True
-            user.trial_end = None
             user.stripe_customer_id = customer_id  # Save Stripe customer ID
             user.stripe_subscription_id = subscription_id  # Save Stripe subscription ID
+
+            # Check if this subscription has a trial
+            trial_days = metadata.get('trial_days')
+            if trial_days and int(trial_days) > 0:
+                # Start trial period
+                user.trial_start = datetime.utcnow()
+                user.trial_end = user.trial_start + timedelta(days=int(trial_days))
+                logging.info(f"Started {trial_days}-day trial for {role} {user_id}")
+            else:
+                # No trial - subscription is immediately active
+                user.trial_end = None
 
             success, error = safe_commit()
             if success:
@@ -3257,13 +3277,14 @@ def student_signup():
             welcome_msg = f"Welcome to CozmicLearning, {name}! Your account is linked to {parent.name}."
         else:
             # Standalone student signup (independent account)
-            trial_start = datetime.utcnow()
-            trial_end = trial_start + timedelta(days=7)
-            subscription_active = True  # Trial is active
+            # Don't start trial yet - will start after Stripe checkout
+            trial_start = None
+            trial_end = None
+            subscription_active = False  # Not active until Stripe checkout completes
             student_plan = plan
             student_billing = billing
             parent_id = None
-            welcome_msg = f"Welcome to CozmicLearning, {name}! Your 7-day free trial has started."
+            welcome_msg = f"Welcome to CozmicLearning, {name}!"
 
         # Hash password for secure storage
         password_hash = generate_password_hash(password)
@@ -3290,6 +3311,19 @@ def student_signup():
         session["student_email"] = email
 
         flash(welcome_msg, "info")
+
+        # For standalone students, redirect to Stripe checkout with 14-day trial
+        if signup_mode != "parent_linked":
+            return render_template(
+                "stripe_checkout_redirect.html",
+                role="student",
+                plan=student_plan,
+                billing=student_billing,
+                user_id=new_student.id,
+                trial_days=14
+            )
+
+        # Parent-linked students go straight to dashboard
         return redirect("/dashboard")
 
     return render_template("student_signup.html", selected_plan=selected_plan, selected_billing=selected_billing)
