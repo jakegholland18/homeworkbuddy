@@ -75,25 +75,25 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 18px 36px;
+            padding: 12px 28px;
             background: linear-gradient(135deg, rgba(92, 107, 255, 0.15), rgba(0, 242, 255, 0.12));
             border-bottom: 2px solid var(--border-mid);
             backdrop-filter: blur(12px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 60px rgba(92, 107, 255, 0.1);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3), 0 0 40px rgba(92, 107, 255, 0.1);
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
         .logo {
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             font-weight: 900;
             background: linear-gradient(135deg, #ffffff, #00f2ff, #5c6bff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             animation: logoShimmer 3s ease-in-out infinite;
-            filter: drop-shadow(0 0 8px rgba(0, 242, 255, 0.4));
+            filter: drop-shadow(0 0 6px rgba(0, 242, 255, 0.4));
         }
 
         @keyframes logoShimmer {
@@ -103,14 +103,14 @@
 
         .nav-links {
             display: flex;
-            gap: 24px;
-            margin-left: 40px;
+            gap: 16px;
+            margin-left: 24px;
         }
 
         .nav-links a {
             color: var(--muted);
             text-decoration: none;
-            font-size: 0.96rem;
+            font-size: 0.88rem;
             font-weight: 500;
             transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
@@ -159,10 +159,10 @@
         /* ======================== LAYOUT ======================== */
         .layout {
             max-width: 900px;
-            margin: 20px auto 60px;
+            margin: 10px auto 40px;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 10px;
             padding: 0 20px;
             position: relative;
             z-index: 1;
@@ -171,9 +171,9 @@
         .card {
             background: linear-gradient(135deg, rgba(92, 107, 255, 0.12), rgba(0, 242, 255, 0.08));
             border: 2px solid var(--border-mid);
-            border-radius: 16px;
-            padding: 14px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 1px 1px 0 rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 1px 1px 0 rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(12px);
             transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
@@ -534,37 +534,37 @@
 </div>
 
 <!-- ================= WELCOME SECTION ================= -->
-<div style="max-width: 1400px; margin: 30px auto 20px; padding: 0 20px; position: relative; z-index: 1;">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h1 style="font-size: 3rem; font-weight: 900; margin-bottom: 10px; background: linear-gradient(135deg, #ffffff, #00f2ff, #5c6bff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: titleShimmer 3s ease-in-out infinite;">
-            Teacher Dashboard <span style="font-size: 1rem; color: #00ff00; background: rgba(0,255,0,0.2); padding: 4px 8px; border-radius: 4px; font-weight: bold;">✓ UPDATED</span>
+<div style="max-width: 1400px; margin: 15px auto 10px; padding: 0 20px; position: relative; z-index: 1;">
+    <div style="text-align: center; margin-bottom: 12px;">
+        <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; background: linear-gradient(135deg, #ffffff, #00f2ff, #5c6bff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+            Teacher Dashboard
         </h1>
-        <div style="font-size: 1.1rem; color: var(--muted); font-weight: 500;">
+        <div style="font-size: 0.9rem; color: var(--muted-3); font-weight: 500;">
             {% set hour = now().hour if now is defined else 12 %}
             {% if hour < 12 %}
-                Good morning, {{ teacher.name }}! Ready to inspire young minds today? ☀️
+                Good morning, {{ teacher.name }}! ☀️
             {% elif hour < 17 %}
-                Good afternoon, {{ teacher.name }}! Keep making a difference! 🌟
+                Good afternoon, {{ teacher.name }}! 🌟
             {% else %}
-                Good evening, {{ teacher.name }}! You're doing amazing work! 🌙
+                Good evening, {{ teacher.name }}! 🌙
             {% endif %}
         </div>
     </div>
 
     <!-- Quick Stats Overview -->
-    <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; margin-top: 30px;">
+    <div style="display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-top: 16px;">
         <div class="stat-box-teacher">
-            <div style="font-size: 2rem; margin-bottom: 8px;">🏫</div>
+            <div style="font-size: 1.5rem; margin-bottom: 4px;">🏫</div>
             <h3>Classes</h3>
             <p>{{ classes|length }}</p>
         </div>
         <div class="stat-box-teacher">
-            <div style="font-size: 2rem; margin-bottom: 8px;">👥</div>
+            <div style="font-size: 1.5rem; margin-bottom: 4px;">👥</div>
             <h3>Students</h3>
             <p>{% set total_students = namespace(count=0) %}{% for c in classes %}{% set total_students.count = total_students.count + c.students|length %}{% endfor %}{{ total_students.count }}</p>
         </div>
         <div class="stat-box-teacher">
-            <div style="font-size: 2rem; margin-bottom: 8px;">📬</div>
+            <div style="font-size: 1.5rem; margin-bottom: 4px;">📬</div>
             <h3>Messages</h3>
             <p>{{ unread_messages }}</p>
         </div>
@@ -580,13 +580,13 @@
     .stat-box-teacher {
         background: linear-gradient(135deg, rgba(92,107,255,0.15), rgba(0,242,255,0.08));
         border: 2px solid rgba(118,131,255,0.4);
-        padding: 25px 40px;
-        border-radius: 18px;
+        padding: 14px 24px;
+        border-radius: 12px;
         backdrop-filter: blur(12px);
-        width: 200px;
+        width: 140px;
         text-align: center;
         transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-        box-shadow: 0 8px 24px rgba(92,107,255,0.2);
+        box-shadow: 0 6px 16px rgba(92,107,255,0.2);
         position: relative;
         overflow: hidden;
     }
@@ -615,18 +615,18 @@
     }
 
     .stat-box-teacher h3 {
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         font-weight: 700;
         color: var(--muted-2);
         text-transform: uppercase;
-        letter-spacing: 1px;
-        margin: 8px 0 4px;
+        letter-spacing: 0.5px;
+        margin: 4px 0 2px;
         position: relative;
         z-index: 1;
     }
 
     .stat-box-teacher p {
-        font-size: 2.2rem;
+        font-size: 1.6rem;
         font-weight: 900;
         background: linear-gradient(135deg, #ffffff, #00f2ff);
         -webkit-background-clip: text;
