@@ -1982,10 +1982,11 @@ def admin_moderation_stats():
         })
     
     # Students with most flagged content
+    from sqlalchemy import case
     student_flags = db.session.query(
         QuestionLog.student_id,
         func.count(QuestionLog.id).label('flagged_count'),
-        func.sum(func.case([(QuestionLog.severity == 'high', 1)], else_=0)).label('high_count'),
+        func.sum(case((QuestionLog.severity == 'high', 1), else_=0)).label('high_count'),
         func.max(QuestionLog.created_at).label('last_flagged')
     ).filter(
         QuestionLog.created_at >= start_date,
