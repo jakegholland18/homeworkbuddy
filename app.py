@@ -4527,20 +4527,7 @@ def teacher_save_preview_assignment():
 def teacher_generate_lesson_plan():
     """Generate a six-section lesson plan and save to database."""
     try:
-        # Check if user is a parent/homeschool account - redirect to homeschool lesson generation
-        if session.get("parent_id"):
-            parent_id = session.get("parent_id")
-            parent = Parent.query.get(parent_id)
-            if parent:
-                _, _, _, has_teacher_features = get_parent_plan_limits(parent)
-                if has_teacher_features:
-                    # This is a homeschool account, use homeschool lesson plan endpoint
-                    return jsonify({
-                        "error": "Please use the homeschool dashboard to create lesson plans",
-                        "redirect": "/homeschool/dashboard"
-                    }), 403
-
-        # Check if admin mode or regular teacher
+        # Check admin mode FIRST before parent detection
         teacher = get_current_teacher()
         if not teacher and is_admin():
             # Get or create demo teacher account for admin mode
@@ -4553,6 +4540,19 @@ def teacher_generate_lesson_plan():
                 )
                 db.session.add(teacher)
                 db.session.commit()
+
+        # If not admin and not teacher, check if parent/homeschool account
+        if not teacher and session.get("parent_id"):
+            parent_id = session.get("parent_id")
+            parent = Parent.query.get(parent_id)
+            if parent:
+                _, _, _, has_teacher_features = get_parent_plan_limits(parent)
+                if has_teacher_features:
+                    # This is a homeschool account, use homeschool lesson plan endpoint
+                    return jsonify({
+                        "error": "Please use the homeschool dashboard to create lesson plans",
+                        "redirect": "/homeschool/dashboard"
+                    }), 403
 
         if not teacher:
             return jsonify({"error": "Not authenticated"}), 401
@@ -4606,8 +4606,22 @@ def teacher_generate_lesson_plan():
 @app.route("/teacher/lesson_plans")
 def teacher_lesson_plans():
     """View all saved lesson plans for the logged-in teacher."""
-    # Check if user is a parent/homeschool account - redirect to appropriate dashboard
-    if session.get("parent_id"):
+    # Check admin mode FIRST before parent detection
+    teacher = get_current_teacher()
+    if not teacher and is_admin():
+        # Get or create demo teacher account for admin mode
+        teacher = Teacher.query.filter_by(email=OWNER_EMAIL).first()
+        if not teacher:
+            teacher = Teacher(
+                name="Demo Teacher (Admin)",
+                email=OWNER_EMAIL,
+                password="admin_demo"
+            )
+            db.session.add(teacher)
+            db.session.commit()
+
+    # If not admin and not teacher, check if parent/homeschool account
+    if not teacher and session.get("parent_id"):
         parent_id = session.get("parent_id")
         parent = Parent.query.get(parent_id)
         if parent:
@@ -4619,7 +4633,6 @@ def teacher_lesson_plans():
                 # Regular parent - redirect to parent lesson plans
                 return redirect("/parent/lesson-plans")
 
-    teacher = get_current_teacher()
     if not teacher:
         return redirect("/teacher/login")
 
