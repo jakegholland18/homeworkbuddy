@@ -3312,7 +3312,7 @@ def student_signup():
 
         flash(welcome_msg, "info")
 
-        # For standalone students, redirect to Stripe checkout with 14-day trial
+        # For standalone students, redirect to Stripe checkout with 7-day trial
         if signup_mode != "parent_linked":
             return render_template(
                 "stripe_checkout_redirect.html",
@@ -3320,7 +3320,7 @@ def student_signup():
                 plan=student_plan,
                 billing=student_billing,
                 user_id=new_student.id,
-                trial_days=14
+                trial_days=7
             )
 
         # Parent-linked students go straight to dashboard
