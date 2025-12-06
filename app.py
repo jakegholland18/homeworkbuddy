@@ -2910,6 +2910,166 @@ def handle_payment_failed(invoice):
         logging.error(f"Error in handle_payment_failed: {e}")
 
 
+# ============================================================
+# SUBSCRIPTION CANCELLATION ROUTES
+# ============================================================
+
+@app.route("/student/cancel-subscription", methods=["GET", "POST"])
+def student_cancel_subscription():
+    """Cancel student subscription"""
+    if "student_id" not in session:
+        return redirect("/student/login")
+
+    student_id = session["student_id"]
+    student = Student.query.get(student_id)
+
+    if not student:
+        flash("Student not found.", "error")
+        return redirect("/student/dashboard")
+
+    if request.method == "POST":
+        # User confirmed cancellation
+        reason = request.form.get("reason", "No reason provided")
+        feedback = request.form.get("feedback", "")
+
+        # Log cancellation
+        app.logger.info(f"Student {student_id} canceled subscription. Reason: {reason}. Feedback: {feedback}")
+
+        # Deactivate subscription
+        student.subscription_active = False
+        student.plan = "free"
+
+        success, error = safe_commit()
+
+        if success:
+            flash("Your subscription has been canceled. You now have a free account.", "info")
+            return redirect("/student/dashboard")
+        else:
+            flash("Error canceling subscription. Please contact support.", "error")
+            return redirect("/student/cancel-subscription")
+
+    return render_template("cancel_subscription.html",
+                         user_type="student",
+                         user=student)
+
+
+@app.route("/parent/cancel-subscription", methods=["GET", "POST"])
+def parent_cancel_subscription():
+    """Cancel parent subscription"""
+    if "parent_id" not in session:
+        return redirect("/parent/login")
+
+    parent_id = session["parent_id"]
+    parent = Parent.query.get(parent_id)
+
+    if not parent:
+        flash("Parent not found.", "error")
+        return redirect("/parent/dashboard")
+
+    if request.method == "POST":
+        # User confirmed cancellation
+        reason = request.form.get("reason", "No reason provided")
+        feedback = request.form.get("feedback", "")
+
+        # Log cancellation
+        app.logger.info(f"Parent {parent_id} canceled subscription. Reason: {reason}. Feedback: {feedback}")
+
+        # Deactivate subscription
+        parent.subscription_active = False
+        parent.plan = "free"
+
+        success, error = safe_commit()
+
+        if success:
+            flash("Your subscription has been canceled. You now have a free account.", "info")
+            return redirect("/parent/dashboard")
+        else:
+            flash("Error canceling subscription. Please contact support.", "error")
+            return redirect("/parent/cancel-subscription")
+
+    return render_template("cancel_subscription.html",
+                         user_type="parent",
+                         user=parent)
+
+
+@app.route("/teacher/cancel-subscription", methods=["GET", "POST"])
+def teacher_cancel_subscription():
+    """Cancel teacher subscription"""
+    if "teacher_id" not in session:
+        return redirect("/teacher/login")
+
+    teacher_id = session["teacher_id"]
+    teacher = Teacher.query.get(teacher_id)
+
+    if not teacher:
+        flash("Teacher not found.", "error")
+        return redirect("/teacher/dashboard")
+
+    if request.method == "POST":
+        # User confirmed cancellation
+        reason = request.form.get("reason", "No reason provided")
+        feedback = request.form.get("feedback", "")
+
+        # Log cancellation
+        app.logger.info(f"Teacher {teacher_id} canceled subscription. Reason: {reason}. Feedback: {feedback}")
+
+        # Deactivate subscription
+        teacher.subscription_active = False
+        teacher.plan = "free"
+
+        success, error = safe_commit()
+
+        if success:
+            flash("Your subscription has been canceled. You now have a free account.", "info")
+            return redirect("/teacher/dashboard")
+        else:
+            flash("Error canceling subscription. Please contact support.", "error")
+            return redirect("/teacher/cancel-subscription")
+
+    return render_template("cancel_subscription.html",
+                         user_type="teacher",
+                         user=teacher)
+
+
+@app.route("/homeschool/cancel-subscription", methods=["GET", "POST"])
+def homeschool_cancel_subscription():
+    """Cancel homeschool parent subscription"""
+    if "parent_id" not in session:
+        return redirect("/homeschool/login")
+
+    parent_id = session["parent_id"]
+    parent = Parent.query.get(parent_id)
+
+    if not parent:
+        flash("Parent not found.", "error")
+        return redirect("/homeschool/dashboard")
+
+    if request.method == "POST":
+        # User confirmed cancellation
+        reason = request.form.get("reason", "No reason provided")
+        feedback = request.form.get("feedback", "")
+
+        # Log cancellation
+        app.logger.info(f"Homeschool parent {parent_id} canceled subscription. Reason: {reason}. Feedback: {feedback}")
+
+        # Deactivate subscription
+        parent.subscription_active = False
+        parent.plan = "free"
+
+        success, error = safe_commit()
+
+        if success:
+            flash("Your subscription has been canceled. You now have a free account.", "info")
+            return redirect("/homeschool/dashboard")
+        else:
+            flash("Error canceling subscription. Please contact support.", "error")
+            return redirect("/homeschool/cancel-subscription")
+
+    return render_template("cancel_subscription.html",
+                         user_type="homeschool",
+                         user=parent)
+
+
 @app.route("/logout")
 def logout():
     session.clear()

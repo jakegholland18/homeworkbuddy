@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancel Subscription - Cozmic Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .cancel-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .cancel-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .cancel-header h1 {
+            color: #764ba2;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .cancel-header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .user-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .user-info h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .user-info p {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .user-info .plan-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+
+        .warning-box h3 {
+            color: #856404;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .warning-box ul {
+            color: #856404;
+            margin-left: 20px;
+        }
+
+        .warning-box li {
+            margin: 5px 0;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .btn-cancel {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        .btn-keep {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-keep:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .flash.success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .flash.error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+        .flash.info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+
+        @media (max-width: 600px) {
+            .cancel-container {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .cancel-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cancel-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="cancel-header">
+            <h1>Cancel Your Subscription</h1>
+            <p>We're sorry to see you go!</p>
+        </div>
+
+        <div class="user-info">
+            <h2>Current Account</h2>
+            <p><strong>Name:</strong> {{ user.name }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>Account Type:</strong> {{ user_type.title() }}</p>
+            {% if user.subscription_active %}
+                <span class="plan-badge">{{ user.plan|upper }} - {{ user.billing|title }}</span>
+            {% else %}
+                <span class="plan-badge">Free Account</span>
+            {% endif %}
+        </div>
+
+        {% if user.subscription_active %}
+            <div class="warning-box">
+                <h3>⚠️ What happens when you cancel?</h3>
+                <ul>
+                    <li>Your subscription will be canceled immediately</li>
+                    <li>You'll be downgraded to a free account</li>
+                    <li>You'll lose access to premium features</li>
+                    <li>Your data will be preserved</li>
+                    <li>You can resubscribe anytime</li>
+                </ul>
+            </div>
+
+            <form method="POST" onsubmit="return confirm('Are you sure you want to cancel your subscription? This action cannot be undone.');">
+                <div class="form-group">
+                    <label for="reason">Why are you canceling? (Optional)</label>
+                    <select id="reason" name="reason">
+                        <option value="Too expensive">Too expensive</option>
+                        <option value="Not using it enough">Not using it enough</option>
+                        <option value="Missing features">Missing features I need</option>
+                        <option value="Technical issues">Technical issues</option>
+                        <option value="Switching to competitor">Switching to another service</option>
+                        <option value="No longer needed">No longer needed</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="feedback">Additional feedback (Optional)</label>
+                    <textarea id="feedback" name="feedback" placeholder="Help us improve by sharing your thoughts..."></textarea>
+                </div>
+
+                <div class="button-group">
+                    {% if user_type == 'student' %}
+                        <a href="/student/dashboard" class="btn btn-keep">Keep My Subscription</a>
+                    {% elif user_type == 'parent' %}
+                        <a href="/parent/dashboard" class="btn btn-keep">Keep My Subscription</a>
+                    {% elif user_type == 'teacher' %}
+                        <a href="/teacher/dashboard" class="btn btn-keep">Keep My Subscription</a>
+                    {% elif user_type == 'homeschool' %}
+                        <a href="/homeschool/dashboard" class="btn btn-keep">Keep My Subscription</a>
+                    {% endif %}
+                    <button type="submit" class="btn btn-cancel">Cancel Subscription</button>
+                </div>
+            </form>
+        {% else %}
+            <div class="warning-box">
+                <h3>ℹ️ No Active Subscription</h3>
+                <p>You don't have an active subscription to cancel. You're currently on a free account.</p>
+            </div>
+            <div class="button-group">
+                {% if user_type == 'student' %}
+                    <a href="/student/dashboard" class="btn btn-keep" style="width: 100%;">Return to Dashboard</a>
+                {% elif user_type == 'parent' %}
+                    <a href="/parent/dashboard" class="btn btn-keep" style="width: 100%;">Return to Dashboard</a>
+                {% elif user_type == 'teacher' %}
+                    <a href="/teacher/dashboard" class="btn btn-keep" style="width: 100%;">Return to Dashboard</a>
+                {% elif user_type == 'homeschool' %}
+                    <a href="/homeschool/dashboard" class="btn btn-keep" style="width: 100%;">Return to Dashboard</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
