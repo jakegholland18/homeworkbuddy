@@ -947,11 +947,12 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    resultDiv.innerHTML = `<span style="color: var(--success);">✅ Lesson plan created successfully!</span>`;
+                    resultDiv.innerHTML = `<span style="color: var(--success);">✅ Lesson plan created successfully! Redirecting...</span>`;
                     setTimeout(() => {
                         closeLessonModal();
-                        location.reload();
-                    }, 2000);
+                        // Redirect to the newly created lesson plan
+                        window.location.href = `/parent/lesson-plans/${data.lesson_plan_id}`;
+                    }, 1500);
                 } else {
                     resultDiv.innerHTML = `<span style="color: var(--warning);">Error: ${data.error || 'Failed to create lesson plan'}</span>`;
                 }
