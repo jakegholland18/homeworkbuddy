@@ -95,6 +95,59 @@ def migrate_arcade():
     })
 
 
+@admin_migrate_bp.route('/admin/migrate-stripe', methods=['GET', 'POST'])
+@require_migration_secret
+def migrate_stripe():
+    """
+    Run Stripe database migration via web endpoint
+
+    Usage:
+        https://your-site.com/admin/migrate-stripe?secret=migrate-arcade-2024-secure
+    """
+
+    output = []
+    success = True
+
+    def log(message):
+        output.append(message)
+        logging.info(message)
+
+    try:
+        log("🔧 Starting Stripe Database Migration...")
+        log("=" * 60)
+
+        # Import the migration function
+        from add_stripe_ids import add_stripe_columns
+
+        # Run migration
+        migration_success = add_stripe_columns()
+
+        if migration_success:
+            log("\n✅ Stripe fields added successfully!")
+            log("\n" + "=" * 60)
+            log("🎉 MIGRATION COMPLETE!")
+            log("\nStripe integration is now ready:")
+            log("  • Customer IDs will be saved on new subscriptions")
+            log("  • Subscription IDs will be tracked")
+            log("  • Webhooks can now find users by customer_id")
+            log("  • Cancellations will sync with Stripe")
+            log("=" * 60)
+        else:
+            success = False
+            log("❌ Migration failed - check logs above")
+
+    except Exception as e:
+        success = False
+        log(f"\n❌ ERROR: {str(e)}")
+        import traceback
+        log(traceback.format_exc())
+
+    return jsonify({
+        "success": success,
+        "output": "\n".join(output)
+    })
+
+
 @admin_migrate_bp.route('/admin/check-arcade-tables', methods=['GET'])
 @require_migration_secret
 def check_arcade_tables():
