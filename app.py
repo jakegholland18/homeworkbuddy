@@ -438,6 +438,7 @@ with app.app_context():
         print(f"⚠️ Migration warning: {e}")
     # ============================================================
 
+    # Seed owner account (with error handling for missing Stripe columns)
     seed_owner()
     # Attempt restore from backup if DB is empty
     restore_classes_from_json_if_empty()
