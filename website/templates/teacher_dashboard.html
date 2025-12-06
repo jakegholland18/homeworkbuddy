@@ -158,14 +158,20 @@
 
         /* ======================== LAYOUT ======================== */
         .layout {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 10px auto 40px;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             padding: 0 20px;
             position: relative;
             z-index: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
         }
 
         .card {
@@ -208,6 +214,10 @@
 
         .card.full-width {
             grid-column: 1 / -1;
+        }
+
+        .card.half-width {
+            grid-column: span 1;
         }
 
         .card h2 {
@@ -642,7 +652,7 @@
 <div class="layout">
 
     <!-- ============ CLASSES PANEL ============ -->
-    <div class="card">
+    <div class="card full-width">
         <h2>Your Classes</h2>
         <small>Create classes, add students, and open analytics.</small>
 
