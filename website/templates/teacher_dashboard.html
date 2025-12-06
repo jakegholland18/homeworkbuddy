@@ -1061,12 +1061,18 @@ async function generateLessonPlan() {
         });
 
         const data = await res.json();
-        
+
         if (res.ok && data.lesson_plan_id) {
             resultDiv.innerHTML = '<strong style="color: var(--success);">✓ Success!</strong> Lesson plan created. Redirecting...';
             setTimeout(() => {
                 window.location.href = data.redirect_url;
             }, 800);
+        } else if (data.redirect) {
+            // Homeschool account detected, redirect to homeschool dashboard
+            resultDiv.innerHTML = '<strong style="color: var(--warning);">⚠ Redirecting...</strong> Please use the homeschool dashboard';
+            setTimeout(() => {
+                window.location.href = data.redirect;
+            }, 1200);
         } else {
             resultDiv.innerHTML = `<p style="color: var(--warning);">Error: ${data.error || 'Failed to generate lesson plan'}</p>`;
         }

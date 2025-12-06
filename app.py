@@ -4526,6 +4526,19 @@ def teacher_save_preview_assignment():
 def teacher_generate_lesson_plan():
     """Generate a six-section lesson plan and save to database."""
     try:
+        # Check if user is a parent/homeschool account - redirect to homeschool lesson generation
+        if session.get("parent_id"):
+            parent_id = session.get("parent_id")
+            parent = Parent.query.get(parent_id)
+            if parent:
+                _, _, _, has_teacher_features = get_parent_plan_limits(parent)
+                if has_teacher_features:
+                    # This is a homeschool account, use homeschool lesson plan endpoint
+                    return jsonify({
+                        "error": "Please use the homeschool dashboard to create lesson plans",
+                        "redirect": "/homeschool/dashboard"
+                    }), 403
+
         # Check if admin mode or regular teacher
         teacher = get_current_teacher()
         if not teacher and is_admin():
