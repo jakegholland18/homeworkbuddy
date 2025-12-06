@@ -314,15 +314,21 @@ def seed_owner():
     OWNER_EMAIL = "jakegholland18@gmail.com"
     default_password = "Cash&Ollie123"
 
-    teacher = Teacher.query.filter_by(email=OWNER_EMAIL).first()
-    if not teacher:
-        t = Teacher(
-            name="Jake Holland",
-            email=OWNER_EMAIL,
-            password_hash=generate_password_hash(default_password)
-        )
-        db.session.add(t)
-        db.session.commit()
+    try:
+        teacher = Teacher.query.filter_by(email=OWNER_EMAIL).first()
+        if not teacher:
+            t = Teacher(
+                name="Jake Holland",
+                email=OWNER_EMAIL,
+                password_hash=generate_password_hash(default_password)
+            )
+            db.session.add(t)
+            db.session.commit()
+    except Exception as e:
+        # If query fails (e.g., missing columns), skip seeding
+        # This can happen if Stripe migration hasn't run yet
+        app.logger.warning(f"Could not seed owner account: {e}")
+        db.session.rollback()
 
 with app.app_context():
     db.create_all()  # ensure tables exist
