@@ -8697,6 +8697,14 @@ def ratelimit_handler(e):
 
 
 # ============================================================
+# ADMIN MIGRATION BLUEPRINT (Temporary - for arcade setup)
+# ============================================================
+
+from admin_migrate import admin_migrate_bp
+app.register_blueprint(admin_migrate_bp)
+
+
+# ============================================================
 # MAIN ENTRY (LOCAL DEV)
 # ============================================================
 
