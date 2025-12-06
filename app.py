@@ -159,29 +159,51 @@ from models import (
     QuestionLog,
 )
 from sqlalchemy import func
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, OperationalError
 import json
+import time
 
 # ------------------------------------------------------------
 # Database Helper Functions
 # ------------------------------------------------------------
 
-def safe_commit():
+def safe_commit(retries=3, delay=0.1):
     """
-    Safely commit database changes with error handling.
-    Returns (success: bool, error: str or None)
+    Safely commit database changes with error handling and retry logic.
+
+    Args:
+        retries: Number of retry attempts (default 3)
+        delay: Initial delay between retries in seconds (default 0.1)
+
+    Returns:
+        (success: bool, error: str or None)
     """
-    try:
-        db.session.commit()
-        return True, None
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        app.logger.error(f"Database commit failed: {str(e)}")
-        return False, str(e)
-    except Exception as e:
-        db.session.rollback()
-        app.logger.error(f"Unexpected error during commit: {str(e)}")
-        return False, str(e)
+    for attempt in range(retries):
+        try:
+            db.session.commit()
+            return True, None
+        except OperationalError as e:
+            # Database is locked - retry with exponential backoff
+            db.session.rollback()
+            if attempt < retries - 1:
+                wait_time = delay * (2 ** attempt)  # Exponential backoff
+                app.logger.warning(f"Database locked, retrying in {wait_time}s (attempt {attempt + 1}/{retries})")
+                time.sleep(wait_time)
+            else:
+                app.logger.error(f"Database commit failed after {retries} attempts: {str(e)}")
+                return False, str(e)
+        except SQLAlchemyError as e:
+            # Other database error - don't retry
+            db.session.rollback()
+            app.logger.error(f"Database commit failed: {str(e)}")
+            return False, str(e)
+        except Exception as e:
+            # Unexpected error - don't retry
+            db.session.rollback()
+            app.logger.error(f"Unexpected error during commit: {str(e)}")
+            return False, str(e)
+
+    return False, "Max retries exceeded"
 
 # ------------------------------------------------------------
 # Simple backup/restore for teachers/classes/students
@@ -265,14 +287,18 @@ app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # ============================================================
-# DATABASE CONNECTION POOLING (Performance Optimization)
+# DATABASE CONNECTION POOLING (Optimized for SQLite + Single Worker)
 # ============================================================
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_size": 10,          # Maximum number of connections to keep open
+    "pool_size": 5,           # Reduced for single worker (was 10)
     "pool_recycle": 3600,     # Recycle connections after 1 hour to prevent stale connections
     "pool_pre_ping": True,    # Test connection health before using (prevents stale connection errors)
-    "max_overflow": 5,        # Allow up to 5 extra connections when pool is full
+    "max_overflow": 2,        # Reduced overflow (was 5)
     "pool_timeout": 30,       # Wait up to 30 seconds for available connection before failing
+    "connect_args": {
+        "timeout": 20,        # SQLite-specific: wait up to 20s for lock
+        "check_same_thread": False,  # Allow SQLite usage across threads
+    }
 }
 
 db.init_app(app)
@@ -1155,6 +1181,40 @@ def recompute_student_ability(student: Student):
 
     db.session.commit()
 
+
+# ============================================================
+# GLOBAL ERROR HANDLERS
+# ============================================================
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    """Handle 500 errors gracefully"""
+    db.session.rollback()  # Rollback any failed transactions
+    app.logger.error(f"500 Internal Server Error: {str(error)}")
+    return render_template("error.html",
+                         error_code=500,
+                         error_message="Something went wrong. Please try again."), 500
+
+@app.errorhandler(404)
+def page_not_found(error):
+    """Handle 404 errors"""
+    return render_template("error.html",
+                         error_code=404,
+                         error_message="Page not found"), 404
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    """Catch-all exception handler to prevent crashes"""
+    db.session.rollback()
+    app.logger.error(f"Unhandled exception: {str(error)}", exc_info=True)
+
+    # Return JSON for API endpoints, HTML for web pages
+    if request.path.startswith('/api/') or request.is_json:
+        return jsonify({"error": "An error occurred. Please try again."}), 500
+
+    return render_template("error.html",
+                         error_code=500,
+                         error_message="An unexpected error occurred. Please try again."), 500
 
 # ============================================================
 # CORE ROUTES – LANDING + SUBJECTS
